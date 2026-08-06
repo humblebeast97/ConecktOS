@@ -1,0 +1,249 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * GroomPulse design system — dark luxury salon OS.
+ * Slate/Zinc surfaces with a warm gold accent and emerald for success states.
+ * All colors are oklch semantic tokens. Never hardcode colors in components.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --shadow-lux: 0 20px 50px -25px oklch(0 0 0 / 0.8);
+  --shadow-gold: 0 12px 40px -14px oklch(0.82 0.15 85 / 0.5);
+}
+
+:root {
+  --radius: 0.9rem;
+
+  --background: oklch(0.17 0.014 260);
+  --foreground: oklch(0.97 0.004 260);
+  --surface: oklch(0.235 0.016 260);
+
+  --card: oklch(0.222 0.016 260);
+  --card-foreground: oklch(0.97 0.004 260);
+  --popover: oklch(0.222 0.016 260);
+  --popover-foreground: oklch(0.97 0.004 260);
+
+  --primary: oklch(0.82 0.145 85);
+  --primary-foreground: oklch(0.19 0.02 80);
+
+  --gold: oklch(0.82 0.145 85);
+  --gold-foreground: oklch(0.19 0.02 80);
+
+  --secondary: oklch(0.285 0.018 260);
+  --secondary-foreground: oklch(0.95 0.005 260);
+
+  --muted: oklch(0.28 0.017 260);
+  --muted-foreground: oklch(0.7 0.02 260);
+
+  --accent: oklch(0.315 0.02 260);
+  --accent-foreground: oklch(0.97 0.004 260);
+
+  --destructive: oklch(0.62 0.21 22);
+  --destructive-foreground: oklch(0.98 0.01 20);
+
+  --success: oklch(0.72 0.15 162);
+  --success-foreground: oklch(0.18 0.03 162);
+
+  --warning: oklch(0.8 0.15 70);
+  --warning-foreground: oklch(0.2 0.03 70);
+
+  --border: oklch(0.32 0.018 260);
+  --input: oklch(0.3 0.018 260);
+  --ring: oklch(0.82 0.145 85);
+
+  --chart-1: oklch(0.82 0.145 85);
+  --chart-2: oklch(0.72 0.15 162);
+  --chart-3: oklch(0.65 0.13 250);
+  --chart-4: oklch(0.7 0.16 25);
+  --chart-5: oklch(0.75 0.1 300);
+
+  --sidebar: oklch(0.2 0.015 260);
+  --sidebar-foreground: oklch(0.95 0.005 260);
+  --sidebar-primary: oklch(0.82 0.145 85);
+  --sidebar-primary-foreground: oklch(0.19 0.02 80);
+  --sidebar-accent: oklch(0.28 0.017 260);
+  --sidebar-accent-foreground: oklch(0.97 0.004 260);
+  --sidebar-border: oklch(0.32 0.018 260);
+  --sidebar-ring: oklch(0.82 0.145 85);
+}
+
+/*
+ * Per-industry accent themes (Coneckt ecosystem). Applied to <html> by
+ * IndustryProvider via each industry's `accentClass`. Each block repoints the
+ * accent tokens — primary, gold, ring, sidebar accents, the gold gradient and
+ * shadow — at that industry's brand color, so buttons, headers, active nav and
+ * highlights recolor without touching component markup.
+ */
+.theme-default,
+.theme-beauty,
+.theme-carwash,
+.theme-tailoring,
+.theme-nightlife,
+.theme-repair {
+  --primary: var(--brand);
+  --gold: var(--brand);
+  --ring: var(--brand);
+  --chart-1: var(--brand);
+  --sidebar-primary: var(--brand);
+  --sidebar-ring: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+  --gold-foreground: var(--brand-foreground);
+  --sidebar-primary-foreground: var(--brand-foreground);
+  --background-image-gradient-gold: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--brand), white 16%),
+    color-mix(in srgb, var(--brand), black 12%)
+  );
+  --shadow-gold: 0 12px 40px -14px color-mix(in srgb, var(--brand), transparent 52%);
+}
+
+.theme-default {
+  --brand: #0ea5e9;
+  /* Sky is light — dark text on it scores ~8:1 vs ~2.7:1 for white. */
+  --brand-foreground: oklch(0.22 0.04 240);
+}
+.theme-beauty {
+  --brand: #d4af37;
+  --brand-foreground: oklch(0.19 0.02 80);
+}
+.theme-carwash {
+  --brand: #0066ff;
+  --brand-foreground: oklch(0.99 0.01 240);
+}
+.theme-tailoring {
+  --brand: #8b5cf6;
+  --brand-foreground: oklch(0.99 0.01 280);
+}
+.theme-nightlife {
+  --brand: #f43f5e;
+  /* Rose reads better with dark text (~5.4:1) than white (~3.5:1). */
+  --brand-foreground: oklch(0.2 0.04 20);
+}
+.theme-repair {
+  --brand: #f59e0b;
+  --brand-foreground: oklch(0.2 0.03 70);
+}
+
+@theme {
+  --background-image-gradient-gold: linear-gradient(
+    135deg,
+    oklch(0.86 0.13 92),
+    oklch(0.75 0.15 68)
+  );
+  --background-image-gradient-surface: linear-gradient(
+    160deg,
+    oklch(0.24 0.017 260),
+    oklch(0.19 0.014 262)
+  );
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    color-scheme: dark;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv01";
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+}
+
+@utility card-lux {
+  background-image: var(--background-image-gradient-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lux);
+}
+
+@utility text-gradient-gold {
+  background-image: var(--background-image-gradient-gold);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility no-print {
+  @media print {
+    display: none !important;
+  }
+}
+
+/* Page crossfade (View Transitions API, enabled via router defaultViewTransition). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 220ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}

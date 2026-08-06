@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Offline · ConecktOS</title>
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        background:
+          radial-gradient(60% 50% at 50% 30%, rgba(14, 165, 233, 0.18), transparent 70%),
+          #0f172a;
+        color: #e2e8f0;
+        text-align: center;
+      }
+      .card { max-width: 24rem; }
+      .badge {
+        width: 64px; height: 64px; margin: 0 auto 20px;
+        display: grid; place-items: center;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #38bdf8, #0284c7);
+        box-shadow: 0 12px 40px -14px rgba(14, 165, 233, 0.55);
+      }
+      h1 { font-size: 1.4rem; margin: 0 0 8px; color: #fff; letter-spacing: -0.02em; }
+      p { margin: 0 0 22px; font-size: 0.95rem; line-height: 1.6; color: #94a3b8; }
+      button {
+        appearance: none; border: 0; cursor: pointer;
+        background: linear-gradient(135deg, #38bdf8, #0284c7);
+        color: #0b2530; font-weight: 600; font-size: 0.95rem;
+        padding: 12px 22px; border-radius: 12px; min-height: 44px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="badge" aria-hidden="true">
+        <svg width="34" height="34" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M256 148 168 344 344 344 Z" stroke="#fff" stroke-width="20" stroke-linejoin="round" />
+          <circle cx="256" cy="148" r="30" fill="#fff" />
+          <circle cx="168" cy="344" r="30" fill="#fff" />
+          <circle cx="344" cy="344" r="30" fill="#fff" />
+        </svg>
+      </div>
+      <h1>You're offline</h1>
+      <p>ConecktOS can't reach the network right now. Check your connection and try again.</p>
+      <button onclick="location.reload()">Retry</button>
+    </div>
+  </body>
+</html>
