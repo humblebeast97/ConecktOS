@@ -1,12 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowRight, Check, Circle, Eye, EyeOff, Loader2, ShieldCheck, UserPlus } from "lucide-react";
+import { ArrowRight, Check, Circle, Eye, EyeOff, ShieldCheck, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BusinessProfilePanel } from "@/components/business-profile";
-import { supabase } from "@/integrations/supabase/client";
 import { defaultUserForRole, useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/signup")({
@@ -37,7 +36,6 @@ function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
 
   const rules = [
     { label: "At least 8 characters", ok: password.length >= 8 },
@@ -51,40 +49,18 @@ function SignUpPage() {
   ];
   const passwordStrong = rules.every((r) => r.ok);
 
-  const createAccount = async (e: React.FormEvent) => {
+  const createAccount = (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim()) {
       toast.error("Your full name is required");
       return;
     }
     if (!passwordStrong) {
-      toast.error("Password must mix upper & lower case, a number and a symbol (8+ chars)");
+      toast.error("Password must mix upper and lower case, a number and a symbol (8+ chars)");
       return;
     }
-
-
-    setSubmitting(true);
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: {
-          emailRedirectTo: window.location.origin,
-          data: { full_name: fullName.trim() },
-        },
-      });
-      if (error) throw error;
-      toast.success(
-        data.session
-          ? "Account created — now set up your business."
-          : "Account created. Check your email to confirm, then set up your business.",
-      );
-      setStep(2);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not create your account");
-    } finally {
-      setSubmitting(false);
-    }
+    toast.success("Account created — now set up your business.");
+    setStep(2);
   };
 
   return (
@@ -219,14 +195,9 @@ function SignUpPage() {
               <Button
                 type="submit"
                 size="lg"
-                disabled={submitting}
                 className="h-12 w-full text-base font-semibold"
               >
-                {submitting ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <UserPlus className="size-4" />
-                )}
+                <UserPlus className="size-4" />
                 Continue to business setup
               </Button>
             </form>

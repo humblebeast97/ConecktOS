@@ -2,7 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
   AlertTriangle,
+  ArrowDown,
+  ArrowUp,
   Banknote,
+  ChevronsUpDown,
   Clock,
   Flame,
   FileDown,
@@ -47,6 +50,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useStore } from "@/lib/store";
+import { useRoleGuard } from "@/lib/access";
 import {
   expenseLabel,
   naira,
@@ -77,7 +81,10 @@ export const Route = createFileRoute("/admin")({
   component: AdminPage,
 });
 
+const ADMIN_ROLES = ["owner"] as const;
+
 function AdminPage() {
+  useRoleGuard(ADMIN_ROLES);
   const config = useIndustryConfig();
   const {
     salon,
@@ -97,6 +104,37 @@ function AdminPage() {
     [tickets, ticketItems, usage, inventory, expenses],
   );
   const offsiteAlerts = attendance.filter((a) => !a.is_within_geofence);
+
+  const [attSort, setAttSort] = useState<{
+    key: "name" | "clock" | "commission";
+    dir: "asc" | "desc";
+  }>({ key: "commission", dir: "desc" });
+
+  const toggleSort = (key: "name" | "clock" | "commission") =>
+    setAttSort((s) => (s.key === key ? { key, dir: s.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" }));
+
+  const ariaSort = (key: "name" | "clock" | "commission") =>
+    attSort.key === key ? (attSort.dir === "asc" ? "ascending" : "descending") : "none";
+
+  const attRows = useMemo(() => {
+    const rows = staff.map((s) => ({
+      s,
+      att: attendance.find((a) => a.staff_id === s.id),
+      earned: ticketItems
+        .filter((i) => i.staff_id === s.id)
+        .reduce((sum, i) => sum + i.staff_commission_amount, 0),
+    }));
+    const dir = attSort.dir === "asc" ? 1 : -1;
+    return rows.sort((a, b) => {
+      if (attSort.key === "name") return a.s.full_name.localeCompare(b.s.full_name) * dir;
+      if (attSort.key === "clock") {
+        const at = a.att ? new Date(a.att.clock_in_time).getTime() : Infinity;
+        const bt = b.att ? new Date(b.att.clock_in_time).getTime() : Infinity;
+        return (at - bt) * dir;
+      }
+      return (a.earned - b.earned) * dir;
+    });
+  }, [staff, attendance, ticketItems, attSort]);
 
   return (
     <AppShell
@@ -124,7 +162,7 @@ function AdminPage() {
           icon={Wallet}
         />
         <MetricCard
-          label="Generator fuel"
+          label={config.powerCostLabel}
           value={naira(audit.fuelExpense)}
           hint={`${audit.generatorHours}h run · ${naira(audit.overheadPerService)}/service`}
           icon={Fuel}
@@ -196,71 +234,88 @@ function AdminPage() {
             <h2 className="text-lg font-bold">{config.staffPlural} attendance & earnings</h2>
             <Clock className="size-4 text-muted-foreground" />
           </div>
-          <div className="overflow-x-auto">
+          {/* Desktop / tablet: full table */}
+          <div className="hidden overflow-x-auto md:block">
             <Table>
               <TableHeader>
                 <TableRow className="border-border hover:bg-transparent">
-                  <TableHead>{config.staffTitle}</TableHead>
-                  <TableHead>Clock in</TableHead>
+                  <TableHead aria-sort={ariaSort("name")}>
+                    <SortButton label={config.staffTitle} active={attSort.key === "name"} dir={attSort.dir} onClick={() => toggleSort("name")} />
+                  </TableHead>
+                  <TableHead aria-sort={ariaSort("clock")}>
+                    <SortButton label="Clock in" active={attSort.key === "clock"} dir={attSort.dir} onClick={() => toggleSort("clock")} />
+                  </TableHead>
                   <TableHead>Geofence</TableHead>
-                  <TableHead className="text-right">Commission</TableHead>
+                  <TableHead className="text-right" aria-sort={ariaSort("commission")}>
+                    <SortButton label="Commission" active={attSort.key === "commission"} dir={attSort.dir} onClick={() => toggleSort("commission")} align="right" />
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {staff.map((s) => {
-                  const att = attendance.find((a) => a.staff_id === s.id);
-                  const earned = ticketItems
-                    .filter((i) => i.staff_id === s.id)
-                    .reduce((sum, i) => sum + i.staff_commission_amount, 0);
-                  return (
-                    <TableRow key={s.id} className="border-border">
-                      <TableCell className="font-medium">
-                        {s.full_name}
-                        <span className="block text-xs text-muted-foreground">
-                          {Math.round(s.commission_rate * 100)}% rate
+                {attRows.map(({ s, att, earned }) => (
+                  <TableRow key={s.id} className="border-border">
+                    <TableCell className="font-medium">
+                      {s.full_name}
+                      <span className="block text-xs text-muted-foreground">
+                        {Math.round(s.commission_rate * 100)}% rate
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {att ? timeOf(att.clock_in_time) : "—"}
+                      {att ? (
+                        <span
+                          className={
+                            att.status === "late"
+                              ? "block text-xs text-warning"
+                              : "block text-xs text-success"
+                          }
+                        >
+                          {att.status === "late" ? "Late" : "On time"}
                         </span>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {att ? timeOf(att.clock_in_time) : "—"}
-                        {att ? (
-                          <span
-                            className={
-                              att.status === "late"
-                                ? "block text-xs text-warning"
-                                : "block text-xs text-success"
-                            }
-                          >
-                            {att.status === "late" ? "Late" : "On time"}
-                          </span>
-                        ) : null}
-                      </TableCell>
-                      <TableCell>
-                        {att ? (
-                          <Badge
-                            variant="outline"
-                            className={
-                              att.is_within_geofence
-                                ? "border-success/40 text-success"
-                                : "border-destructive/40 text-destructive"
-                            }
-                          >
-                            {att.is_within_geofence ? "Verified" : "Flagged"}
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-muted-foreground">
-                            Absent
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right font-semibold text-primary">
-                        {naira(earned)}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                      ) : null}
+                    </TableCell>
+                    <TableCell>
+                      <GeofenceBadge att={att} />
+                    </TableCell>
+                    <TableCell className="text-right font-semibold tabular-nums text-primary">
+                      {naira(earned)}
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>
+
+          {/* Mobile: stacked cards */}
+          <ul className="divide-y divide-border md:hidden">
+            {attRows.map(({ s, att, earned }) => (
+              <li key={s.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">{s.full_name}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {Math.round(s.commission_rate * 100)}% rate ·{" "}
+                    {att ? (
+                      <>
+                        in {timeOf(att.clock_in_time)}
+                        <span className={att.status === "late" ? "text-warning" : "text-success"}>
+                          {" "}
+                          ({att.status === "late" ? "late" : "on time"})
+                        </span>
+                      </>
+                    ) : (
+                      "not clocked in"
+                    )}
+                  </p>
+                  <div className="mt-1.5">
+                    <GeofenceBadge att={att} />
+                  </div>
+                </div>
+                <span className="shrink-0 text-sm font-semibold tabular-nums text-primary">
+                  {naira(earned)}
+                </span>
+              </li>
+            ))}
+          </ul>
         </section>
 
         <div className="space-y-5">
@@ -277,7 +332,8 @@ function AdminPage() {
             <h2 className="text-lg font-bold">Expense log</h2>
             <Flame className="size-4 text-muted-foreground" />
           </div>
-          <div className="overflow-x-auto">
+          {/* Desktop / tablet: full table */}
+          <div className="hidden overflow-x-auto md:block">
             <Table>
               <TableHeader>
                 <TableRow className="border-border hover:bg-transparent">
@@ -297,12 +353,36 @@ function AdminPage() {
                     <TableCell className="text-muted-foreground">
                       {e.generator_hours_run ?? "—"}
                     </TableCell>
-                    <TableCell className="text-right font-semibold">{naira(e.amount)}</TableCell>
+                    <TableCell className="text-right font-semibold tabular-nums">
+                      {naira(e.amount)}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
+
+          {/* Mobile: stacked cards */}
+          <ul className="divide-y divide-border md:hidden">
+            {expenses.length === 0 ? (
+              <li className="px-5 py-4 text-sm text-muted-foreground">No expenses logged yet.</li>
+            ) : (
+              expenses.map((e) => (
+                <li key={e.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold">{expenseLabel[e.category]}</p>
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                      {e.notes || "No notes"}
+                      {e.generator_hours_run != null ? ` · ${e.generator_hours_run}h run` : ""}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-sm font-semibold tabular-nums">
+                    {naira(e.amount)}
+                  </span>
+                </li>
+              ))
+            )}
+          </ul>
         </section>
       </div>
 
@@ -515,7 +595,7 @@ function CloseDayDialog() {
           />
         </div>
 
-        <div className="rounded-2xl border border-border bg-gradient-surface p-5">
+        <div className="audit-print rounded-2xl border border-border bg-gradient-surface p-5">
           <p className="font-display text-sm font-bold">{salon.name}</p>
           <p className="text-xs text-muted-foreground">
             {isTodaySelected ? "Daily audit" : "Day audit"} ·{" "}
@@ -577,9 +657,68 @@ function CloseDayDialog() {
   );
 }
 
+function GeofenceBadge({ att }: { att?: { is_within_geofence: boolean; clock_in_lat: number | null } }) {
+  if (!att) {
+    return (
+      <Badge variant="outline" className="text-muted-foreground">
+        Absent
+      </Badge>
+    );
+  }
+  return (
+    <Badge
+      variant="outline"
+      className={
+        att.is_within_geofence
+          ? "border-success/40 text-success"
+          : att.clock_in_lat === null
+            ? "border-warning/40 text-warning"
+            : "border-destructive/40 text-destructive"
+      }
+    >
+      {att.is_within_geofence ? "Verified" : att.clock_in_lat === null ? "Unverified" : "Flagged"}
+    </Badge>
+  );
+}
+
+function SortButton({
+  label,
+  active,
+  dir,
+  onClick,
+  align,
+}: {
+  label: string;
+  active: boolean;
+  dir: "asc" | "desc";
+  onClick: () => void;
+  align?: "right";
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex cursor-pointer items-center gap-1 font-medium transition-colors hover:text-foreground ${
+        align === "right" ? "flex-row-reverse" : ""
+      } ${active ? "text-foreground" : ""}`}
+    >
+      {label}
+      {active ? (
+        dir === "asc" ? (
+          <ArrowUp className="size-3.5" />
+        ) : (
+          <ArrowDown className="size-3.5" />
+        )
+      ) : (
+        <ChevronsUpDown className="size-3.5 opacity-50" />
+      )}
+    </button>
+  );
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="mt-5 border-t border-border pt-4">
+    <div className="audit-section mt-5 border-t border-border pt-4">
       <p className="text-xs font-semibold uppercase tracking-wider text-primary">{title}</p>
       <div className="mt-2 space-y-1.5">{children}</div>
     </div>

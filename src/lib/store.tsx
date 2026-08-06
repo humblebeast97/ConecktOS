@@ -2,6 +2,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -72,8 +73,8 @@ interface StoreValue {
   staff: Profile[];
   clockIn: (
     staffId: string,
-    coords: { lat: number; lng: number },
-  ) => { withinGeofence: boolean; distance: number };
+    coords: { lat: number; lng: number } | null,
+  ) => { withinGeofence: boolean; distance: number | null };
   clockOut: (staffId: string) => void;
   openAttendanceFor: (staffId: string) => Attendance | undefined;
   createTicket: (input: CreateTicketInput) => Ticket;
@@ -124,6 +125,9 @@ interface StoreValue {
 
 const StoreContext = createContext<StoreValue | null>(null);
 
+/** localStorage key for the persisted demo state. Bump the suffix to reset all clients. */
+const STORE_KEY = "conecktos-store-v1";
+
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [salon, setSalon] = useState<Salon>(seedSalon);
   const [profiles, setProfiles] = useState<Profile[]>(seedProfiles);
@@ -135,6 +139,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [attendance, setAttendance] = useState<Attendance[]>(seedAttendance);
   const [expenses, setExpenses] = useState<Expense[]>(seedExpenses);
   const [currentUserId, setCurrentUserId] = useState<string>("u-owner");
+  // Gates persistence until after we've hydrated from localStorage, so the seed
+  // state can't overwrite a saved session on first mount.
+  const [hydrated, setHydrated] = useState(false);
 
   const currentUser = useMemo(
     () => profiles.find((p) => p.id === currentUserId) ?? profiles[0],
@@ -150,24 +157,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 
   const clockIn = useCallback(
-    (staffId: string, coords: { lat: number; lng: number }) => {
-      const distance = haversineMeters(
-        coords.lat,
-        coords.lng,
-        seedSalon.latitude,
-        seedSalon.longitude,
-      );
-      const withinGeofence = distance <= seedSalon.geofence_radius_meters;
+    (staffId: string, coords: { lat: number; lng: number } | null) => {
       const now = new Date();
       const late = now.getHours() > 9 || (now.getHours() === 9 && now.getMinutes() > 15);
+      // No location → record honestly as unverified; never invent coordinates.
+      const distance = coords
+        ? haversineMeters(coords.lat, coords.lng, seedSalon.latitude, seedSalon.longitude)
+        : null;
+      const withinGeofence = distance !== null && distance <= seedSalon.geofence_radius_meters;
       setAttendance((prev) => [
         {
           id: uid("att"),
           staff_id: staffId,
           clock_in_time: now.toISOString(),
           clock_out_time: null,
-          clock_in_lat: coords.lat,
-          clock_in_lng: coords.lng,
+          clock_in_lat: coords?.lat ?? null,
+          clock_in_lng: coords?.lng ?? null,
           is_within_geofence: withinGeofence,
           status: late ? "late" : "on_time",
         },
@@ -340,6 +345,66 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setInventory((prev) => prev.map((i) => ({ ...i, quantity: 0 })));
   }, []);
 
+  // Hydrate once from localStorage after mount (kept out of the initial render to
+  // avoid SSR hydration mismatches).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(STORE_KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s.salon) setSalon(s.salon);
+        if (s.profiles) setProfiles(s.profiles);
+        if (s.inventory) setInventory(s.inventory);
+        if (s.services) setServices(s.services);
+        if (s.tickets) setTickets(s.tickets);
+        if (s.ticketItems) setTicketItems(s.ticketItems);
+        if (s.usage) setUsage(s.usage);
+        if (s.attendance) setAttendance(s.attendance);
+        if (s.expenses) setExpenses(s.expenses);
+        if (s.currentUserId) setCurrentUserId(s.currentUserId);
+      }
+    } catch {
+      // Corrupt/blocked storage — fall back to seed state.
+    }
+    setHydrated(true);
+  }, []);
+
+  // Persist on every change, once hydrated.
+  useEffect(() => {
+    if (typeof window === "undefined" || !hydrated) return;
+    try {
+      window.localStorage.setItem(
+        STORE_KEY,
+        JSON.stringify({
+          salon,
+          profiles,
+          inventory,
+          services,
+          tickets,
+          ticketItems,
+          usage,
+          attendance,
+          expenses,
+          currentUserId,
+        }),
+      );
+    } catch {
+      // Storage full/blocked — ignore.
+    }
+  }, [
+    hydrated,
+    salon,
+    profiles,
+    inventory,
+    services,
+    tickets,
+    ticketItems,
+    usage,
+    attendance,
+    expenses,
+    currentUserId,
+  ]);
 
   const value: StoreValue = {
     salon,

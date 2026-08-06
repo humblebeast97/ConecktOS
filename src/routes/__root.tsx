@@ -122,6 +122,12 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        {/* Apply the industry accent theme before first paint to avoid a flash. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var p=location.pathname;var t='theme-default';if(p!=='/'&&p!=='/signup'&&p!=='/join'){var raw=localStorage.getItem('conecktos-store-v1');var bt=raw?(JSON.parse(raw).salon||{}).business_type:null;var m={beauty:'theme-beauty',car_wash:'theme-carwash',tailoring:'theme-tailoring',nightlife:'theme-nightlife',repair:'theme-repair'};t=m[bt]||'theme-beauty';}document.documentElement.classList.add(t);}catch(e){}})();`,
+          }}
+        />
       </head>
       <body>
         {children}

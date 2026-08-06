@@ -74,34 +74,32 @@ function StaffPortal() {
 
   const handleClockIn = () => {
     setLocating(true);
-    const finish = (lat: number, lng: number) => {
-      const { withinGeofence, distance } = clockIn(me.id, { lat, lng });
+    const finish = (coords: { lat: number; lng: number } | null) => {
+      const { withinGeofence, distance } = clockIn(me.id, coords);
       setLocating(false);
-      if (withinGeofence) {
+      if (coords === null) {
+        toast.error("Location unavailable", {
+          description: "Clock-in recorded as unverified for the owner to review.",
+        });
+      } else if (withinGeofence) {
         toast.success("Clocked in", {
-          description: `Verified ${Math.round(distance)}m from ${salon.name}.`,
+          description: `Verified ${Math.round(distance ?? 0)}m from ${salon.name}.`,
         });
       } else {
         toast.warning("Clocked in outside geofence", {
-          description: `You are ${Math.round(distance)}m away. The owner has been alerted.`,
+          description: `You are ${Math.round(distance ?? 0)}m away. The owner has been alerted.`,
         });
       }
     };
 
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      finish(salon.latitude, salon.longitude);
+      // Can't verify location on this device — record honestly as unverified.
+      finish(null);
       return;
     }
     navigator.geolocation.getCurrentPosition(
-      (pos) => finish(pos.coords.latitude, pos.coords.longitude),
-      () => {
-        // Permission denied / unavailable — record the attempt from salon-adjacent coords
-        // so the geofence still evaluates and flags it as unverified.
-        finish(salon.latitude + 0.004, salon.longitude + 0.004);
-        toast.error("Location unavailable", {
-          description: "Clock-in recorded as unverified for the owner to review.",
-        });
-      },
+      (pos) => finish({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => finish(null),
       { enableHighAccuracy: true, timeout: 8000 },
     );
   };
@@ -260,7 +258,7 @@ function StaffPortal() {
 function TipQrDialog() {
   const { currentUser, staff, salon } = useStore();
   const me = currentUser.role === "staff" ? currentUser : staff[0];
-  const tipUrl = `https://paystack.com/pay/groompulse-tip?subaccount=${me.paystack_subaccount_code ?? "pending"}&staff=${encodeURIComponent(me.full_name)}`;
+  const tipUrl = `https://paystack.com/pay/conecktos-tip?subaccount=${me.paystack_subaccount_code ?? "pending"}&staff=${encodeURIComponent(me.full_name)}`;
 
   return (
     <Dialog>

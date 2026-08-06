@@ -20,6 +20,8 @@ export interface IndustryConfig {
   serviceTitle: string;
   clientAssetLabel: string;
   inventoryUnitLabel: string;
+  /** Label for the headline power/fuel overhead KPI, per industry. */
+  powerCostLabel: string;
   showTipping: boolean;
   showInventory: boolean;
 }
@@ -36,6 +38,7 @@ export const industryConfigs: Record<BusinessType, IndustryConfig> = {
     serviceTitle: "Haircut / Treatment",
     clientAssetLabel: "Client Name",
     inventoryUnitLabel: "Consumable Items (Dyes, Creams)",
+    powerCostLabel: "Generator fuel",
     showTipping: true,
     showInventory: true,
   },
@@ -50,6 +53,7 @@ export const industryConfigs: Record<BusinessType, IndustryConfig> = {
     serviceTitle: "Wash / Polish Type",
     clientAssetLabel: "Vehicle Plate Number",
     inventoryUnitLabel: "Chemicals & Soaps (Liters)",
+    powerCostLabel: "Water & power",
     showTipping: true,
     showInventory: true,
   },
@@ -64,6 +68,7 @@ export const industryConfigs: Record<BusinessType, IndustryConfig> = {
     serviceTitle: "Garment / Style",
     clientAssetLabel: "Customer & Style Reference",
     inventoryUnitLabel: "Fabrics, Threads & Zippers",
+    powerCostLabel: "Power & utilities",
     showTipping: false,
     showInventory: true,
   },
@@ -78,6 +83,7 @@ export const industryConfigs: Record<BusinessType, IndustryConfig> = {
     serviceTitle: "Bottle / Shisha / Service",
     clientAssetLabel: "Guest Name / Tab",
     inventoryUnitLabel: "Bottles, Mixers & Shisha Charcoal",
+    powerCostLabel: "Generator fuel",
     showTipping: true,
     showInventory: true,
   },
@@ -92,6 +98,7 @@ export const industryConfigs: Record<BusinessType, IndustryConfig> = {
     serviceTitle: "Repair Type",
     clientAssetLabel: "Device Serial / IMEI",
     inventoryUnitLabel: "Spare Parts (Screens, Batteries)",
+    powerCostLabel: "Power & tools",
     showTipping: true,
     showInventory: true,
   },
@@ -112,6 +119,7 @@ export const defaultConfig: IndustryConfig = {
   serviceTitle: "Service",
   clientAssetLabel: "Customer Name",
   inventoryUnitLabel: "Inventory Items",
+  powerCostLabel: "Power & fuel",
   showTipping: true,
   showInventory: true,
 };

@@ -150,10 +150,10 @@ function ServiceRow({ service }: { service: Service }) {
             aria-label="Duration in minutes"
           />
           <div className="flex gap-1 justify-self-end">
-            <Button size="icon" variant="ghost" className="text-success" onClick={save}>
+            <Button size="icon" variant="ghost" className="text-success" onClick={save} aria-label="Save changes">
               <Check className="size-4" />
             </Button>
-            <Button size="icon" variant="ghost" className="text-muted-foreground" onClick={cancel}>
+            <Button size="icon" variant="ghost" className="text-muted-foreground" onClick={cancel} aria-label="Cancel editing">
               <X className="size-4" />
             </Button>
           </div>

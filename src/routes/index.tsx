@@ -96,7 +96,7 @@ function LoginPage() {
           </h1>
           <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
             ConecktOS handles geofenced staff clock-ins, automatic commission splits,
-            consumables tracking, generator costs and a fraud-proof end-of-day audit — on
+            consumables tracking, overheads and a fraud-proof end-of-day audit — on
             any phone, tablet or desktop.
           </p>
           <dl className="mt-8 grid grid-cols-2 gap-3 sm:max-w-md">
@@ -124,6 +124,16 @@ function LoginPage() {
             className="mt-5 grid grid-cols-3 gap-2"
             role="radiogroup"
             aria-label="Select your role"
+            onKeyDown={(e) => {
+              if (!["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(e.key)) return;
+              e.preventDefault();
+              const idx = roles.findIndex((r) => r.role === role);
+              const dir = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1;
+              const next = (idx + dir + roles.length) % roles.length;
+              setRole(roles[next].role);
+              const btns = e.currentTarget.querySelectorAll<HTMLButtonElement>('[role="radio"]');
+              btns[next]?.focus();
+            }}
           >
             {roles.map((r) => {
               const selected = r.role === role;
@@ -133,6 +143,7 @@ function LoginPage() {
                   type="button"
                   role="radio"
                   aria-checked={selected}
+                  tabIndex={selected ? 0 : -1}
                   onClick={() => setRole(r.role)}
                   className={
                     selected
@@ -222,7 +233,7 @@ function LoginPage() {
 
           <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
             <ShieldCheck className="size-3.5 shrink-0 text-success" />
-            Your data is isolated per business and secured end-to-end.
+            One workspace for your whole team — owner, front desk and floor staff.
           </p>
         </section>
       </div>

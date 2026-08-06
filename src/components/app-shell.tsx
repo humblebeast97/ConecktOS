@@ -19,7 +19,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuGroup,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
@@ -49,7 +48,7 @@ export function AppShell({
   children: ReactNode;
   actions?: ReactNode;
 }) {
-  const { profiles, currentUser, signIn } = useStore();
+  const { currentUser } = useStore();
   const config = useIndustryConfig();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -124,29 +123,6 @@ export function AppShell({
                     {roleLabel[currentUser.role]}
                   </span>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                  Switch profile
-                </DropdownMenuLabel>
-                <DropdownMenuGroup>
-                  {profiles.map((p) => (
-                    <DropdownMenuItem
-                      key={p.id}
-                      onSelect={() => signIn(p.id)}
-                      className="gap-2"
-                    >
-                      <Avatar className="size-6">
-                        <AvatarFallback className="bg-accent text-[10px] font-semibold text-muted-foreground">
-                          {initialsOf(p.full_name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="min-w-0 flex-1 truncate text-sm">{p.full_name}</span>
-                      <span className="shrink-0 text-[11px] text-muted-foreground">
-                        {roleLabel[p.role]}
-                      </span>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onSelect={() => navigate({ to: "/" })}

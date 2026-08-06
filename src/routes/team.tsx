@@ -3,6 +3,7 @@ import { BadgeCheck, Percent, Users } from "lucide-react";
 import { AppShell, MetricCard } from "@/components/app-shell";
 import { TeamOnboarding } from "@/components/team-onboarding";
 import { useStore } from "@/lib/store";
+import { useRoleGuard } from "@/lib/access";
 import { earnsCommission } from "@/lib/groompulse";
 import { useIndustryConfig } from "@/config/industry-context";
 
@@ -28,7 +29,10 @@ export const Route = createFileRoute("/team")({
   component: TeamPage,
 });
 
+const TEAM_ROLES = ["owner", "manager"] as const;
+
 function TeamPage() {
+  useRoleGuard(TEAM_ROLES);
   const config = useIndustryConfig();
   const { profiles, salon } = useStore();
   const floor = profiles.filter((p) => earnsCommission(p.role));

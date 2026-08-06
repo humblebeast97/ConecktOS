@@ -7,7 +7,6 @@ import {
   ConciergeBell,
   Eye,
   EyeOff,
-  Loader2,
   Scissors,
   ShieldCheck,
   Sparkles,
@@ -17,7 +16,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
 import { defaultUserForRole, useStore } from "@/lib/store";
 import { commissionRoles, roleHint, roleLabel } from "@/lib/groompulse";
 import type { Role } from "@/lib/groompulse";
@@ -62,7 +60,6 @@ function JoinPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [inviteCode, setInviteCode] = useState("");
-  const [submitting, setSubmitting] = useState(false);
 
   const rules = [
     { label: "At least 8 characters", ok: password.length >= 8 },
@@ -76,44 +73,19 @@ function JoinPage() {
   const isFrontDesk = role === "receptionist" || role === "manager";
   const roleTitle = isFrontDesk ? roleLabel[role] : config.staffTitle;
 
-  const createAccount = async (e: React.FormEvent) => {
+  const createAccount = (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim()) {
       toast.error("Your full name is required");
       return;
     }
     if (!passwordStrong) {
-      toast.error("Password must mix upper & lower case, a number and a symbol (8+ chars)");
+      toast.error("Password must mix upper and lower case, a number and a symbol (8+ chars)");
       return;
     }
-
-    setSubmitting(true);
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: {
-          emailRedirectTo: window.location.origin,
-          data: {
-            full_name: fullName.trim(),
-            role,
-            invite_code: inviteCode.trim() || null,
-          },
-        },
-      });
-      if (error) throw error;
-      toast.success(
-        data.session
-          ? `Welcome aboard — opening your ${roleTitle} portal.`
-          : "Account created. Check your email to confirm, then sign in.",
-      );
-      signIn(defaultUserForRole[role]);
-      navigate({ to: portalFor(role) });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not create your account");
-    } finally {
-      setSubmitting(false);
-    }
+    toast.success(`Welcome aboard — opening your ${roleTitle} portal.`);
+    signIn(defaultUserForRole[role]);
+    navigate({ to: portalFor(role) });
   };
 
   return (
@@ -142,6 +114,16 @@ function JoinPage() {
             className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3"
             role="radiogroup"
             aria-label="Your role"
+            onKeyDown={(e) => {
+              if (!["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(e.key)) return;
+              e.preventDefault();
+              const idx = teamRoles.indexOf(role);
+              const dir = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1;
+              const next = (idx + dir + teamRoles.length) % teamRoles.length;
+              setRole(teamRoles[next]);
+              const btns = e.currentTarget.querySelectorAll<HTMLButtonElement>('[role="radio"]');
+              btns[next]?.focus();
+            }}
           >
             {teamRoles.map((r) => {
               const selected = r === role;
@@ -152,6 +134,7 @@ function JoinPage() {
                   type="button"
                   role="radio"
                   aria-checked={selected}
+                  tabIndex={selected ? 0 : -1}
                   onClick={() => setRole(r)}
                   className={
                     selected
@@ -261,15 +244,10 @@ function JoinPage() {
             <Button
               type="submit"
               size="lg"
-              disabled={submitting}
               className="h-12 w-full text-base font-semibold"
             >
-              {submitting ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <UserPlus className="size-4" />
-              )}
-              Create account &amp; open {isFrontDesk ? "front desk" : "my"} portal
+              <UserPlus className="size-4" />
+              Create account and open {isFrontDesk ? "front desk" : "my"} portal
               <ArrowRight className="size-4" />
             </Button>
           </form>

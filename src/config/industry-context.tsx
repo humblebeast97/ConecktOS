@@ -1,9 +1,6 @@
 import { createContext, useContext, useEffect, type ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useRouterState } from "@tanstack/react-router";
 import { useStore } from "@/lib/store";
-import { getMySalonProfile } from "@/lib/salon.functions";
 import {
   defaultConfig,
   getIndustryConfig,
@@ -22,33 +19,16 @@ interface IndustryValue {
 const IndustryContext = createContext<IndustryValue | null>(null);
 
 /**
- * Loads the current business's `business_type` from the database (falling back to
- * the local salon profile when nobody is signed in) and exposes the matching
- * industry label dictionary to the whole app.
+ * Reads the current business's `business_type` from the local store and exposes
+ * the matching industry label dictionary to the whole app.
  */
 export function IndustryProvider({ children }: { children: ReactNode }) {
-  const { salon, updateSalon } = useStore();
-  const fetchProfile = useServerFn(getMySalonProfile);
-
-  const { data } = useQuery({
-    queryKey: ["salon-profile"],
-    queryFn: () => fetchProfile(),
-    retry: false,
-    staleTime: 60_000,
-  });
-
-  const remoteType = data?.business_type as BusinessType | undefined;
-
-  useEffect(() => {
-    if (remoteType && remoteType !== salon.business_type) {
-      updateSalon({ business_type: remoteType });
-    }
-  }, [remoteType, salon.business_type, updateSalon]);
+  const { salon } = useStore();
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const onPlatformRoute = PLATFORM_ROUTES.has(pathname);
 
-  const businessType = (remoteType ?? salon.business_type ?? "beauty") as BusinessType;
+  const businessType = (salon.business_type ?? "beauty") as BusinessType;
   // Platform routes (landing / auth) present the ConecktOS root brand, not any
   // one business's industry theme.
   const config = onPlatformRoute ? defaultConfig : getIndustryConfig(businessType);

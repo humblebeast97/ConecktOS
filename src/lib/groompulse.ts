@@ -42,8 +42,9 @@ export interface Attendance {
   staff_id: string;
   clock_in_time: string;
   clock_out_time: string | null;
-  clock_in_lat: number;
-  clock_in_lng: number;
+  /** Null when the device's location was unavailable at clock-in. */
+  clock_in_lat: number | null;
+  clock_in_lng: number | null;
   is_within_geofence: boolean;
   status: AttendanceStatus;
 }
@@ -219,7 +220,7 @@ export const seedProfiles: Profile[] = [
     salon_id: SALON_ID,
     full_name: "Tunde Bakare",
     role: "staff",
-    commission_rate: 0,
+    commission_rate: 0.5,
     paystack_subaccount_code: "ACCT_tunde9x1",
     avatar_url: null,
   },
@@ -228,7 +229,7 @@ export const seedProfiles: Profile[] = [
     salon_id: SALON_ID,
     full_name: "Chidinma Nwosu",
     role: "staff",
-    commission_rate: 0,
+    commission_rate: 0.5,
     paystack_subaccount_code: "ACCT_chidi7k2",
     avatar_url: null,
   },
@@ -237,7 +238,7 @@ export const seedProfiles: Profile[] = [
     salon_id: SALON_ID,
     full_name: "Musa Ibrahim",
     role: "staff",
-    commission_rate: 0,
+    commission_rate: 0.5,
     paystack_subaccount_code: "ACCT_musa4b8",
     avatar_url: null,
   },

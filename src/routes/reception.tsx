@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useStore, type DraftLine } from "@/lib/store";
+import { useRoleGuard } from "@/lib/access";
 import { naira, paymentLabel, timeOf, type PaymentMethod } from "@/lib/groompulse";
 import { isToday } from "@/lib/reports";
 import { useIndustryConfig } from "@/config/industry-context";
@@ -52,7 +53,10 @@ export const Route = createFileRoute("/reception")({
   component: ReceptionPage,
 });
 
+const RECEPTION_ROLES = ["owner", "manager", "receptionist"] as const;
+
 function ReceptionPage() {
+  useRoleGuard(RECEPTION_ROLES);
   const config = useIndustryConfig();
   const {
     services,
@@ -387,6 +391,7 @@ function ReceptionPage() {
                   type="button"
                   variant="ghost"
                   size="icon"
+                  aria-label="Remove this service line"
                   className="justify-self-end text-muted-foreground hover:text-destructive"
                   disabled={lines.length === 1}
                   onClick={() => setLines((prev) => prev.filter((_, i) => i !== idx))}
