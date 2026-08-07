@@ -132,27 +132,34 @@ function SettingsPage() {
             </Button>
           </div>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="s-lat">Latitude</Label>
-              <Input id="s-lat" inputMode="decimal" value={lat} onChange={(e) => setLat(e.target.value)} placeholder="6.4318" className="h-11 bg-surface" />
+          <div className="mt-5 space-y-4">
+            <div className="rounded-xl border border-border bg-surface px-4 py-3 text-sm">
+              {lat && lng ? (
+                <span className="flex items-center gap-2 text-success">
+                  <MapPin className="size-4 shrink-0" />
+                  Location set · {Number(lat).toFixed(4)}, {Number(lng).toFixed(4)}
+                </span>
+              ) : (
+                <span className="text-muted-foreground">
+                  No location set — tap “Use my location” while you're at the business.
+                </span>
+              )}
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="s-lng">Longitude</Label>
-              <Input id="s-lng" inputMode="decimal" value={lng} onChange={(e) => setLng(e.target.value)} placeholder="3.4271" className="h-11 bg-surface" />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="s-radius">Geofence radius (metres)</Label>
-              <Input id="s-radius" inputMode="numeric" value={radius} onChange={(e) => setRadius(e.target.value)} placeholder="50" className="h-11 bg-surface" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
+
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="s-open">Opens</Label>
-                <Input id="s-open" type="time" value={open} onChange={(e) => setOpen(e.target.value)} className="h-11 bg-surface" />
+                <Label htmlFor="s-radius">Geofence radius (metres)</Label>
+                <Input id="s-radius" inputMode="numeric" value={radius} onChange={(e) => setRadius(e.target.value)} placeholder="50" className="h-11 bg-surface" />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="s-close">Closes</Label>
-                <Input id="s-close" type="time" value={close} onChange={(e) => setClose(e.target.value)} className="h-11 bg-surface" />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="s-open">Opens</Label>
+                  <Input id="s-open" type="time" value={open} onChange={(e) => setOpen(e.target.value)} className="h-11 bg-surface" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="s-close">Closes</Label>
+                  <Input id="s-close" type="time" value={close} onChange={(e) => setClose(e.target.value)} className="h-11 bg-surface" />
+                </div>
               </div>
             </div>
           </div>
