@@ -56,6 +56,7 @@ function JoinPage() {
 
   const [role, setRole] = useState<Role>("staff");
   const [fullName, setFullName] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -89,6 +90,7 @@ function JoinPage() {
     const member = addStylist({
       full_name: fullName.trim(),
       role,
+      job_title: jobTitle.trim() || null,
       commission_rate: isFrontDesk ? 0 : 0.5,
       bank_name: isFrontDesk ? null : bankName.trim() || null,
       account_number: isFrontDesk ? null : accountNumber.trim() || null,
@@ -183,6 +185,18 @@ function JoinPage() {
                 required
               />
             </div>
+            {!isFrontDesk ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="jn-title">Job title</Label>
+                <Input
+                  id="jn-title"
+                  value={jobTitle}
+                  onChange={(e) => setJobTitle(e.target.value)}
+                  placeholder="e.g. Senior Stylist, Barber, Loctician"
+                  className="h-11 bg-surface"
+                />
+              </div>
+            ) : null}
             <div className="space-y-1.5">
               <Label htmlFor="jn-email">
                 Email <span className="text-primary">*</span>

@@ -111,6 +111,7 @@ interface StoreValue {
   addStylist: (input: {
     full_name: string;
     role: Role;
+    job_title: string | null;
     commission_rate: number;
     bank_name: string | null;
     account_number: string | null;
@@ -121,7 +122,12 @@ interface StoreValue {
     patch: Partial<
       Pick<
         Profile,
-        "full_name" | "commission_rate" | "bank_name" | "account_number" | "account_name"
+        | "full_name"
+        | "job_title"
+        | "commission_rate"
+        | "bank_name"
+        | "account_number"
+        | "account_name"
       >
     >,
   ) => void;
@@ -134,7 +140,7 @@ interface StoreValue {
 const StoreContext = createContext<StoreValue | null>(null);
 
 /** localStorage key for the persisted demo state. Bump the suffix to reset all clients. */
-const STORE_KEY = "conecktos-store-v2";
+const STORE_KEY = "conecktos-store-v3";
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [salon, setSalon] = useState<Salon>(seedSalon);
@@ -467,7 +473,4 @@ export const defaultUserForRole: Record<Role, string> = {
   manager: "u-owner",
   receptionist: "u-recep",
   staff: "u-staff-1",
-  barber: "u-staff-1",
-  nail_tech: "u-staff-1",
-  apprentice: "u-staff-1",
 };

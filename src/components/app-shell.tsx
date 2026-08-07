@@ -16,7 +16,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 import { useStore } from "@/lib/store";
 import { useIndustryConfig } from "@/config/industry-context";
-import { roleLabel } from "@/lib/groompulse";
+import { personTitle } from "@/lib/groompulse";
 import { lowStock } from "@/lib/reports";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -170,7 +170,7 @@ export function AppShell({
                     {currentUser.full_name}
                   </span>
                   <span className="text-[10px] text-muted-foreground">
-                    {roleLabel[currentUser.role]}
+                    {personTitle(currentUser)}
                   </span>
                 </span>
                 <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
@@ -179,7 +179,7 @@ export function AppShell({
                 <DropdownMenuLabel className="flex flex-col gap-0.5">
                   <span className="truncate text-sm font-semibold">{currentUser.full_name}</span>
                   <span className="text-xs font-normal text-muted-foreground">
-                    {roleLabel[currentUser.role]}
+                    {personTitle(currentUser)}
                   </span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />

@@ -1,14 +1,8 @@
 // GroomPulse domain model — mirrors the planned Supabase schema.
 // Currently backed by in-memory mock state (see src/lib/store.tsx).
 
-export type Role =
-  | "owner"
-  | "manager"
-  | "receptionist"
-  | "staff"
-  | "barber"
-  | "nail_tech"
-  | "apprentice";
+/** Permission tiers. A person's actual job title is free text (Profile.job_title). */
+export type Role = "owner" | "manager" | "receptionist" | "staff";
 export type AttendanceStatus = "on_time" | "late" | "absent";
 export type PaymentMethod = "pos" | "bank_transfer" | "cash";
 export type TicketStatus = "pending" | "paid";
@@ -35,6 +29,8 @@ export interface Profile {
   salon_id: string;
   full_name: string;
   role: Role;
+  /** Free-text job title, e.g. "Senior Stylist", "Loctician", "Barber". */
+  job_title: string | null;
   commission_rate: number;
   /** Payout bank details for tips (direct transfer). */
   bank_name: string | null;
@@ -159,33 +155,32 @@ export function haversineMeters(
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
+/** Access-tier labels. For a person's actual job title, use personTitle(). */
 export const roleLabel: Record<Role, string> = {
   owner: "Owner / Admin",
-  manager: "Salon Manager",
-  receptionist: "Receptionist",
-  staff: "Stylist",
-  barber: "Barber",
-  nail_tech: "Nail Technician",
-  apprentice: "Apprentice",
+  manager: "Manager",
+  receptionist: "Front Desk",
+  staff: "Floor Staff",
 };
 
 export const roleHint: Record<Role, string> = {
   owner: "Full access: reports, payouts, audits",
   manager: "Runs the floor, logs expenses, no payout edits",
   receptionist: "Front desk billing and payment matching",
-  staff: "Hair styling · earns commission",
-  barber: "Cuts and grooming · earns commission",
-  nail_tech: "Manicure / pedicure · earns commission",
-  apprentice: "Training · reduced commission split",
+  staff: "On the floor · clocks in and earns commission",
 };
 
-/** Roles that appear on the floor, clock in and earn a commission split. */
-export const commissionRoles: Role[] = ["staff", "barber", "nail_tech", "apprentice"];
+/** Permission tiers that appear on the floor, clock in and earn a commission split. */
+export const commissionRoles: Role[] = ["staff"];
 
 export const earnsCommission = (role: Role) => commissionRoles.includes(role);
 
+/** A person's display title: their free-text job title, or the access-tier label. */
+export const personTitle = (p: { role: Role; job_title?: string | null }) =>
+  p.job_title?.trim() || roleLabel[p.role];
+
 export const roleGroups: { label: string; roles: Role[] }[] = [
-  { label: "Floor (earns commission)", roles: commissionRoles },
+  { label: "Floor (earns commission)", roles: ["staff"] },
   { label: "Front desk & management", roles: ["receptionist", "manager", "owner"] },
 ];
 
@@ -228,6 +223,7 @@ export const seedProfiles: Profile[] = [
     salon_id: SALON_ID,
     full_name: "Adaeze Okonkwo",
     role: "owner",
+    job_title: "Owner",
     commission_rate: 0,
     bank_name: null,
     account_number: null,
@@ -239,6 +235,7 @@ export const seedProfiles: Profile[] = [
     salon_id: SALON_ID,
     full_name: "Blessing Eze",
     role: "receptionist",
+    job_title: "Receptionist",
     commission_rate: 0,
     bank_name: null,
     account_number: null,
@@ -250,6 +247,7 @@ export const seedProfiles: Profile[] = [
     salon_id: SALON_ID,
     full_name: "Tunde Bakare",
     role: "staff",
+    job_title: "Barber",
     commission_rate: 0.5,
     bank_name: "GTBank",
     account_number: "0123456789",
@@ -261,6 +259,7 @@ export const seedProfiles: Profile[] = [
     salon_id: SALON_ID,
     full_name: "Chidinma Nwosu",
     role: "staff",
+    job_title: "Nail Technician",
     commission_rate: 0.5,
     bank_name: "Access Bank",
     account_number: "0234567890",
@@ -272,6 +271,7 @@ export const seedProfiles: Profile[] = [
     salon_id: SALON_ID,
     full_name: "Musa Ibrahim",
     role: "staff",
+    job_title: "Stylist",
     commission_rate: 0.5,
     bank_name: "Zenith Bank",
     account_number: "0345678901",

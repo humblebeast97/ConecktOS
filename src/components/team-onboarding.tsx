@@ -18,6 +18,7 @@ import { useStore } from "@/lib/store";
 import {
   earnsCommission,
   naira,
+  personTitle,
   roleGroups,
   roleHint,
   roleLabel,
@@ -27,6 +28,7 @@ import { useIndustryConfig } from "@/config/industry-context";
 
 const emptyForm = {
   full_name: "",
+  job_title: "",
   role: "staff" as Role,
   commission_rate: 50,
 };
@@ -70,6 +72,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
     addStylist({
       full_name: name,
       role: form.role,
+      job_title: form.job_title.trim() || null,
       commission_rate: isFloor ? form.commission_rate / 100 : 0,
       // Payout details are entered by the staff member during their own sign-up.
       bank_name: null,
@@ -126,19 +129,35 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
 
         <div className="mt-5 min-h-[13rem] space-y-4">
           {step === 0 ? (
-            <div className="space-y-2">
-              <Label htmlFor="full_name">Full name</Label>
-              <Input
-                id="full_name"
-                value={form.full_name}
-                placeholder="e.g. Chidinma Nwosu"
-                onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-                className="h-11"
-                autoComplete="off"
-              />
-              <p className="text-xs text-muted-foreground">
-                As it should appear on tickets and tip QR codes.
-              </p>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="full_name">Full name</Label>
+                <Input
+                  id="full_name"
+                  value={form.full_name}
+                  placeholder="e.g. Chidinma Nwosu"
+                  onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+                  className="h-11"
+                  autoComplete="off"
+                />
+                <p className="text-xs text-muted-foreground">
+                  As it should appear on tickets and tip QR codes.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="job_title">Job title</Label>
+                <Input
+                  id="job_title"
+                  value={form.job_title}
+                  placeholder="e.g. Senior Stylist, Barber, Nail Tech, Loctician"
+                  onChange={(e) => setForm({ ...form, job_title: e.target.value })}
+                  className="h-11"
+                  autoComplete="off"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Anything you like — this is just their title.
+                </p>
+              </div>
             </div>
           ) : null}
 
@@ -274,7 +293,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{p.full_name}</p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {industryRoleLabel(p.role)}
+                    {personTitle(p)}
                     {floor
                       ? ` · ${Math.round(p.commission_rate * 100)}% · earned ${naira(lifetime)}`
                       : ""}
