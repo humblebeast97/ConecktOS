@@ -312,9 +312,22 @@ function TipQrDialog() {
   const me = currentUser.role === "staff" ? currentUser : staff[0];
   const hasBank = Boolean(me.account_number);
   const accountName = me.account_name ?? me.full_name;
-  const qrPayload = hasBank
-    ? `Tip ${me.full_name}\nBank: ${me.bank_name ?? ""}\nAccount: ${me.account_number}\nName: ${accountName}`
-    : "";
+  // Encode a link to the public tip page (details in the URL so it works on any
+  // device without a backend). Swap to /tip/{id} once real data exists.
+  const tipUrl =
+    typeof window !== "undefined" && hasBank
+      ? `${window.location.origin}/tip?` +
+        new URLSearchParams({
+          n: me.full_name,
+          b: me.bank_name ?? "",
+          a: me.account_number ?? "",
+          an: accountName,
+          biz: salon.name,
+        })
+          .toString()
+          // Router decodes %20 (not "+") back to spaces.
+          .replace(/\+/g, "%20")
+      : "";
 
   const copyAccount = async () => {
     if (!me.account_number) return;
@@ -352,7 +365,7 @@ function TipQrDialog() {
               </p>
               <div className="mx-auto mt-4 grid size-[168px] w-fit place-items-center rounded-xl bg-white p-3">
                 <Suspense fallback={<Loader2 className="size-6 animate-spin text-[#111318]" />}>
-                  <QRCode value={qrPayload} size={168} bgColor="#ffffff" fgColor="#111318" />
+                  <QRCode value={tipUrl} size={168} bgColor="#ffffff" fgColor="#111318" />
                 </Suspense>
               </div>
 
