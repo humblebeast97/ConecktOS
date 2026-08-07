@@ -48,7 +48,7 @@ function PrivacyPage() {
           </Section>
 
           <Section title="Service providers">
-            <p>We use <span className="text-foreground">Supabase</span> for authentication and database hosting, and <span className="text-foreground">Paystack</span> to process tips and payments. Card details are handled entirely by Paystack — ConecktOS never sees or stores them.</p>
+            <p>We use <span className="text-foreground">Supabase</span> for authentication and database hosting. Tips are made by <span className="text-foreground">direct bank transfer</span> between the customer and the staff member — ConecktOS only displays the staff member's bank details and never processes, routes or holds any funds.</p>
           </Section>
 
           <Section title="Data isolation & retention">

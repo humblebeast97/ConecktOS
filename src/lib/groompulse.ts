@@ -36,7 +36,10 @@ export interface Profile {
   full_name: string;
   role: Role;
   commission_rate: number;
-  paystack_subaccount_code: string | null;
+  /** Payout bank details for tips (direct transfer). */
+  bank_name: string | null;
+  account_number: string | null;
+  account_name: string | null;
   avatar_url: string | null;
 }
 
@@ -226,7 +229,9 @@ export const seedProfiles: Profile[] = [
     full_name: "Adaeze Okonkwo",
     role: "owner",
     commission_rate: 0,
-    paystack_subaccount_code: null,
+    bank_name: null,
+    account_number: null,
+    account_name: null,
     avatar_url: null,
   },
   {
@@ -235,7 +240,9 @@ export const seedProfiles: Profile[] = [
     full_name: "Blessing Eze",
     role: "receptionist",
     commission_rate: 0,
-    paystack_subaccount_code: null,
+    bank_name: null,
+    account_number: null,
+    account_name: null,
     avatar_url: null,
   },
   {
@@ -244,7 +251,9 @@ export const seedProfiles: Profile[] = [
     full_name: "Tunde Bakare",
     role: "staff",
     commission_rate: 0.5,
-    paystack_subaccount_code: "ACCT_tunde9x1",
+    bank_name: "GTBank",
+    account_number: "0123456789",
+    account_name: "Tunde Bakare",
     avatar_url: null,
   },
   {
@@ -253,7 +262,9 @@ export const seedProfiles: Profile[] = [
     full_name: "Chidinma Nwosu",
     role: "staff",
     commission_rate: 0.5,
-    paystack_subaccount_code: "ACCT_chidi7k2",
+    bank_name: "Access Bank",
+    account_number: "0234567890",
+    account_name: "Chidinma Nwosu",
     avatar_url: null,
   },
   {
@@ -262,7 +273,9 @@ export const seedProfiles: Profile[] = [
     full_name: "Musa Ibrahim",
     role: "staff",
     commission_rate: 0.5,
-    paystack_subaccount_code: "ACCT_musa4b8",
+    bank_name: "Zenith Bank",
+    account_number: "0345678901",
+    account_name: "Musa Ibrahim",
     avatar_url: null,
   },
 ];

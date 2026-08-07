@@ -5,7 +5,6 @@ import { TeamOnboarding } from "@/components/team-onboarding";
 import { useStore } from "@/lib/store";
 import { useRoleGuard } from "@/lib/access";
 import { earnsCommission } from "@/lib/groompulse";
-import { useIndustryConfig } from "@/config/industry-context";
 
 export const Route = createFileRoute("/team")({
   head: () => ({
@@ -14,13 +13,13 @@ export const Route = createFileRoute("/team")({
       {
         name: "description",
         content:
-          "Onboard stylists, barbers, nail techs, receptionists and managers with a guided 3-step wizard: commission splits, Paystack tip subaccounts and payout readiness.",
+          "Onboard stylists, barbers, nail techs, receptionists and managers with a guided wizard: commission splits and bank payout details.",
       },
       { property: "og:title", content: "Team & HR Onboarding · ConecktOS" },
       {
         property: "og:description",
         content:
-          "Guided onboarding for every salon role — commission splits and Paystack tip subaccounts in minutes.",
+          "Guided onboarding for every salon role — commission splits and bank payout details in minutes.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -33,10 +32,9 @@ const TEAM_ROLES = ["owner", "manager"] as const;
 
 function TeamPage() {
   useRoleGuard(TEAM_ROLES);
-  const config = useIndustryConfig();
   const { profiles, salon } = useStore();
   const floor = profiles.filter((p) => earnsCommission(p.role));
-  const pendingPayouts = floor.filter((p) => !p.paystack_subaccount_code).length;
+  const pendingPayouts = floor.filter((p) => !p.account_number).length;
 
   return (
     <AppShell
@@ -63,7 +61,7 @@ function TeamPage() {
         <MetricCard
           label="Payout setup"
           value={pendingPayouts === 0 ? "Complete" : `${pendingPayouts} pending`}
-          hint={config.showTipping ? "Paystack tip subaccounts" : "Paystack payout subaccounts"}
+          hint="Bank payout details"
           icon={BadgeCheck}
           tone={pendingPayouts === 0 ? "success" : "danger"}
         />

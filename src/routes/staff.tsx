@@ -3,6 +3,7 @@ import { lazy, Suspense, useMemo, useState } from "react";
 import {
   Banknote,
   Clock,
+  Copy,
   LogOut,
   MapPin,
   Printer,
@@ -44,7 +45,7 @@ export const Route = createFileRoute("/staff")({
       { property: "og:title", content: "Staff Portal · ConecktOS" },
       {
         property: "og:description",
-        content: "GPS clock-in, live commissions and personal Paystack tip QR for salon staff.",
+        content: "GPS clock-in, live commissions and a personal tip QR with your bank details.",
       },
     ],
   }),
@@ -309,7 +310,21 @@ function StaffPortal() {
 function TipQrDialog() {
   const { currentUser, staff, salon } = useStore();
   const me = currentUser.role === "staff" ? currentUser : staff[0];
-  const tipUrl = `https://paystack.com/pay/conecktos-tip?subaccount=${me.paystack_subaccount_code ?? "pending"}&staff=${encodeURIComponent(me.full_name)}`;
+  const hasBank = Boolean(me.account_number);
+  const accountName = me.account_name ?? me.full_name;
+  const qrPayload = hasBank
+    ? `Tip ${me.full_name}\nBank: ${me.bank_name ?? ""}\nAccount: ${me.account_number}\nName: ${accountName}`
+    : "";
+
+  const copyAccount = async () => {
+    if (!me.account_number) return;
+    try {
+      await navigator.clipboard.writeText(me.account_number);
+      toast.success("Account number copied");
+    } catch {
+      toast.error("Couldn't copy — long-press to copy manually");
+    }
+  };
 
   return (
     <Dialog>
@@ -323,46 +338,75 @@ function TipQrDialog() {
         <DialogHeader className="no-print">
           <DialogTitle>Tip {me.full_name.split(" ")[0]}</DialogTitle>
           <DialogDescription>
-            Clients scan to tip instantly. Funds route to your Paystack subaccount.
+            {hasBank
+              ? "Clients scan or copy your bank details to transfer a tip directly."
+              : "No payout account yet — ask your manager to add your bank details."}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="rounded-2xl border border-primary/30 bg-gradient-surface p-5 text-center">
-          <p className="font-display text-xs uppercase tracking-[0.25em] text-primary">
-            {salon.name}
-          </p>
-          <div className="mx-auto mt-4 grid size-[168px] w-fit place-items-center rounded-xl bg-white p-3">
-            <Suspense fallback={<Loader2 className="size-6 animate-spin text-[#111318]" />}>
-              <QRCode value={tipUrl} size={168} bgColor="#ffffff" fgColor="#111318" />
-            </Suspense>
-          </div>
-          <p className="mt-4 font-display text-lg font-bold">{me.full_name}</p>
-          <p className="text-xs text-muted-foreground">
-            {me.paystack_subaccount_code ?? "Subaccount pending"}
-          </p>
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
-            {["₦1,000", "₦2,000", "₦5,000", "Custom"].map((amt) => (
-              <span
-                key={amt}
-                className="rounded-full border border-border bg-surface px-3 py-1 text-xs font-semibold"
-              >
-                {amt}
-              </span>
-            ))}
-          </div>
-          <p className="mt-4 text-[11px] text-muted-foreground">
-            Scan with any phone camera · Secured by Paystack
-          </p>
-        </div>
+        {hasBank ? (
+          <>
+            <div className="rounded-2xl border border-primary/30 bg-gradient-surface p-5 text-center">
+              <p className="font-display text-xs uppercase tracking-[0.25em] text-primary">
+                {salon.name}
+              </p>
+              <div className="mx-auto mt-4 grid size-[168px] w-fit place-items-center rounded-xl bg-white p-3">
+                <Suspense fallback={<Loader2 className="size-6 animate-spin text-[#111318]" />}>
+                  <QRCode value={qrPayload} size={168} bgColor="#ffffff" fgColor="#111318" />
+                </Suspense>
+              </div>
 
-        <Button
-          variant="outline"
-          className="no-print"
-          onClick={() => typeof window !== "undefined" && window.print()}
-        >
-          <Printer className="size-4" />
-          Print mirror card
-        </Button>
+              <p className="mt-4 font-display text-lg font-bold">{me.full_name}</p>
+              <div className="mt-2 text-sm">
+                <p className="text-muted-foreground">{me.bank_name}</p>
+                <div className="mt-1 flex items-center justify-center gap-2">
+                  <span className="font-display text-lg font-bold tracking-wider tabular-nums">
+                    {me.account_number}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={copyAccount}
+                    aria-label="Copy account number"
+                    className="no-print grid size-7 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
+                  >
+                    <Copy className="size-3.5" />
+                  </button>
+                </div>
+                <p className="text-muted-foreground">{accountName}</p>
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                <span className="w-full text-[11px] uppercase tracking-wider text-muted-foreground">
+                  Suggested tip
+                </span>
+                {["₦1,000", "₦2,000", "₦5,000"].map((amt) => (
+                  <span
+                    key={amt}
+                    className="rounded-full border border-border bg-surface px-3 py-1 text-xs font-semibold"
+                  >
+                    {amt}
+                  </span>
+                ))}
+              </div>
+              <p className="mt-4 text-[11px] text-muted-foreground">
+                Scan to view details, or copy the account number and transfer.
+              </p>
+            </div>
+
+            <Button
+              variant="outline"
+              className="no-print"
+              onClick={() => typeof window !== "undefined" && window.print()}
+            >
+              <Printer className="size-4" />
+              Print mirror card
+            </Button>
+          </>
+        ) : (
+          <div className="rounded-2xl border border-warning/30 bg-warning/10 p-5 text-center text-sm text-warning">
+            Your bank details aren't set up yet. Ask your manager to add them from the team roster.
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

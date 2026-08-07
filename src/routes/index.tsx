@@ -103,7 +103,7 @@ function LoginPage() {
             {[
               ["GPS clock-in", "50m geofence"],
               ["Commission", "Auto split per service"],
-              ["Tips", "Personal Paystack QR"],
+              ["Tips", "Personal bank-transfer QR"],
               ["Audit", "One-tap Close Day"],
             ].map(([k, v]) => (
               <div key={k} className="card-lux rounded-xl px-4 py-3">

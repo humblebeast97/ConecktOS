@@ -39,7 +39,7 @@ function TermsPage() {
           </Section>
 
           <Section title="Payments & tips">
-            <p>Tips and payments are processed by Paystack under their terms. ConecktOS facilitates the connection but is not a party to the transaction and does not hold funds. You're responsible for the accuracy of commission rates and payout details you configure.</p>
+            <p>Tips are made by direct bank transfer between the customer and the staff member. ConecktOS only displays the bank details you provide — it is not a party to the transaction, does not process or hold funds, and is not responsible for transfers. You're responsible for the accuracy of the commission rates and bank details you configure.</p>
           </Section>
 
           <Section title="Your data">

@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
-  BadgeCheck,
   CheckCircle2,
   CircleDashed,
   Trash2,
@@ -30,7 +29,9 @@ const emptyForm = {
   full_name: "",
   role: "staff" as Role,
   commission_rate: 50,
-  paystack_subaccount_code: "",
+  bank_name: "",
+  account_number: "",
+  account_name: "",
 };
 
 const steps = ["Identity", "Role", "Payout"] as const;
@@ -38,7 +39,7 @@ const steps = ["Identity", "Role", "Payout"] as const;
 /** Reusable onboarding wizard + roster. Embedded on /team, /admin and /reception. */
 export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
   const config = useIndustryConfig();
-  const { profiles, ticketItems, addStylist, updateProfile, removeProfile } = useStore();
+  const { profiles, ticketItems, addStylist, removeProfile } = useStore();
   const industryRoleLabel = (role: Role) =>
     role === "staff" ? config.staffTitle : roleLabel[role];
   const [form, setForm] = useState(emptyForm);
@@ -73,7 +74,9 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
       full_name: name,
       role: form.role,
       commission_rate: isFloor ? form.commission_rate / 100 : 0,
-      paystack_subaccount_code: form.paystack_subaccount_code.trim() || null,
+      bank_name: form.bank_name.trim() || null,
+      account_number: form.account_number.trim() || null,
+      account_name: form.account_name.trim() || name,
     });
     toast.success(`${name} onboarded`, {
       description: isFloor
@@ -199,21 +202,41 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
           ) : null}
 
           {step === 2 ? (
-            <div className="space-y-2">
-              <Label htmlFor="subaccount">Paystack subaccount (optional)</Label>
-              <Input
-                id="subaccount"
-                value={form.paystack_subaccount_code}
-                placeholder="ACCT_xxxxxxxx"
-                onChange={(e) =>
-                  setForm({ ...form, paystack_subaccount_code: e.target.value })
-                }
-                className="h-11"
-              />
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="bank-name">Bank name</Label>
+                <Input
+                  id="bank-name"
+                  value={form.bank_name}
+                  placeholder="e.g. GTBank"
+                  onChange={(e) => setForm({ ...form, bank_name: e.target.value })}
+                  className="h-11"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="acct-number">Account number</Label>
+                <Input
+                  id="acct-number"
+                  inputMode="numeric"
+                  value={form.account_number}
+                  placeholder="10-digit NUBAN"
+                  onChange={(e) => setForm({ ...form, account_number: e.target.value })}
+                  className="h-11"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="acct-name">Account name</Label>
+                <Input
+                  id="acct-name"
+                  value={form.account_name}
+                  placeholder="Defaults to their full name"
+                  onChange={(e) => setForm({ ...form, account_name: e.target.value })}
+                  className="h-11"
+                />
+              </div>
               <p className="text-xs text-muted-foreground">
-                {config.showTipping
-                  ? "Required before their tip QR can accept payments. You can link it later from the roster."
-                  : "Required before commission payouts can be sent. You can link it later from the roster."}
+                Shown on their tip QR so clients can transfer directly. Optional — you can add it
+                later from the roster.
               </p>
             </div>
           ) : null}
@@ -279,7 +302,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
               .filter((i) => i.staff_id === p.id)
               .reduce((sum, i) => sum + i.staff_commission_amount, 0);
             const floor = earnsCommission(p.role);
-            const ready = !floor || Boolean(p.paystack_subaccount_code);
+            const ready = !floor || Boolean(p.account_number);
             return (
               <li key={p.id} className="flex flex-wrap items-center gap-3 py-4">
                 <span className="grid size-10 shrink-0 place-items-center rounded-full bg-gradient-gold font-display text-sm font-bold text-gold-foreground">
@@ -318,21 +341,6 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
                 ) : null}
 
                 <div className="flex items-center gap-2">
-                  {floor && !p.paystack_subaccount_code ? (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => {
-                        updateProfile(p.id, {
-                          paystack_subaccount_code: `ACCT_${p.id.slice(-6)}`,
-                        });
-                        toast.success("Paystack subaccount linked");
-                      }}
-                    >
-                      <BadgeCheck className="size-4" />
-                      Link payout
-                    </Button>
-                  ) : null}
                   {p.role !== "owner" ? (
                     <Button
                       variant="ghost"
