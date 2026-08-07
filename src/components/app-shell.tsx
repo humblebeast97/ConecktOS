@@ -279,3 +279,28 @@ export function MetricCard({
     </div>
   );
 }
+
+export function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  action,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border px-6 py-10 text-center">
+      <div className="grid size-11 place-items-center rounded-xl bg-accent text-muted-foreground">
+        <Icon className="size-5" />
+      </div>
+      <p className="mt-3 text-sm font-semibold">{title}</p>
+      {description ? (
+        <p className="mt-1 max-w-xs text-xs text-muted-foreground">{description}</p>
+      ) : null}
+      {action ? <div className="mt-4">{action}</div> : null}
+    </div>
+  );
+}

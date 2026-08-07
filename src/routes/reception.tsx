@@ -14,7 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import { toast } from "sonner";
-import { AppShell, MetricCard } from "@/components/app-shell";
+import { AppShell, MetricCard, EmptyState } from "@/components/app-shell";
 import { TeamOnboarding } from "@/components/team-onboarding";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -229,6 +229,24 @@ function ReceptionPage() {
           <p className="mt-1 text-sm text-muted-foreground">
             Commission splits are calculated automatically from each {config.staffTitle.toLowerCase()} rate.
           </p>
+
+          {services.length === 0 || staff.length === 0 ? (
+            <div className="mt-4">
+              <EmptyState
+                icon={Package}
+                title={
+                  services.length === 0
+                    ? `No ${config.serviceTitle.toLowerCase()} set up yet`
+                    : `No ${config.staffPlural.toLowerCase()} yet`
+                }
+                description={
+                  services.length === 0
+                    ? "An owner needs to add services before you can bill a ticket."
+                    : "Add a team member before billing so commissions can be assigned."
+                }
+              />
+            </div>
+          ) : null}
 
           <div className="mt-4 rounded-xl border border-border bg-surface p-3">
             <Label htmlFor="lookup" className="text-xs text-muted-foreground">

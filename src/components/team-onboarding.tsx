@@ -266,6 +266,13 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
           </Tabs>
         </div>
 
+        {roster.length === 0 ? (
+          <p className="mt-4 rounded-xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
+            {filter === "all"
+              ? "No team members yet — add your first one above."
+              : `No ${filter === "floor" ? "floor" : "desk"} roles yet.`}
+          </p>
+        ) : null}
         <ul className="mt-3 divide-y divide-border">
           {roster.map((p) => {
             const lifetime = ticketItems

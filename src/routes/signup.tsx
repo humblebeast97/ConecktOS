@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BusinessProfilePanel } from "@/components/business-profile";
+import { TeamOnboarding } from "@/components/team-onboarding";
+import { ServicesPanel } from "@/components/services-panel";
 import { defaultUserForRole, useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/signup")({
@@ -31,7 +33,7 @@ export const Route = createFileRoute("/signup")({
 function SignUpPage() {
   const navigate = useNavigate();
   const { signIn } = useStore();
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -69,9 +71,9 @@ function SignUpPage() {
       <div className="pointer-events-none absolute bottom-0 right-0 size-[22rem] rounded-full bg-success/10 blur-3xl" />
 
       <div id="main-content" className="relative mx-auto max-w-2xl px-5 py-12">
-        <div className="flex items-center gap-3">
-          {([1, 2] as const).map((n, i) => (
-            <div key={n} className="flex flex-1 items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {([1, 2, 3, 4] as const).map((n, i) => (
+            <div key={n} className="flex flex-1 items-center gap-2 sm:gap-3">
               <div className="flex items-center gap-2">
                 <span
                   className={
@@ -85,16 +87,16 @@ function SignUpPage() {
                 <span
                   className={
                     step >= n
-                      ? "text-xs font-semibold"
-                      : "text-xs font-medium text-muted-foreground"
+                      ? "hidden text-xs font-semibold sm:inline"
+                      : "hidden text-xs font-medium text-muted-foreground sm:inline"
                   }
                 >
-                  {n === 1 ? "Account" : "Business"}
+                  {["Account", "Business", "Team", "Services"][n - 1]}
                 </span>
               </div>
-              {i === 0 ? (
+              {i < 3 ? (
                 <span
-                  className={`h-0.5 flex-1 rounded-full ${step > 1 ? "bg-primary" : "bg-border"}`}
+                  className={`h-0.5 flex-1 rounded-full ${step > n ? "bg-primary" : "bg-border"}`}
                 />
               ) : null}
             </div>
@@ -105,16 +107,28 @@ function SignUpPage() {
             <>
               Create your <span className="text-gradient-gold">owner account.</span>
             </>
-          ) : (
+          ) : step === 2 ? (
             <>
               Set up your <span className="text-gradient-gold">business.</span>
+            </>
+          ) : step === 3 ? (
+            <>
+              Add your <span className="text-gradient-gold">team.</span>
+            </>
+          ) : (
+            <>
+              Add your <span className="text-gradient-gold">services.</span>
             </>
           )}
         </h1>
         <p className="mt-3 max-w-md text-sm text-muted-foreground">
           {step === 1
             ? "One account runs your whole operation — team, tickets, stock and payouts."
-            : "Your category tailors labels, tipping and stock tracking across the app."}
+            : step === 2
+              ? "Your category tailors labels, tipping and stock tracking across the app."
+              : step === 3
+                ? "Onboard stylists, barbers and front desk — set commission rates and payout accounts."
+                : "Add the services you offer and their prices. You can always change these later."}
         </p>
 
         {step === 1 ? (
@@ -214,18 +228,44 @@ function SignUpPage() {
               </Link>
             </p>
           </section>
-        ) : (
+        ) : step === 2 ? (
           <div className="mt-7 space-y-5">
             <BusinessProfilePanel />
+            <Button
+              size="lg"
+              className="h-12 w-full text-base font-semibold"
+              onClick={() => setStep(3)}
+            >
+              Continue to team
+              <ArrowRight className="size-4" />
+            </Button>
+          </div>
+        ) : step === 3 ? (
+          <div className="mt-7 space-y-5">
+            <TeamOnboarding compact />
+            <div className="flex flex-col gap-2 sm:flex-row-reverse">
+              <Button size="lg" className="h-12 flex-1 text-base font-semibold" onClick={() => setStep(4)}>
+                Continue to services
+                <ArrowRight className="size-4" />
+              </Button>
+              <Button variant="ghost" size="lg" className="h-12" onClick={() => setStep(4)}>
+                Skip for now
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-7 space-y-5">
+            <ServicesPanel />
             <Button
               size="lg"
               className="h-12 w-full text-base font-semibold"
               onClick={() => {
                 signIn(defaultUserForRole.owner);
                 navigate({ to: "/admin" });
+                toast.success("You're all set — welcome to ConecktOS");
               }}
             >
-              Go to Owner Dashboard
+              Finish &amp; go to dashboard
               <ArrowRight className="size-4" />
             </Button>
           </div>
