@@ -29,12 +29,9 @@ const emptyForm = {
   full_name: "",
   role: "staff" as Role,
   commission_rate: 50,
-  bank_name: "",
-  account_number: "",
-  account_name: "",
 };
 
-const steps = ["Identity", "Role", "Payout"] as const;
+const steps = ["Identity", "Role"] as const;
 
 /** Reusable onboarding wizard + roster. Embedded on /team, /admin and /reception. */
 export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
@@ -54,7 +51,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
 
   const isFloor = earnsCommission(form.role);
   const nameValid = form.full_name.trim().length >= 3;
-  const lastStep = isFloor ? 2 : 1;
+  const lastStep = 1;
 
   const next = () => {
     if (step === 0 && !nameValid) {
@@ -74,9 +71,10 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
       full_name: name,
       role: form.role,
       commission_rate: isFloor ? form.commission_rate / 100 : 0,
-      bank_name: form.bank_name.trim() || null,
-      account_number: form.account_number.trim() || null,
-      account_name: form.account_name.trim() || name,
+      // Payout details are entered by the staff member during their own sign-up.
+      bank_name: null,
+      account_number: null,
+      account_name: name,
     });
     toast.success(`${name} onboarded`, {
       description: isFloor
@@ -201,45 +199,6 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
             </div>
           ) : null}
 
-          {step === 2 ? (
-            <div className="space-y-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="bank-name">Bank name</Label>
-                <Input
-                  id="bank-name"
-                  value={form.bank_name}
-                  placeholder="e.g. GTBank"
-                  onChange={(e) => setForm({ ...form, bank_name: e.target.value })}
-                  className="h-11"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="acct-number">Account number</Label>
-                <Input
-                  id="acct-number"
-                  inputMode="numeric"
-                  value={form.account_number}
-                  placeholder="10-digit NUBAN"
-                  onChange={(e) => setForm({ ...form, account_number: e.target.value })}
-                  className="h-11"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="acct-name">Account name</Label>
-                <Input
-                  id="acct-name"
-                  value={form.account_name}
-                  placeholder="Defaults to their full name"
-                  onChange={(e) => setForm({ ...form, account_name: e.target.value })}
-                  className="h-11"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Shown on their tip QR so clients can transfer directly. Optional — you can add it
-                later from the roster.
-              </p>
-            </div>
-          ) : null}
         </div>
 
         <div className="mt-5 flex items-center gap-2">

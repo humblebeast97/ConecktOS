@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { defaultUserForRole, useStore } from "@/lib/store";
+import { useStore } from "@/lib/store";
 import { commissionRoles, roleHint, roleLabel } from "@/lib/groompulse";
 import type { Role } from "@/lib/groompulse";
 import { useIndustryConfig } from "@/config/industry-context";
@@ -52,7 +52,7 @@ const portalFor = (role: Role) =>
 function JoinPage() {
   const navigate = useNavigate();
   const config = useIndustryConfig();
-  const { signIn } = useStore();
+  const { signIn, addStylist } = useStore();
 
   const [role, setRole] = useState<Role>("staff");
   const [fullName, setFullName] = useState("");
@@ -60,6 +60,9 @@ function JoinPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [inviteCode, setInviteCode] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [accountName, setAccountName] = useState("");
 
   const rules = [
     { label: "At least 8 characters", ok: password.length >= 8 },
@@ -83,8 +86,16 @@ function JoinPage() {
       toast.error("Password must mix upper and lower case, a number and a symbol (8+ chars)");
       return;
     }
+    const member = addStylist({
+      full_name: fullName.trim(),
+      role,
+      commission_rate: isFrontDesk ? 0 : 0.5,
+      bank_name: isFrontDesk ? null : bankName.trim() || null,
+      account_number: isFrontDesk ? null : accountNumber.trim() || null,
+      account_name: isFrontDesk ? null : accountName.trim() || fullName.trim(),
+    });
     toast.success(`Welcome aboard — opening your ${roleTitle} portal.`);
-    signIn(defaultUserForRole[role]);
+    signIn(member.id);
     navigate({ to: portalFor(role) });
   };
 
@@ -240,6 +251,54 @@ function JoinPage() {
                 ))}
               </ul>
             </div>
+
+            {!isFrontDesk ? (
+              <div className="space-y-3 rounded-2xl border border-border bg-surface/50 p-4">
+                <p className="text-sm font-semibold">
+                  Payout details{" "}
+                  <span className="font-normal text-muted-foreground">
+                    — where your tips are sent
+                  </span>
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="jn-bank">Bank name</Label>
+                    <Input
+                      id="jn-bank"
+                      value={bankName}
+                      onChange={(e) => setBankName(e.target.value)}
+                      placeholder="e.g. GTBank"
+                      className="h-11 bg-surface"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="jn-acct">Account number</Label>
+                    <Input
+                      id="jn-acct"
+                      inputMode="numeric"
+                      value={accountNumber}
+                      onChange={(e) => setAccountNumber(e.target.value)}
+                      placeholder="10-digit NUBAN"
+                      className="h-11 bg-surface"
+                    />
+                  </div>
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label htmlFor="jn-acctname">Account name</Label>
+                    <Input
+                      id="jn-acctname"
+                      value={accountName}
+                      onChange={(e) => setAccountName(e.target.value)}
+                      placeholder="Defaults to your full name"
+                      className="h-11 bg-surface"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  You can leave this blank and add it later — but your tip QR won't work until it's
+                  set.
+                </p>
+              </div>
+            ) : null}
 
             <Button
               type="submit"
