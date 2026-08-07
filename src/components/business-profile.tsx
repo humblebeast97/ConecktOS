@@ -4,50 +4,23 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useStore } from "@/lib/store";
-import { getIndustryConfig, type BusinessType } from "@/config/industryConfigs";
-
-export const businessCategories: { value: BusinessType; label: string }[] = [
-  { value: "beauty", label: "Salons, Barbershops & Spas" },
-  { value: "car_wash", label: "Car Wash & Auto Detailing" },
-  { value: "tailoring", label: "Tailoring & Fashion Houses" },
-  { value: "nightlife", label: "Lounges, Clubs & Bars" },
-  { value: "repair", label: "Electronics & Device Repair" },
-];
 
 export function BusinessProfilePanel() {
   const { salon, updateSalon } = useStore();
 
   const [name, setName] = useState(salon.name);
-  const [businessType, setBusinessType] = useState<BusinessType | "">(
-    salon.business_type ?? "",
-  );
   const [radius, setRadius] = useState(String(salon.geofence_radius_meters));
   const [lat, setLat] = useState(salon.latitude?.toString() ?? "");
   const [lng, setLng] = useState(salon.longitude?.toString() ?? "");
-
-  const config = businessType ? getIndustryConfig(businessType) : null;
 
   const onSave = () => {
     if (!name.trim()) {
       toast.error("Business name is required");
       return;
     }
-    if (!businessType) {
-      toast.error("Business category is required");
-      return;
-    }
-
     updateSalon({
       name: name.trim(),
-      business_type: businessType,
       geofence_radius_meters: Number(radius) || 50,
       ...(lat ? { latitude: Number(lat) } : {}),
       ...(lng ? { longitude: Number(lng) } : {}),
@@ -64,7 +37,7 @@ export function BusinessProfilePanel() {
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Business setup</h2>
           <p className="text-sm text-muted-foreground">
-            Your category tailors labels, tipping and stock across the app.
+            Name your business and set the location used for geofenced clock-ins.
           </p>
         </div>
       </div>
@@ -80,34 +53,6 @@ export function BusinessProfilePanel() {
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Kings & Queens Grooming Lounge"
           />
-        </div>
-
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="biz-category">
-            Business Category <span className="text-primary">*</span>
-          </Label>
-          <Select
-            value={businessType}
-            onValueChange={(v) => setBusinessType(v as BusinessType)}
-          >
-            <SelectTrigger id="biz-category" className="h-11">
-              <SelectValue placeholder="Select your business category" />
-            </SelectTrigger>
-            <SelectContent>
-              {businessCategories.map((c) => (
-                <SelectItem key={c.value} value={c.value}>
-                  {c.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {config ? (
-            <p className="text-xs text-muted-foreground">
-              Staff are called <span className="text-foreground">{config.staffPlural}</span>, jobs are{" "}
-              <span className="text-foreground">{config.serviceTitle}</span>, stock tracks{" "}
-              <span className="text-foreground">{config.inventoryUnitLabel}</span>.
-            </p>
-          ) : null}
         </div>
 
         <div className="space-y-2">
@@ -130,7 +75,7 @@ export function BusinessProfilePanel() {
             placeholder="3.4271"
           />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="biz-radius">Geofence radius (metres)</Label>
           <Input
             id="biz-radius"

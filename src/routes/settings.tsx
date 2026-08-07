@@ -15,8 +15,7 @@ import {
 } from "@/components/ui/select";
 import { useStore } from "@/lib/store";
 import { useRoleGuard } from "@/lib/access";
-import { currencyOptions, type BusinessType } from "@/lib/groompulse";
-import { businessCategories } from "@/components/business-profile";
+import { currencyOptions } from "@/lib/groompulse";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -38,7 +37,6 @@ function SettingsPage() {
   const { salon, updateSalon } = useStore();
 
   const [name, setName] = useState(salon.name);
-  const [businessType, setBusinessType] = useState<BusinessType>(salon.business_type);
   const [currency, setCurrency] = useState(salon.currency);
   const [radius, setRadius] = useState(String(salon.geofence_radius_meters));
   const [lat, setLat] = useState(salon.latitude?.toString() ?? "");
@@ -75,7 +73,6 @@ function SettingsPage() {
     }
     updateSalon({
       name: name.trim(),
-      business_type: businessType,
       currency,
       geofence_radius_meters: Number(radius) || 50,
       open_time: open,
@@ -96,31 +93,14 @@ function SettingsPage() {
             </div>
             <div>
               <h2 className="text-lg font-semibold">Profile</h2>
-              <p className="text-sm text-muted-foreground">
-                Your category tailors labels, tipping and stock across the app.
-              </p>
+              <p className="text-sm text-muted-foreground">Your business name and currency.</p>
             </div>
           </div>
 
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5 sm:col-span-2">
+            <div className="space-y-1.5">
               <Label htmlFor="s-name">Business name</Label>
               <Input id="s-name" value={name} onChange={(e) => setName(e.target.value)} className="h-11 bg-surface" />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="s-cat">Category</Label>
-              <Select value={businessType} onValueChange={(v) => setBusinessType(v as BusinessType)}>
-                <SelectTrigger id="s-cat" className="h-11 bg-surface">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {businessCategories.map((c) => (
-                    <SelectItem key={c.value} value={c.value}>
-                      {c.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="s-cur">Currency</Label>
