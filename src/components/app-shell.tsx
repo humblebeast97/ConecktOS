@@ -12,6 +12,7 @@ import {
   Package,
   Receipt,
   MapPinOff,
+  UserRound,
 } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { useStore } from "@/lib/store";
@@ -155,6 +156,13 @@ export function AppShell({
                       </DropdownMenuItem>
                     ))
                   )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onSelect={() => navigate({ to: "/notifications" })}
+                    className="justify-center text-xs font-medium text-primary"
+                  >
+                    View all notifications
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : null}
@@ -183,6 +191,10 @@ export function AppShell({
                   </span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => navigate({ to: "/profile" })} className="gap-2">
+                  <UserRound className="size-4" />
+                  Your profile
+                </DropdownMenuItem>
                 {currentUser.role === "owner" || currentUser.role === "manager" ? (
                   <DropdownMenuItem onSelect={() => navigate({ to: "/settings" })} className="gap-2">
                     <Settings className="size-4" />
