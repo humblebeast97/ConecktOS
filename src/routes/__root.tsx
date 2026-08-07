@@ -14,6 +14,11 @@ import { StoreProvider } from "../lib/store";
 import { IndustryProvider } from "../config/industry-context";
 import { Toaster } from "../components/ui/sonner";
 
+// Social scrapers need an absolute og:image. Set VITE_SITE_URL at deploy time
+// (e.g. https://app.conecktos.com); falls back to a relative path locally.
+const SITE_URL = (import.meta.env["VITE_SITE_URL"] ?? "").replace(/\/$/, "");
+const OG_IMAGE = SITE_URL ? `${SITE_URL}/og.png` : "/og.png";
+
 
 function NotFoundComponent() {
   return (
@@ -88,11 +93,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-title", content: "ConecktOS" },
       { property: "og:site_name", content: "ConecktOS" },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "/og.png" },
+      { property: "og:image", content: OG_IMAGE },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: "/og.png" },
+      { name: "twitter:image", content: OG_IMAGE },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

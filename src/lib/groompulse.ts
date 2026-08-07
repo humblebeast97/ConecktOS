@@ -23,6 +23,9 @@ export interface Salon {
   latitude: number;
   longitude: number;
   geofence_radius_meters: number;
+  currency: string;
+  open_time: string;
+  close_time: string;
   owner_id: string;
   created_at: string;
 }
@@ -109,10 +112,27 @@ export interface Expense {
 
 export const SALON_ID = "salon-001";
 
+export const currencyOptions = [
+  { code: "NGN", locale: "en-NG", label: "Nigerian Naira (₦)" },
+  { code: "GHS", locale: "en-GH", label: "Ghanaian Cedi (₵)" },
+  { code: "KES", locale: "en-KE", label: "Kenyan Shilling (KSh)" },
+  { code: "ZAR", locale: "en-ZA", label: "South African Rand (R)" },
+  { code: "USD", locale: "en-US", label: "US Dollar ($)" },
+] as const;
+
+// The active money format, updated from the business's `currency` setting.
+let moneyFormat = { locale: "en-NG", currency: "NGN" };
+
+export function setMoneyFormat(currency: string) {
+  const opt = currencyOptions.find((c) => c.code === currency);
+  moneyFormat = opt ? { locale: opt.locale, currency: opt.code } : moneyFormat;
+}
+
+/** Formats an amount in the business's configured currency (defaults to NGN). */
 export const naira = (value: number) =>
-  new Intl.NumberFormat("en-NG", {
+  new Intl.NumberFormat(moneyFormat.locale, {
     style: "currency",
-    currency: "NGN",
+    currency: moneyFormat.currency,
     maximumFractionDigits: 0,
   }).format(value || 0);
 
@@ -192,6 +212,9 @@ export const seedSalon: Salon = {
   latitude: 6.4318,
   longitude: 3.4271,
   geofence_radius_meters: 50,
+  currency: "NGN",
+  open_time: "08:00",
+  close_time: "20:00",
   owner_id: "u-owner",
   created_at: today(8),
 };

@@ -1,11 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
   AlertTriangle,
   ArrowDown,
   ArrowUp,
   Banknote,
+  CheckCircle2,
   ChevronsUpDown,
+  Circle,
   Clock,
   Flame,
   FileDown,
@@ -13,6 +15,7 @@ import {
   Plus,
   RotateCcw,
   Printer,
+  Rocket,
   TrendingUp,
   Wallet,
 } from "lucide-react";
@@ -147,6 +150,7 @@ function AdminPage() {
         </>
       }
     >
+      <OnboardingChecklist />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Gross revenue"
@@ -406,16 +410,16 @@ function ResetAllDialog() {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="h-9">
           <RotateCcw className="size-4" />
-          Reset to zero
+          Start new period
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Reset everything to zero?</DialogTitle>
+          <DialogTitle>Start a new period?</DialogTitle>
           <DialogDescription>
-            Clears all tickets, commissions, expenses, attendance records and sets every
-            inventory item's stock on hand to 0. Your team roster, services and inventory
-            item list stay in place.
+            Closes out the current period: clears tickets, commissions, expenses and attendance,
+            and resets stock on hand to 0. Your team roster, services and inventory item list stay
+            in place. Print the end-of-day audit first if you need a record.
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-end gap-2">
@@ -427,11 +431,11 @@ function ResetAllDialog() {
             onClick={() => {
               resetAll();
               setOpen(false);
-              toast.success("Fresh start — all figures back to zero");
+              toast.success("New period started — figures reset to zero");
             }}
           >
             <RotateCcw className="size-4" />
-            Reset to zero
+            Start new period
           </Button>
         </div>
       </DialogContent>
@@ -595,7 +599,7 @@ function CloseDayDialog() {
           />
         </div>
 
-        <div className="audit-print rounded-2xl border border-border bg-gradient-surface p-5">
+        <div className="print-sheet rounded-2xl border border-border bg-gradient-surface p-5">
           <p className="font-display text-sm font-bold">{salon.name}</p>
           <p className="text-xs text-muted-foreground">
             {isTodaySelected ? "Daily audit" : "Day audit"} ·{" "}
@@ -678,6 +682,54 @@ function GeofenceBadge({ att }: { att?: { is_within_geofence: boolean; clock_in_
     >
       {att.is_within_geofence ? "Verified" : att.clock_in_lat === null ? "Unverified" : "Flagged"}
     </Badge>
+  );
+}
+
+function OnboardingChecklist() {
+  const { salon, staff, services, tickets } = useStore();
+  const steps = [
+    { label: "Complete your business profile", done: salon.latitude != null, to: "/settings" as const },
+    { label: "Add your team", done: staff.length > 0, to: "/team" as const },
+    { label: "Add your services", done: services.length > 0, to: "/reception" as const },
+    { label: "Bill your first ticket", done: tickets.length > 0, to: "/reception" as const },
+  ];
+  const doneCount = steps.filter((s) => s.done).length;
+  if (doneCount === steps.length) return null;
+  const next = steps.find((s) => !s.done);
+
+  return (
+    <section className="card-lux mb-5 rounded-2xl p-5">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Rocket className="size-5 text-primary" />
+          <h2 className="text-lg font-bold">Getting started</h2>
+        </div>
+        <span className="text-sm tabular-nums text-muted-foreground">
+          {doneCount}/{steps.length}
+        </span>
+      </div>
+      <Progress value={(doneCount / steps.length) * 100} className="mt-3 h-2" />
+      <ul className="mt-4 space-y-2">
+        {steps.map((s) => (
+          <li key={s.label} className="flex items-center gap-2.5 text-sm">
+            {s.done ? (
+              <CheckCircle2 className="size-4 shrink-0 text-success" />
+            ) : (
+              <Circle className="size-4 shrink-0 text-muted-foreground" />
+            )}
+            <span className={s.done ? "text-muted-foreground line-through" : ""}>{s.label}</span>
+            {!s.done && s === next ? (
+              <Link
+                to={s.to}
+                className="ml-auto shrink-0 text-xs font-medium text-primary underline-offset-4 hover:underline"
+              >
+                Do it →
+              </Link>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

@@ -7,11 +7,17 @@ import {
   UserPlus,
   ChevronDown,
   LogOut,
+  Settings,
+  Bell,
+  Package,
+  Receipt,
+  MapPinOff,
 } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { useStore } from "@/lib/store";
 import { useIndustryConfig } from "@/config/industry-context";
 import { roleLabel } from "@/lib/groompulse";
+import { lowStock } from "@/lib/reports";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -48,10 +54,29 @@ export function AppShell({
   children: ReactNode;
   actions?: ReactNode;
 }) {
-  const { currentUser } = useStore();
+  const { currentUser, inventory, tickets, attendance } = useStore();
   const config = useIndustryConfig();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // Ops notifications — only for owner / manager / front desk.
+  const showOps = ["owner", "manager", "receptionist"].includes(currentUser.role);
+  const low = showOps ? lowStock(inventory) : [];
+  const pending = showOps ? tickets.filter((t) => t.status === "pending") : [];
+  const offSite = showOps
+    ? attendance.filter((a) => a.clock_out_time === null && !a.is_within_geofence)
+    : [];
+  const notifications = [
+    low.length
+      ? { icon: Package, text: `${low.length} item${low.length > 1 ? "s" : ""} low on stock`, to: "/admin" as const }
+      : null,
+    pending.length
+      ? { icon: Receipt, text: `${pending.length} ticket${pending.length > 1 ? "s" : ""} awaiting payment`, to: "/reception" as const }
+      : null,
+    offSite.length
+      ? { icon: MapPinOff, text: `${offSite.length} off-site clock-in${offSite.length > 1 ? "s" : ""}`, to: "/admin" as const }
+      : null,
+  ].filter((n): n is { icon: typeof Package; text: string; to: "/admin" | "/reception" } => n !== null);
 
   // Keep the browser tab title in sync with the active industry sub-brand.
   useEffect(() => {
@@ -99,6 +124,37 @@ export function AppShell({
                 );
               })}
             </nav>
+            {showOps ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  aria-label={`Notifications${notifications.length ? ` (${notifications.length})` : ""}`}
+                  className="relative grid size-9 place-items-center rounded-full border border-border bg-surface text-muted-foreground outline-none transition-colors hover:border-primary/40 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <Bell className="size-4" />
+                  {notifications.length ? (
+                    <span className="absolute -right-0.5 -top-0.5 grid size-4 place-items-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
+                      {notifications.length}
+                    </span>
+                  ) : null}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64">
+                  <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {notifications.length === 0 ? (
+                    <p className="px-2 py-6 text-center text-xs text-muted-foreground">
+                      You're all caught up.
+                    </p>
+                  ) : (
+                    notifications.map((n, i) => (
+                      <DropdownMenuItem key={i} onSelect={() => navigate({ to: n.to })} className="gap-2">
+                        <n.icon className="size-4 shrink-0 text-muted-foreground" />
+                        <span className="text-sm">{n.text}</span>
+                      </DropdownMenuItem>
+                    ))
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : null}
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-2 rounded-full border border-border bg-surface py-1 pl-1 pr-2 outline-none transition-colors hover:border-primary/40 focus-visible:ring-1 focus-visible:ring-ring">
                 <Avatar className="size-7">
@@ -124,6 +180,12 @@ export function AppShell({
                   </span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                {currentUser.role === "owner" || currentUser.role === "manager" ? (
+                  <DropdownMenuItem onSelect={() => navigate({ to: "/settings" })} className="gap-2">
+                    <Settings className="size-4" />
+                    Business settings
+                  </DropdownMenuItem>
+                ) : null}
                 <DropdownMenuItem
                   onSelect={() => navigate({ to: "/" })}
                   className="gap-2 text-destructive focus:text-destructive"

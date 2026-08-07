@@ -10,6 +10,7 @@ import {
 import {
   SALON_ID,
   haversineMeters,
+  setMoneyFormat,
   seedAttendance,
   seedExpenses,
   seedInventory,
@@ -344,6 +345,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setExpenses([]);
     setInventory((prev) => prev.map((i) => ({ ...i, quantity: 0 })));
   }, []);
+
+  // Keep the money formatter in sync with the business's currency setting.
+  useEffect(() => {
+    setMoneyFormat(salon.currency);
+  }, [salon.currency]);
 
   // Hydrate once from localStorage after mount (kept out of the initial render to
   // avoid SSR hydration mismatches).

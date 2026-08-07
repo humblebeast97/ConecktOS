@@ -67,12 +67,38 @@ function StaffPortal() {
   const [locating, setLocating] = useState(false);
 
   const open = openAttendanceFor(me.id);
+  const [consentOpen, setConsentOpen] = useState(false);
   const daily = useMemo(
     () => staffDailyCommission(me.id, tickets, ticketItems),
     [me.id, tickets, ticketItems],
   );
 
-  const handleClockIn = () => {
+  const hasLocationConsent = () =>
+    typeof window !== "undefined" &&
+    window.localStorage.getItem("conecktos-location-consent") === "granted";
+
+  const startClockIn = () => {
+    if (hasLocationConsent()) requestClockIn();
+    else setConsentOpen(true);
+  };
+
+  const clockInWithoutLocation = () => {
+    setConsentOpen(false);
+    clockIn(me.id, null);
+    toast.error("Clocked in without location", {
+      description: "Recorded as unverified for the owner to review.",
+    });
+  };
+
+  const grantAndClockIn = () => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("conecktos-location-consent", "granted");
+    }
+    setConsentOpen(false);
+    requestClockIn();
+  };
+
+  const requestClockIn = () => {
     setLocating(true);
     const finish = (coords: { lat: number; lng: number } | null) => {
       const { withinGeofence, distance } = clockIn(me.id, coords);
@@ -172,7 +198,7 @@ function StaffPortal() {
               size="lg"
               className="h-14 w-full text-base font-semibold sm:w-52"
               disabled={locating}
-              onClick={handleClockIn}
+              onClick={startClockIn}
             >
               {locating ? <Loader2 className="size-5 animate-spin" /> : <MapPin className="size-5" />}
               {locating ? "Locating…" : "Clock In"}
@@ -251,6 +277,28 @@ function StaffPortal() {
           )}
         </ul>
       </section>
+
+      <Dialog open={consentOpen} onOpenChange={setConsentOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Use your location to clock in?</DialogTitle>
+            <DialogDescription>
+              ConecktOS reads your device location once, only when you clock in, to verify you're at{" "}
+              {salon.name}. It's never tracked in the background. You can clock in without it — your
+              record is simply marked unverified.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2">
+            <Button className="h-11 font-semibold" onClick={grantAndClockIn}>
+              <MapPin className="size-4" />
+              Allow location &amp; clock in
+            </Button>
+            <Button variant="outline" className="h-11" onClick={clockInWithoutLocation}>
+              Clock in without location
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }

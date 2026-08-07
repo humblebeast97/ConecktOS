@@ -235,6 +235,15 @@ function LoginPage() {
             <ShieldCheck className="size-3.5 shrink-0 text-success" />
             One workspace for your whole team — owner, front desk and floor staff.
           </p>
+          <p className="mt-4 border-t border-border pt-3 text-xs text-muted-foreground">
+            <Link to="/privacy" className="underline-offset-4 hover:text-foreground hover:underline">
+              Privacy
+            </Link>
+            <span className="mx-2">·</span>
+            <Link to="/terms" className="underline-offset-4 hover:text-foreground hover:underline">
+              Terms
+            </Link>
+          </p>
         </section>
       </div>
     </div>

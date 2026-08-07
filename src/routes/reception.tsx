@@ -6,12 +6,12 @@ import {
   CircleDollarSign,
   Package,
   Plus,
+  Printer,
   Receipt,
   Search,
   Trash2,
   UserPlus,
   Users,
-
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, MetricCard } from "@/components/app-shell";
@@ -28,9 +28,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useStore, type DraftLine } from "@/lib/store";
 import { useRoleGuard } from "@/lib/access";
-import { naira, paymentLabel, timeOf, type PaymentMethod } from "@/lib/groompulse";
+import { naira, paymentLabel, timeOf, type PaymentMethod, type Ticket } from "@/lib/groompulse";
 import { isToday } from "@/lib/reports";
 import { useIndustryConfig } from "@/config/industry-context";
 
@@ -511,9 +519,12 @@ function ReceptionPage() {
                           {paymentLabel[t.payment_method]} · {timeOf(t.created_at)}
                         </p>
                       </div>
-                      <span className="shrink-0 font-display text-sm font-bold">
-                        {naira(t.total_amount)}
-                      </span>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span className="font-display text-sm font-bold tabular-nums">
+                          {naira(t.total_amount)}
+                        </span>
+                        <ReceiptDialog ticket={t} />
+                      </div>
                     </div>
                     <MatchRow onMatch={(ref) => {
                       markPaid(t.id, ref);
@@ -582,6 +593,96 @@ function ReceptionPage() {
         <TeamOnboarding compact />
       </section>
     </AppShell>
+  );
+}
+
+function ReceiptDialog({ ticket }: { ticket: Ticket }) {
+  const { salon, ticketItems, services, staff } = useStore();
+  const items = ticketItems.filter((i) => i.ticket_id === ticket.id);
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-8 text-muted-foreground hover:text-foreground"
+          aria-label={`Receipt for ${ticket.client_name || "walk-in"}`}
+        >
+          <Receipt className="size-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-sm">
+        <DialogHeader className="no-print">
+          <DialogTitle>Receipt</DialogTitle>
+          <DialogDescription>Print or save this ticket as a receipt.</DialogDescription>
+        </DialogHeader>
+
+        <div className="print-sheet rounded-2xl border border-border bg-gradient-surface p-5">
+          <p className="font-display text-base font-bold">{salon.name}</p>
+          <p className="text-xs text-muted-foreground">
+            Receipt ·{" "}
+            {new Date(ticket.created_at).toLocaleString("en-NG", {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })}
+          </p>
+
+          <div className="mt-3 border-t border-border pt-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Client</span>
+              <span className="font-medium">{ticket.client_name || "Walk-in"}</span>
+            </div>
+            {ticket.client_phone ? (
+              <div className="mt-1 flex justify-between">
+                <span className="text-muted-foreground">Phone</span>
+                <span>{ticket.client_phone}</span>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="mt-3 space-y-1.5 border-t border-border pt-3">
+            {items.map((it) => {
+              const svc = services.find((s) => s.id === it.service_id);
+              const who = staff.find((s) => s.id === it.staff_id);
+              return (
+                <div key={it.id} className="flex items-start justify-between gap-3 text-sm">
+                  <span className="min-w-0">
+                    <span className="block truncate">{svc?.name}</span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {who?.full_name}
+                    </span>
+                  </span>
+                  <span className="shrink-0 font-medium tabular-nums">{naira(it.service_price)}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+            <span className="text-sm text-muted-foreground">
+              {paymentLabel[ticket.payment_method]} · {ticket.status === "paid" ? "Paid" : "Pending"}
+            </span>
+            <span className="font-display text-lg font-bold tabular-nums text-primary">
+              {naira(ticket.total_amount)}
+            </span>
+          </div>
+
+          <p className="mt-3 text-center text-[11px] text-muted-foreground">
+            Thank you for your patronage.
+          </p>
+        </div>
+
+        <Button
+          variant="outline"
+          className="no-print"
+          onClick={() => typeof window !== "undefined" && window.print()}
+        >
+          <Printer className="size-4" />
+          Print / save as PDF
+        </Button>
+      </DialogContent>
+    </Dialog>
   );
 }
 
