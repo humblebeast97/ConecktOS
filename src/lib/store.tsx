@@ -168,11 +168,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     (staffId: string, coords: { lat: number; lng: number } | null) => {
       const now = new Date();
       const late = now.getHours() > 9 || (now.getHours() === 9 && now.getMinutes() > 15);
-      // No location → record honestly as unverified; never invent coordinates.
+      // Measure against the business's own location (set by the owner), not the seed.
       const distance = coords
-        ? haversineMeters(coords.lat, coords.lng, seedSalon.latitude, seedSalon.longitude)
+        ? haversineMeters(coords.lat, coords.lng, salon.latitude, salon.longitude)
         : null;
-      const withinGeofence = distance !== null && distance <= seedSalon.geofence_radius_meters;
+      const withinGeofence = distance !== null && distance <= salon.geofence_radius_meters;
       setAttendance((prev) => [
         {
           id: uid("att"),
@@ -188,7 +188,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ]);
       return { withinGeofence, distance };
     },
-    [],
+    [salon],
   );
 
   const clockOut = useCallback((staffId: string) => {

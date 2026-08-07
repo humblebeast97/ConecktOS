@@ -25,7 +25,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useStore } from "@/lib/store";
-import { naira, timeOf } from "@/lib/groompulse";
+import { haversineMeters, naira, timeOf } from "@/lib/groompulse";
 import { staffDailyCommission } from "@/lib/reports";
 import { useIndustryConfig } from "@/config/industry-context";
 
@@ -86,14 +86,6 @@ function StaffPortal() {
     else setConsentOpen(true);
   };
 
-  const clockInWithoutLocation = () => {
-    setConsentOpen(false);
-    clockIn(me.id, null);
-    toast.error("Clocked in without location", {
-      description: "Recorded as unverified for the owner to review.",
-    });
-  };
-
   const grantAndClockIn = () => {
     if (typeof window !== "undefined") {
       window.localStorage.setItem("conecktos-location-consent", "granted");
@@ -104,32 +96,36 @@ function StaffPortal() {
 
   const requestClockIn = () => {
     setLocating(true);
-    const finish = (coords: { lat: number; lng: number } | null) => {
-      const { withinGeofence, distance } = clockIn(me.id, coords);
+    const evaluate = (coords: { lat: number; lng: number } | null) => {
       setLocating(false);
-      if (coords === null) {
-        toast.error("Location unavailable", {
-          description: "Clock-in recorded as unverified for the owner to review.",
+      // Location is required — we can't confirm you're at the business without it.
+      if (!coords) {
+        toast.error("Location required to clock in", {
+          description: `Turn on location access — we verify you're at ${salon.name}.`,
         });
-      } else if (withinGeofence) {
+        return;
+      }
+      const distance = haversineMeters(coords.lat, coords.lng, salon.latitude, salon.longitude);
+      if (distance <= salon.geofence_radius_meters) {
+        clockIn(me.id, coords);
         toast.success("Clocked in", {
-          description: `Verified ${Math.round(distance ?? 0)}m from ${salon.name}.`,
+          description: `Verified ${Math.round(distance)}m from ${salon.name}.`,
         });
       } else {
-        toast.warning("Clocked in outside geofence", {
-          description: `You are ${Math.round(distance ?? 0)}m away. The owner has been alerted.`,
+        // Outside the business's geofence — block the clock-in.
+        toast.error("You're too far to clock in", {
+          description: `You're ${Math.round(distance)}m from ${salon.name}. Get within ${salon.geofence_radius_meters}m and try again.`,
         });
       }
     };
 
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      // Can't verify location on this device — record honestly as unverified.
-      finish(null);
+      evaluate(null);
       return;
     }
     navigator.geolocation.getCurrentPosition(
-      (pos) => finish({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => finish(null),
+      (pos) => evaluate({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => evaluate(null),
       { enableHighAccuracy: true, timeout: 8000 },
     );
   };
@@ -287,9 +283,9 @@ function StaffPortal() {
           <DialogHeader>
             <DialogTitle>Use your location to clock in?</DialogTitle>
             <DialogDescription>
-              ConecktOS reads your device location once, only when you clock in, to verify you're at{" "}
-              {salon.name}. It's never tracked in the background. You can clock in without it — your
-              record is simply marked unverified.
+              ConecktOS reads your device location once, only when you clock in, to confirm you're at{" "}
+              {salon.name}. It's never tracked in the background. Clock-in only works on-site — within{" "}
+              {salon.geofence_radius_meters}m of the business.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2">
@@ -297,8 +293,8 @@ function StaffPortal() {
               <MapPin className="size-4" />
               Allow location &amp; clock in
             </Button>
-            <Button variant="outline" className="h-11" onClick={clockInWithoutLocation}>
-              Clock in without location
+            <Button variant="outline" className="h-11" onClick={() => setConsentOpen(false)}>
+              Cancel
             </Button>
           </div>
         </DialogContent>
