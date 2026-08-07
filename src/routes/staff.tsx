@@ -369,41 +369,54 @@ function TipQrDialog() {
                 </Suspense>
               </div>
 
-              <p className="mt-4 font-display text-lg font-bold">{me.full_name}</p>
-              <div className="mt-2 text-sm">
-                <p className="text-muted-foreground">{me.bank_name}</p>
-                <div className="mt-1 flex items-center justify-center gap-2">
-                  <span className="font-display text-lg font-bold tracking-wider tabular-nums">
-                    {me.account_number}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={copyAccount}
-                    aria-label="Copy account number"
-                    className="no-print grid size-7 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
-                  >
-                    <Copy className="size-3.5" />
-                  </button>
-                </div>
-                <p className="text-muted-foreground">{accountName}</p>
+              {/* Print-only: a clean tip poster (details live on the scanned page). */}
+              <div className="mt-5 hidden print:block">
+                <p className="font-display text-lg font-bold">
+                  Tip {me.full_name.split(" ")[0]}
+                </p>
+                <p className="mx-auto mt-1 max-w-[16rem] text-sm text-muted-foreground">
+                  Scan to tip {me.full_name.split(" ")[0]} by bank transfer.
+                </p>
               </div>
 
-              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                <span className="w-full text-[11px] uppercase tracking-wider text-muted-foreground">
-                  Suggested tip
-                </span>
-                {["₦1,000", "₦2,000", "₦5,000"].map((amt) => (
-                  <span
-                    key={amt}
-                    className="rounded-full border border-border bg-surface px-3 py-1 text-xs font-semibold"
-                  >
-                    {amt}
+              {/* On-screen details (not printed — the scanned page shows these). */}
+              <div className="print:hidden">
+                <p className="mt-4 font-display text-lg font-bold">{me.full_name}</p>
+                <div className="mt-2 text-sm">
+                  <p className="text-muted-foreground">{me.bank_name}</p>
+                  <div className="mt-1 flex items-center justify-center gap-2">
+                    <span className="font-display text-lg font-bold tracking-wider tabular-nums">
+                      {me.account_number}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={copyAccount}
+                      aria-label="Copy account number"
+                      className="grid size-7 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
+                    >
+                      <Copy className="size-3.5" />
+                    </button>
+                  </div>
+                  <p className="text-muted-foreground">{accountName}</p>
+                </div>
+
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                  <span className="w-full text-[11px] uppercase tracking-wider text-muted-foreground">
+                    Suggested tip
                   </span>
-                ))}
+                  {["₦1,000", "₦2,000", "₦5,000"].map((amt) => (
+                    <span
+                      key={amt}
+                      className="rounded-full border border-border bg-surface px-3 py-1 text-xs font-semibold"
+                    >
+                      {amt}
+                    </span>
+                  ))}
+                </div>
+                <p className="mt-4 text-[11px] text-muted-foreground">
+                  Scan to view details, or copy the account number and transfer.
+                </p>
               </div>
-              <p className="mt-4 text-[11px] text-muted-foreground">
-                Scan to view details, or copy the account number and transfer.
-              </p>
             </div>
 
             <Button
