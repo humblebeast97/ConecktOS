@@ -93,7 +93,7 @@ function JoinPage() {
       <div className="pointer-events-none absolute -top-40 left-1/2 size-[34rem] -translate-x-1/2 rounded-full bg-primary/12 blur-3xl" />
       <div className="pointer-events-none absolute bottom-0 right-0 size-[22rem] rounded-full bg-success/10 blur-3xl" />
 
-      <div id="main-content" className="relative mx-auto max-w-2xl px-5 py-12">
+      <div id="main-content" role="main" className="relative mx-auto max-w-2xl px-5 py-12">
         <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-muted-foreground">
           <Sparkles className="size-3.5 text-primary" />
           Team sign-up

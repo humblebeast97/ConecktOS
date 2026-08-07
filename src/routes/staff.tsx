@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import {
   Banknote,
   Clock,
@@ -11,7 +11,6 @@ import {
   Loader2,
   ShieldAlert,
 } from "lucide-react";
-import QRCode from "react-qr-code";
 import { toast } from "sonner";
 import { AppShell, MetricCard } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -28,6 +27,10 @@ import { useStore } from "@/lib/store";
 import { naira, timeOf } from "@/lib/groompulse";
 import { staffDailyCommission } from "@/lib/reports";
 import { useIndustryConfig } from "@/config/industry-context";
+
+// The QR library only renders inside the tip dialog — load it on demand so it
+// stays out of the staff route's initial bundle.
+const QRCode = lazy(() => import("react-qr-code"));
 
 export const Route = createFileRoute("/staff")({
   head: () => ({
@@ -328,8 +331,10 @@ function TipQrDialog() {
           <p className="font-display text-xs uppercase tracking-[0.25em] text-primary">
             {salon.name}
           </p>
-          <div className="mx-auto mt-4 w-fit rounded-xl bg-white p-3">
-            <QRCode value={tipUrl} size={168} bgColor="#ffffff" fgColor="#111318" />
+          <div className="mx-auto mt-4 grid size-[168px] w-fit place-items-center rounded-xl bg-white p-3">
+            <Suspense fallback={<Loader2 className="size-6 animate-spin text-[#111318]" />}>
+              <QRCode value={tipUrl} size={168} bgColor="#ffffff" fgColor="#111318" />
+            </Suspense>
           </div>
           <p className="mt-4 font-display text-lg font-bold">{me.full_name}</p>
           <p className="text-xs text-muted-foreground">

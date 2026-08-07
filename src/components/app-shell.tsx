@@ -105,7 +105,10 @@ export function AppShell({
           </Link>
 
           <div className="flex items-center gap-2">
-            <nav className="hidden items-center gap-1 rounded-full border border-border bg-surface p-1 md:flex">
+            <nav
+              aria-label="Primary"
+              className="hidden items-center gap-1 rounded-full border border-border bg-surface p-1 md:flex"
+            >
               {nav.map((item) => {
                 const active = pathname === item.to;
                 return (

@@ -14,7 +14,7 @@ export const Route = createFileRoute("/terms")({
 function TermsPage() {
   return (
     <div className="relative min-h-dvh">
-      <div id="main-content" className="mx-auto max-w-3xl px-5 py-12">
+      <div id="main-content" role="main" className="mx-auto max-w-3xl px-5 py-12">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="size-4" />
           Back to sign in
