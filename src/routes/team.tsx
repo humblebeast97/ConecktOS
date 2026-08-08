@@ -13,13 +13,13 @@ export const Route = createFileRoute("/team")({
       {
         name: "description",
         content:
-          "Onboard stylists, barbers, nail techs, receptionists and managers with a guided wizard: commission splits and bank payout details.",
+          "Onboard staff, front desk and managers with a guided wizard: commission splits and bank payout details.",
       },
       { property: "og:title", content: "Team & HR Onboarding · ConecktOS" },
       {
         property: "og:description",
         content:
-          "Guided onboarding for every salon role — commission splits and bank payout details in minutes.",
+          "Guided onboarding for every role — commission splits and bank payout details in minutes.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

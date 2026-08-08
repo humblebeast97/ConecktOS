@@ -192,7 +192,7 @@ function JoinPage() {
                   id="jn-title"
                   value={jobTitle}
                   onChange={(e) => setJobTitle(e.target.value)}
-                  placeholder="e.g. Senior Stylist, Barber, Loctician"
+                  placeholder="e.g. Technician, Stylist, Server"
                   className="h-11 bg-surface"
                 />
               </div>

@@ -1,4 +1,4 @@
-// GroomPulse domain model — mirrors the planned Supabase schema.
+// ConecktOS domain model — mirrors the planned Supabase schema.
 // Currently backed by in-memory mock state (see src/lib/store.tsx).
 
 /** Permission tiers. A person's actual job title is free text (Profile.job_title). */
@@ -29,7 +29,7 @@ export interface Profile {
   salon_id: string;
   full_name: string;
   role: Role;
-  /** Free-text job title, e.g. "Senior Stylist", "Loctician", "Barber". */
+  /** Free-text job title, e.g. "Technician", "Stylist", "Server". */
   job_title: string | null;
   commission_rate: number;
   /** Payout bank details for tips (direct transfer). */
@@ -205,7 +205,7 @@ const today = (h: number, m = 0) => {
 
 export const seedSalon: Salon = {
   id: SALON_ID,
-  name: "Kings & Queens Grooming Lounge",
+  name: "Central Studio",
   business_type: "beauty",
   latitude: 6.4318,
   longitude: 3.4271,
@@ -223,7 +223,7 @@ export const seedProfiles: Profile[] = [
     salon_id: SALON_ID,
     full_name: "Adaeze Okonkwo",
     role: "owner",
-    job_title: "Owner",
+    job_title: null,
     commission_rate: 0,
     bank_name: null,
     account_number: null,
@@ -235,7 +235,7 @@ export const seedProfiles: Profile[] = [
     salon_id: SALON_ID,
     full_name: "Blessing Eze",
     role: "receptionist",
-    job_title: "Receptionist",
+    job_title: null,
     commission_rate: 0,
     bank_name: null,
     account_number: null,
@@ -247,7 +247,7 @@ export const seedProfiles: Profile[] = [
     salon_id: SALON_ID,
     full_name: "Tunde Bakare",
     role: "staff",
-    job_title: "Barber",
+    job_title: null,
     commission_rate: 0.5,
     bank_name: "GTBank",
     account_number: "0123456789",
@@ -259,7 +259,7 @@ export const seedProfiles: Profile[] = [
     salon_id: SALON_ID,
     full_name: "Chidinma Nwosu",
     role: "staff",
-    job_title: "Nail Technician",
+    job_title: null,
     commission_rate: 0.5,
     bank_name: "Access Bank",
     account_number: "0234567890",
@@ -271,7 +271,7 @@ export const seedProfiles: Profile[] = [
     salon_id: SALON_ID,
     full_name: "Musa Ibrahim",
     role: "staff",
-    job_title: "Stylist",
+    job_title: null,
     commission_rate: 0.5,
     bank_name: "Zenith Bank",
     account_number: "0345678901",
@@ -281,18 +281,18 @@ export const seedProfiles: Profile[] = [
 ];
 
 export const seedInventory: InventoryItem[] = [
-  { id: "inv-1", salon_id: SALON_ID, item_name: "Black Hair Dye", quantity: 0, unit: "bottles", reorder_level: 6 },
-  { id: "inv-2", salon_id: SALON_ID, item_name: "Shampoo (1L)", quantity: 0, unit: "bottles", reorder_level: 4 },
-  { id: "inv-3", salon_id: SALON_ID, item_name: "Relaxer Kit", quantity: 0, unit: "packs", reorder_level: 5 },
-  { id: "inv-4", salon_id: SALON_ID, item_name: "Gel Polish", quantity: 0, unit: "bottles", reorder_level: 6 },
-  { id: "inv-5", salon_id: SALON_ID, item_name: "Clipper Blades", quantity: 0, unit: "pcs", reorder_level: 3 },
+  { id: "inv-1", salon_id: SALON_ID, item_name: "Consumable A", quantity: 0, unit: "bottles", reorder_level: 6 },
+  { id: "inv-2", salon_id: SALON_ID, item_name: "Cleaning Solution (1L)", quantity: 0, unit: "bottles", reorder_level: 4 },
+  { id: "inv-3", salon_id: SALON_ID, item_name: "Refill Kit", quantity: 0, unit: "packs", reorder_level: 5 },
+  { id: "inv-4", salon_id: SALON_ID, item_name: "Disposable Gloves", quantity: 0, unit: "boxes", reorder_level: 6 },
+  { id: "inv-5", salon_id: SALON_ID, item_name: "Spare Parts", quantity: 0, unit: "pcs", reorder_level: 3 },
 ];
 
 export const seedServices: Service[] = [
   {
     id: "svc-1",
     salon_id: SALON_ID,
-    name: "Classic Barber Cut",
+    name: "Basic Service",
     price: 5000,
     duration_minutes: 40,
     suggested_inventory: [{ inventory_id: "inv-5", quantity: 0.2 }],
@@ -300,7 +300,7 @@ export const seedServices: Service[] = [
   {
     id: "svc-2",
     salon_id: SALON_ID,
-    name: "Hair Dyeing",
+    name: "Standard Service",
     price: 15000,
     duration_minutes: 90,
     suggested_inventory: [{ inventory_id: "inv-1", quantity: 1 }],
@@ -308,7 +308,7 @@ export const seedServices: Service[] = [
   {
     id: "svc-3",
     salon_id: SALON_ID,
-    name: "Wash & Blow Dry",
+    name: "Express Service",
     price: 7000,
     duration_minutes: 45,
     suggested_inventory: [{ inventory_id: "inv-2", quantity: 0.5 }],
@@ -316,7 +316,7 @@ export const seedServices: Service[] = [
   {
     id: "svc-4",
     salon_id: SALON_ID,
-    name: "Relaxer Treatment",
+    name: "Premium Service",
     price: 18000,
     duration_minutes: 120,
     suggested_inventory: [{ inventory_id: "inv-3", quantity: 1 }],
@@ -324,7 +324,7 @@ export const seedServices: Service[] = [
   {
     id: "svc-5",
     salon_id: SALON_ID,
-    name: "Gel Manicure",
+    name: "Deluxe Service",
     price: 9000,
     duration_minutes: 60,
     suggested_inventory: [{ inventory_id: "inv-4", quantity: 0.5 }],
@@ -332,7 +332,7 @@ export const seedServices: Service[] = [
   {
     id: "svc-6",
     salon_id: SALON_ID,
-    name: "Beard Sculpt",
+    name: "Add-on Service",
     price: 3500,
     duration_minutes: 25,
     suggested_inventory: [],

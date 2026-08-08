@@ -61,7 +61,7 @@ const roles: {
   },
   {
     role: "staff",
-    label: "Stylist / Barber",
+    label: "Staff",
     short: "Staff",
     blurb: "Clock in, commissions, tip QR",
     icon: Scissors,

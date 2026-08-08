@@ -20,14 +20,14 @@ export interface IndustryConfig {
 
 export const appConfig: IndustryConfig = {
   appName: "ConecktOS",
-  tagline: "Salon Operating System",
-  staffTitle: "Barber / Stylist",
-  staffPlural: "Barbers & Stylists",
-  workstationTitle: "Chair / Station",
-  serviceTitle: "Haircut / Treatment",
-  clientAssetLabel: "Client Name",
-  inventoryUnitLabel: "Consumable Items (Dyes, Creams)",
-  powerCostLabel: "Generator fuel",
+  tagline: "Service Business OS",
+  staffTitle: "Staff",
+  staffPlural: "Staff",
+  workstationTitle: "Station",
+  serviceTitle: "Service",
+  clientAssetLabel: "Customer name",
+  inventoryUnitLabel: "Inventory items",
+  powerCostLabel: "Power & fuel",
   showTipping: true,
   showInventory: true,
 };

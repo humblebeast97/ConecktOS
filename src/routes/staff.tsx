@@ -66,7 +66,7 @@ function StaffPortal() {
     openAttendanceFor,
   } = useStore();
 
-  // Owners/receptionists previewing this portal see the first stylist's view.
+  // Owners/receptionists previewing this portal see the first staff member's view.
   const me = currentUser.role === "staff" ? currentUser : staff[0];
   const [locating, setLocating] = useState(false);
 
@@ -231,7 +231,7 @@ function StaffPortal() {
         <MetricCard
           label="Geofence"
           value={open ? (open.is_within_geofence ? "Verified" : "Flagged") : `${salon.geofence_radius_meters}m`}
-          hint={open?.is_within_geofence === false ? "Outside salon radius" : "Salon radius"}
+          hint={open?.is_within_geofence === false ? "Outside business radius" : "Within radius"}
           icon={MapPin}
           tone={open && !open.is_within_geofence ? "danger" : "default"}
         />

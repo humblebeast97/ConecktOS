@@ -72,7 +72,7 @@ export function BusinessProfilePanel() {
           id="biz-name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Kings & Queens Grooming Lounge"
+          placeholder="e.g. Central Studio"
         />
       </div>
 

@@ -49,12 +49,12 @@ export const Route = createFileRoute("/reception")({
       {
         name: "description",
         content:
-          "Open service tickets, assign stylists, auto-split commissions, match POS and bank transfer receipts and deduct consumables in one flow.",
+          "Open service tickets, assign staff, auto-split commissions, match POS and bank transfer receipts and deduct inventory in one flow.",
       },
       { property: "og:title", content: "Front Desk · ConecktOS" },
       {
         property: "og:description",
-        content: "Quick service billing, payment matching and live staff status for salon reception.",
+        content: "Quick service billing, payment matching and live staff status for the front desk.",
       },
     ],
   }),

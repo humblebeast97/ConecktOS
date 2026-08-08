@@ -72,12 +72,12 @@ export const Route = createFileRoute("/admin")({
       {
         name: "description",
         content:
-          "Track salon revenue, staff commissions, attendance geofence alerts, generator fuel overhead, low stock and the end-of-day anti-fraud audit.",
+          "Track revenue, staff commissions, attendance, low stock and the end-of-day audit.",
       },
       { property: "og:title", content: "Owner Dashboard · ConecktOS" },
       {
         property: "og:description",
-        content: "Revenue, commissions, generator costs and end-of-day audit for salon owners.",
+        content: "Revenue, commissions, expenses and end-of-day audit for business owners.",
       },
     ],
   }),

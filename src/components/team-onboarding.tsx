@@ -149,7 +149,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
                 <Input
                   id="job_title"
                   value={form.job_title}
-                  placeholder="e.g. Senior Stylist, Barber, Nail Tech, Loctician"
+                  placeholder="e.g. Technician, Stylist, Server, Tailor"
                   onChange={(e) => setForm({ ...form, job_title: e.target.value })}
                   className="h-11"
                   autoComplete="off"
