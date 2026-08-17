@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { useStore } from "@/lib/store";
 import { haversineMeters, naira, timeOf } from "@/lib/groompulse";
+import { copyText } from "@/lib/clipboard";
 import { staffDailyCommission } from "@/lib/reports";
 import { useIndustryConfig } from "@/config/industry-context";
 
@@ -327,12 +328,9 @@ function TipQrDialog() {
 
   const copyAccount = async () => {
     if (!me.account_number) return;
-    try {
-      await navigator.clipboard.writeText(me.account_number);
-      toast.success("Account number copied");
-    } catch {
-      toast.error("Couldn't copy — long-press to copy manually");
-    }
+    const ok = await copyText(me.account_number);
+    if (ok) toast.success("Account number copied");
+    else toast.error("Couldn't copy — long-press to copy manually");
   };
 
   return (

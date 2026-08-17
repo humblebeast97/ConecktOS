@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Copy, Sparkles, HeartHandshake } from "lucide-react";
 import { toast } from "sonner";
+import { copyText } from "@/lib/clipboard";
 
 export const Route = createFileRoute("/tip")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -26,12 +27,9 @@ function TipPage() {
 
   const copy = async () => {
     if (!a) return;
-    try {
-      await navigator.clipboard.writeText(a);
-      toast.success("Account number copied");
-    } catch {
-      toast.error("Couldn't copy — long-press the number to copy");
-    }
+    const ok = await copyText(a);
+    if (ok) toast.success("Account number copied");
+    else toast.error("Couldn't copy — long-press the number to copy");
   };
 
   return (
