@@ -62,9 +62,9 @@ function TipPage() {
                   type="button"
                   onClick={copy}
                   aria-label="Copy account number"
-                  className="grid size-8 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
+                  className="grid size-11 shrink-0 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground active:scale-95 sm:size-8"
                 >
-                  <Copy className="size-4" />
+                  <Copy className="size-5 sm:size-4" />
                 </button>
               </div>
               <p className="mt-1 text-sm font-medium">{accountName}</p>

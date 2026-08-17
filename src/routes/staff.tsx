@@ -388,9 +388,9 @@ function TipQrDialog() {
                       type="button"
                       onClick={copyAccount}
                       aria-label="Copy account number"
-                      className="grid size-7 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
+                      className="grid size-11 shrink-0 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground active:scale-95 sm:size-7"
                     >
-                      <Copy className="size-3.5" />
+                      <Copy className="size-5 sm:size-3.5" />
                     </button>
                   </div>
                   <p className="text-muted-foreground">{accountName}</p>
