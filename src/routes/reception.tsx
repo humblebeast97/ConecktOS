@@ -27,7 +27,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -36,7 +35,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useStore, type DraftLine } from "@/lib/store";
+import { useStore, type DraftLine, type DraftUsage } from "@/lib/store";
 import { useRoleGuard } from "@/lib/access";
 import { usePaginated } from "@/lib/paginate";
 import { LoadMore } from "@/components/load-more";
@@ -89,6 +88,12 @@ function ReceptionPage() {
   );
   const [method, setMethod] = useState<PaymentMethod>("pos");
   const [skipUsage, setSkipUsage] = useState<string[]>([]);
+  // Consumables mode: "auto" = seed from service suggestions, "manual" = start blank.
+  const [consumablesMode, setConsumablesMode] = useState<"auto" | "manual">("auto");
+  const [qtyOverride, setQtyOverride] = useState<Record<string, number>>({});
+  const [autoExtras, setAutoExtras] = useState<DraftUsage[]>([]);
+  const [manualEntries, setManualEntries] = useState<DraftUsage[]>([]);
+  const [pendingMode, setPendingMode] = useState<"auto" | "manual" | null>(null);
 
   const clients = useMemo(() => {
     const map = new Map<
@@ -171,6 +176,35 @@ function ReceptionPage() {
   const openTickets = todays.filter((t) => t.status === "pending");
   const onDuty = attendance.filter((a) => !a.clock_out_time);
 
+  // Effective consumable list actually deducted on submit — depends on mode.
+  const effectiveUsage: DraftUsage[] =
+    consumablesMode === "auto"
+      ? [
+          ...suggestedUsage
+            .filter((u) => !skipUsage.includes(u.inventory_id))
+            .map((u) => ({
+              inventory_id: u.inventory_id,
+              quantity_used: qtyOverride[u.inventory_id] ?? u.quantity_used,
+            })),
+          ...autoExtras,
+        ]
+      : manualEntries;
+
+  const requestModeSwitch = (next: "auto" | "manual") => {
+    if (next === consumablesMode) return;
+    const wouldClear = next === "auto" ? manualEntries.length > 0 : autoExtras.length > 0;
+    if (wouldClear) setPendingMode(next);
+    else applyModeSwitch(next);
+  };
+
+  const applyModeSwitch = (next: "auto" | "manual") => {
+    setConsumablesMode(next);
+    // Clear the opposite mode's user-added entries so switching back is a clean slate.
+    if (next === "auto") setManualEntries([]);
+    else setAutoExtras([]);
+    setPendingMode(null);
+  };
+
   const submit = (status: "pending" | "paid") => {
     if (!clientName.trim()) {
       toast.error(`${config.clientAssetLabel} is required`);
@@ -180,7 +214,7 @@ function ReceptionPage() {
       toast.error(`Add at least one ${config.serviceTitle.toLowerCase()} to the ticket`);
       return;
     }
-    const usage = suggestedUsage.filter((u) => !skipUsage.includes(u.inventory_id));
+    const usage = effectiveUsage;
     createTicket({
       client_name: clientName.trim(),
       client_phone: clientPhone.trim(),
@@ -201,6 +235,9 @@ function ReceptionPage() {
       services[0] && staff[0] ? [{ service_id: services[0].id, staff_id: staff[0].id }] : [],
     );
     setSkipUsage([]);
+    setQtyOverride({});
+    setAutoExtras([]);
+    setManualEntries([]);
   };
 
   return (
@@ -462,38 +499,21 @@ function ReceptionPage() {
             </Button>
           </div>
 
-          {config.showInventory && suggestedUsage.length > 0 ? (
-            <div className="mt-5 rounded-xl border border-border bg-surface p-4">
-              <p className="flex items-center gap-2 text-sm font-semibold">
-                <Package className="size-4 text-primary" />
-                Consumables to deduct
-              </p>
-              <div className="mt-3 space-y-2">
-                {suggestedUsage.map((u) => {
-                  const item = inventory.find((i) => i.id === u.inventory_id);
-                  const checked = !skipUsage.includes(u.inventory_id);
-                  return (
-                    <label
-                      key={u.inventory_id}
-                      className="flex items-center gap-3 text-sm text-muted-foreground"
-                    >
-                      <Checkbox
-                        checked={checked}
-                        onCheckedChange={(v) =>
-                          setSkipUsage((prev) =>
-                            v ? prev.filter((id) => id !== u.inventory_id) : [...prev, u.inventory_id],
-                          )
-                        }
-                      />
-                      <span className="text-foreground">{item?.item_name}</span>
-                      <span>
-                        −{u.quantity_used} {item?.unit}
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
+          {config.showInventory ? (
+            <ConsumablesPanel
+              mode={consumablesMode}
+              onModeSwitch={requestModeSwitch}
+              suggested={suggestedUsage}
+              skipUsage={skipUsage}
+              setSkipUsage={setSkipUsage}
+              qtyOverride={qtyOverride}
+              setQtyOverride={setQtyOverride}
+              autoExtras={autoExtras}
+              setAutoExtras={setAutoExtras}
+              manualEntries={manualEntries}
+              setManualEntries={setManualEntries}
+              inventory={inventory}
+            />
           ) : null}
 
           <div className="mt-5 rounded-xl border border-border bg-surface p-4">
@@ -628,6 +648,29 @@ function ReceptionPage() {
         </div>
         <TeamOnboarding compact />
       </section>
+
+      <Dialog open={pendingMode !== null} onOpenChange={(o) => (!o ? setPendingMode(null) : null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Switch consumables mode?</DialogTitle>
+            <DialogDescription>
+              This will clear the {pendingMode === "auto" ? "manual" : "extra"} consumables you've
+              added on this ticket.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setPendingMode(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => pendingMode && applyModeSwitch(pendingMode)}
+            >
+              Switch &amp; clear
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }
@@ -719,6 +762,259 @@ function ReceiptDialog({ ticket }: { ticket: Ticket }) {
         </Button>
       </DialogContent>
     </Dialog>
+  );
+}
+
+type ConsumablesPanelProps = {
+  mode: "auto" | "manual";
+  onModeSwitch: (next: "auto" | "manual") => void;
+  suggested: DraftUsage[];
+  skipUsage: string[];
+  setSkipUsage: React.Dispatch<React.SetStateAction<string[]>>;
+  qtyOverride: Record<string, number>;
+  setQtyOverride: React.Dispatch<React.SetStateAction<Record<string, number>>>;
+  autoExtras: DraftUsage[];
+  setAutoExtras: React.Dispatch<React.SetStateAction<DraftUsage[]>>;
+  manualEntries: DraftUsage[];
+  setManualEntries: React.Dispatch<React.SetStateAction<DraftUsage[]>>;
+  inventory: ReturnType<typeof useStore>["inventory"];
+};
+
+function ConsumablesPanel({
+  mode,
+  onModeSwitch,
+  suggested,
+  skipUsage,
+  setSkipUsage,
+  qtyOverride,
+  setQtyOverride,
+  autoExtras,
+  setAutoExtras,
+  manualEntries,
+  setManualEntries,
+  inventory,
+}: ConsumablesPanelProps) {
+  const [pickerId, setPickerId] = useState("");
+  const [pickerQty, setPickerQty] = useState("1");
+
+  const activeExtras = mode === "auto" ? autoExtras : manualEntries;
+  const setActiveExtras = mode === "auto" ? setAutoExtras : setManualEntries;
+  const usedIds = new Set([
+    ...(mode === "auto" ? suggested.map((s) => s.inventory_id) : []),
+    ...activeExtras.map((e) => e.inventory_id),
+  ]);
+  const addable = inventory.filter((i) => !usedIds.has(i.id));
+
+  const addPickedItem = () => {
+    if (!pickerId) return;
+    const qty = Number(pickerQty) || 1;
+    setActiveExtras((prev) => [...prev, { inventory_id: pickerId, quantity_used: qty }]);
+    setPickerId("");
+    setPickerQty("1");
+  };
+
+  const nothingShown =
+    mode === "manual"
+      ? manualEntries.length === 0
+      : suggested.length === 0 && autoExtras.length === 0;
+
+  return (
+    <div className="mt-5 rounded-xl border border-border bg-surface p-4">
+      <div className="flex items-center justify-between gap-3">
+        <p className="flex items-center gap-2 text-sm font-semibold">
+          <Package className="size-4 text-primary" />
+          Consumables to deduct
+        </p>
+        <div
+          role="tablist"
+          aria-label="Consumables mode"
+          className="flex gap-0.5 rounded-full border border-border bg-background p-0.5"
+        >
+          {(["auto", "manual"] as const).map((m) => {
+            const active = mode === m;
+            return (
+              <button
+                key={m}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => onModeSwitch(m)}
+                className={
+                  active
+                    ? "cursor-pointer rounded-full bg-gradient-gold px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-gold-foreground"
+                    : "cursor-pointer rounded-full px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+                }
+              >
+                {m}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <p className="mt-2 text-xs text-muted-foreground">
+        {mode === "auto"
+          ? "Pre-filled from the services on this ticket — edit quantity or uncheck to skip."
+          : "Add exactly what was used on this ticket."}
+      </p>
+
+      <div className="mt-3 space-y-1.5">
+        {mode === "auto"
+          ? suggested.map((u) => {
+              const item = inventory.find((i) => i.id === u.inventory_id);
+              const skipped = skipUsage.includes(u.inventory_id);
+              const qty = qtyOverride[u.inventory_id] ?? u.quantity_used;
+              return (
+                <ConsumableRow
+                  key={u.inventory_id}
+                  itemName={item?.item_name ?? "Unknown"}
+                  stockHint={item ? `${item.quantity} in stock` : ""}
+                  unit={item?.unit ?? ""}
+                  qty={qty}
+                  onQtyChange={(v) =>
+                    setQtyOverride((prev) => ({ ...prev, [u.inventory_id]: v }))
+                  }
+                  skipped={skipped}
+                  onToggleSkip={() =>
+                    setSkipUsage((prev) =>
+                      skipped
+                        ? prev.filter((id) => id !== u.inventory_id)
+                        : [...prev, u.inventory_id],
+                    )
+                  }
+                />
+              );
+            })
+          : null}
+
+        {activeExtras.map((e, idx) => {
+          const item = inventory.find((i) => i.id === e.inventory_id);
+          return (
+            <ConsumableRow
+              key={`x-${e.inventory_id}-${idx}`}
+              itemName={item?.item_name ?? "Unknown"}
+              stockHint={item ? `${item.quantity} in stock` : ""}
+              unit={item?.unit ?? ""}
+              qty={e.quantity_used}
+              onQtyChange={(v) =>
+                setActiveExtras((prev) =>
+                  prev.map((p, i) => (i === idx ? { ...p, quantity_used: v } : p)),
+                )
+              }
+              onRemove={() =>
+                setActiveExtras((prev) => prev.filter((_, i) => i !== idx))
+              }
+            />
+          );
+        })}
+
+        {nothingShown ? (
+          <p className="py-2 text-center text-xs text-muted-foreground">
+            {mode === "manual"
+              ? "Nothing added yet — pick a consumable below."
+              : "No suggestions for the current services."}
+          </p>
+        ) : null}
+      </div>
+
+      {addable.length > 0 ? (
+        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_5rem_auto] gap-2 rounded-lg border border-dashed border-border p-2">
+          <Select value={pickerId} onValueChange={setPickerId}>
+            <SelectTrigger className="h-9 bg-background text-xs">
+              <SelectValue placeholder={mode === "manual" ? "+ Add a consumable" : "+ Add another"} />
+            </SelectTrigger>
+            <SelectContent>
+              {addable.map((i) => (
+                <SelectItem key={i.id} value={i.id}>
+                  {i.item_name} · {i.quantity} {i.unit}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            inputMode="decimal"
+            value={pickerQty}
+            onChange={(e) => setPickerQty(e.target.value)}
+            placeholder="Qty"
+            className="h-9 bg-background text-xs"
+          />
+          <Button size="sm" className="h-9" disabled={!pickerId} onClick={addPickedItem}>
+            Add
+          </Button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function ConsumableRow({
+  itemName,
+  stockHint,
+  unit,
+  qty,
+  onQtyChange,
+  skipped,
+  onToggleSkip,
+  onRemove,
+}: {
+  itemName: string;
+  stockHint: string;
+  unit: string;
+  qty: number;
+  onQtyChange: (v: number) => void;
+  skipped?: boolean;
+  onToggleSkip?: () => void;
+  onRemove?: () => void;
+}) {
+  return (
+    <div
+      className={
+        skipped
+          ? "flex items-center gap-3 rounded-md px-1 py-1.5 text-xs opacity-50"
+          : "flex items-center gap-3 rounded-md px-1 py-1.5 text-xs"
+      }
+    >
+      <div className="min-w-0 flex-1">
+        <p className={skipped ? "truncate line-through" : "truncate font-medium text-foreground"}>
+          {itemName}
+        </p>
+        {stockHint ? (
+          <p className="truncate text-[10px] uppercase tracking-wider text-muted-foreground">
+            {stockHint}
+          </p>
+        ) : null}
+      </div>
+      <div className="flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1">
+        <Input
+          inputMode="decimal"
+          value={String(qty)}
+          disabled={skipped}
+          onChange={(e) => onQtyChange(Number(e.target.value) || 0)}
+          className="h-6 w-12 border-0 bg-transparent p-0 text-right text-xs tabular-nums shadow-none focus-visible:ring-0"
+        />
+        <span className="text-[10px] text-muted-foreground">{unit}</span>
+      </div>
+      {onToggleSkip ? (
+        <button
+          type="button"
+          onClick={onToggleSkip}
+          aria-label={skipped ? "Restore" : "Skip"}
+          className="grid size-7 cursor-pointer place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+        >
+          {skipped ? "↺" : "×"}
+        </button>
+      ) : null}
+      {onRemove ? (
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label="Remove"
+          className="grid size-7 cursor-pointer place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-destructive/40 hover:text-destructive"
+        >
+          ×
+        </button>
+      ) : null}
+    </div>
   );
 }
 
