@@ -38,6 +38,8 @@ import {
 } from "@/components/ui/dialog";
 import { useStore, type DraftLine } from "@/lib/store";
 import { useRoleGuard } from "@/lib/access";
+import { usePaginated } from "@/lib/paginate";
+import { LoadMore } from "@/components/load-more";
 import { naira, paymentLabel, timeOf, type PaymentMethod, type Ticket } from "@/lib/groompulse";
 import { isToday } from "@/lib/reports";
 import { useIndustryConfig } from "@/config/industry-context";
@@ -109,15 +111,23 @@ function ReceptionPage() {
   }, [tickets]);
 
   const q = lookup.trim().toLowerCase();
-  const matches = q
+  const allMatches = q
     ? clients
         .filter(
           (c) =>
             c.name.toLowerCase().includes(q) ||
             c.phone.replace(/\s/g, "").includes(q.replace(/\s/g, "")),
         )
-        .slice(0, 5)
     : clients.slice(0, 4);
+
+  // Paginate search results only — the default "recent clients" view stays small.
+  const {
+    items: matches,
+    hasMore: hasMoreMatches,
+    loadMore: loadMoreMatches,
+    shown: shownMatches,
+    total: totalMatches,
+  } = usePaginated(allMatches, 10);
 
   const selected = clients.find(
     (c) =>
@@ -269,7 +279,7 @@ function ReceptionPage() {
             ) : (
               <>
                 <ul className="mt-3 space-y-2">
-                  {matches.length === 0 ? (
+                  {totalMatches === 0 ? (
                     <li className="text-xs text-muted-foreground">
                       No match for “{lookup}”. Type the details below to add a new client.
                     </li>
@@ -302,6 +312,14 @@ function ReceptionPage() {
                     ))
                   )}
                 </ul>
+                {q && totalMatches > 0 ? (
+                  <LoadMore
+                    hasMore={hasMoreMatches}
+                    onLoadMore={loadMoreMatches}
+                    shown={shownMatches}
+                    total={totalMatches}
+                  />
+                ) : null}
                 {lookup.trim() ? (
                   <Button
                     type="button"

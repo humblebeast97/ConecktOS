@@ -68,6 +68,8 @@ import {
   type PaymentMethod,
 } from "@/lib/groompulse";
 import { buildAudit } from "@/lib/reports";
+import { usePaginated } from "@/lib/paginate";
+import { LoadMore } from "@/components/load-more";
 import { useIndustryConfig } from "@/config/industry-context";
 
 export const Route = createFileRoute("/admin")({
@@ -148,6 +150,14 @@ function AdminPage() {
       return (a.earned - b.earned) * dir;
     });
   }, [staff, attendance, ticketItems, attSort]);
+
+  const {
+    items: expensesPage,
+    hasMore: hasMoreExpenses,
+    loadMore: loadMoreExpenses,
+    shown: shownExpenses,
+    total: totalExpenses,
+  } = usePaginated(expenses, 10);
 
   return (
     <AppShell
@@ -394,7 +404,7 @@ function AdminPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {expenses.map((e) => (
+                {expensesPage.map((e) => (
                   <TableRow key={e.id} className="border-border">
                     <TableCell className="font-medium">{expenseLabel[e.category]}</TableCell>
                     <TableCell className="max-w-40 truncate text-muted-foreground">
@@ -414,10 +424,10 @@ function AdminPage() {
 
           {/* Mobile: stacked cards */}
           <ul className="divide-y divide-border md:hidden">
-            {expenses.length === 0 ? (
+            {totalExpenses === 0 ? (
               <li className="px-5 py-4 text-sm text-muted-foreground">No expenses logged yet.</li>
             ) : (
-              expenses.map((e) => (
+              expensesPage.map((e) => (
                 <li key={e.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold">{expenseLabel[e.category]}</p>
@@ -433,6 +443,17 @@ function AdminPage() {
               ))
             )}
           </ul>
+
+          {totalExpenses > 0 ? (
+            <div className="px-5 pb-4">
+              <LoadMore
+                hasMore={hasMoreExpenses}
+                onLoadMore={loadMoreExpenses}
+                shown={shownExpenses}
+                total={totalExpenses}
+              />
+            </div>
+          ) : null}
         </section>
       </div>
       </>
