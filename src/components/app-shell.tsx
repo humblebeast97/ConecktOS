@@ -1,8 +1,5 @@
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
-  Gauge,
-  ConciergeBell,
-  Scissors,
   Sparkles,
   ChevronDown,
   LogOut,
@@ -35,12 +32,6 @@ const initialsOf = (name: string) =>
     .map((w) => w[0]?.toUpperCase() ?? "")
     .join("");
 
-const nav = [
-  { to: "/staff", labelKey: "staff", icon: Scissors },
-  { to: "/reception", labelKey: "reception", icon: ConciergeBell },
-  { to: "/admin", labelKey: "owner", icon: Gauge },
-] as const;
-
 export function AppShell({
   title,
   subtitle,
@@ -55,7 +46,6 @@ export function AppShell({
   const { currentUser, inventory, tickets, attendance } = useStore();
   const config = useIndustryConfig();
   const navigate = useNavigate();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   // Ops notifications — only for owner / manager / front desk.
   const showOps = ["owner", "manager", "receptionist"].includes(currentUser.role);
@@ -81,11 +71,8 @@ export function AppShell({
     document.title = `${title} · ${config.appName}`;
   }, [title, config.appName]);
 
-  const navLabel = (key: (typeof nav)[number]["labelKey"]) =>
-    key === "staff" ? config.staffTitle.split(" / ")[0] : key === "reception" ? "Reception" : "Owner";
-
   return (
-    <div className="min-h-dvh bg-background pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-10">
+    <div className="min-h-dvh bg-background pb-10">
       <header className="no-print sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur-xl">
         <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-6">
           <Link to="/" className="flex min-w-0 items-center gap-2.5">
@@ -103,28 +90,6 @@ export function AppShell({
           </Link>
 
           <div className="flex items-center gap-2">
-            <nav
-              aria-label="Primary"
-              className="hidden items-center gap-1 rounded-full border border-border bg-surface p-1 md:flex"
-            >
-              {nav.map((item) => {
-                const active = pathname === item.to;
-                return (
-                  <Link
-                    key={item.to}
-                    to={item.to}
-                    className={
-                      active
-                        ? "flex items-center gap-1.5 rounded-full bg-gradient-gold px-3.5 py-1.5 text-xs font-semibold text-gold-foreground"
-                        : "flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
-                    }
-                  >
-                    <item.icon className="size-3.5" />
-                    {navLabel(item.labelKey)}
-                  </Link>
-                );
-              })}
-            </nav>
             {showOps ? (
               <DropdownMenu>
                 <DropdownMenuTrigger
@@ -212,33 +177,6 @@ export function AppShell({
         </div>
         {children}
       </main>
-
-      <nav
-        aria-label="Primary"
-        className="no-print fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden"
-      >
-        {nav.map((item) => {
-          const active = pathname === item.to;
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              aria-current={active ? "page" : undefined}
-              className={
-                active
-                  ? "relative flex min-h-[3.25rem] flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold text-primary"
-                  : "relative flex min-h-[3.25rem] flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium text-muted-foreground transition-colors active:text-foreground"
-              }
-            >
-              {active ? (
-                <span className="absolute inset-x-5 top-0 h-0.5 rounded-full bg-primary" />
-              ) : null}
-              <item.icon className="size-5" />
-              {navLabel(item.labelKey)}
-            </Link>
-          );
-        })}
-      </nav>
     </div>
   );
 }
