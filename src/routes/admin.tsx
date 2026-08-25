@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
   AlertTriangle,
   ArrowDown,
   ArrowUp,
+  BadgeCheck,
   Banknote,
   CheckCircle2,
   ChevronsUpDown,
@@ -12,11 +13,14 @@ import {
   Flame,
   FileDown,
   Fuel,
+  LayoutDashboard,
+  Percent,
   Plus,
   RotateCcw,
   Printer,
   Rocket,
   TrendingUp,
+  Users,
   Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -55,6 +59,7 @@ import {
 import { useStore } from "@/lib/store";
 import { useRoleGuard } from "@/lib/access";
 import {
+  earnsCommission,
   expenseLabel,
   naira,
   paymentLabel,
@@ -66,6 +71,9 @@ import { buildAudit } from "@/lib/reports";
 import { useIndustryConfig } from "@/config/industry-context";
 
 export const Route = createFileRoute("/admin")({
+  validateSearch: (search: Record<string, unknown>): { tab?: "overview" | "team" } => ({
+    tab: search.tab === "team" ? "team" : search.tab === "overview" ? "overview" : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Owner Dashboard · ConecktOS" },
@@ -89,6 +97,8 @@ const ADMIN_ROLES = ["owner"] as const;
 function AdminPage() {
   useRoleGuard(ADMIN_ROLES);
   const config = useIndustryConfig();
+  const { tab = "overview" } = Route.useSearch();
+  const navigate = useNavigate();
   const {
     salon,
     profiles,
@@ -141,16 +151,52 @@ function AdminPage() {
 
   return (
     <AppShell
-      title="Owner Dashboard"
-      subtitle={`${salon.name} · ${new Date().toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long" })}`}
+      title={tab === "team" ? "Team & HR" : "Owner Dashboard"}
+      subtitle={
+        tab === "team"
+          ? `${salon.name} · manage the roster and onboard members`
+          : `${salon.name} · ${new Date().toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long" })}`
+      }
       actions={
-        <>
-          <ResetAllDialog />
-          <CloseDayDialog />
-        </>
+        tab === "overview" ? (
+          <>
+            <ResetAllDialog />
+            <CloseDayDialog />
+          </>
+        ) : null
       }
     >
-      <OnboardingChecklist />
+      <div className="no-print mb-5 flex w-fit items-center gap-1 rounded-full border border-border bg-surface p-1">
+        {(
+          [
+            { key: "overview" as const, label: "Overview", icon: LayoutDashboard },
+            { key: "team" as const, label: "Team", icon: Users },
+          ]
+        ).map((t) => {
+          const active = tab === t.key;
+          return (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => navigate({ to: "/admin", search: { tab: t.key } })}
+              aria-pressed={active}
+              className={
+                active
+                  ? "flex cursor-pointer items-center gap-1.5 rounded-full bg-gradient-gold px-4 py-1.5 text-xs font-semibold text-gold-foreground transition-colors"
+                  : "flex cursor-pointer items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              }
+            >
+              <t.icon className="size-3.5" />
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {tab === "team" ? <TeamTab /> : null}
+      {tab === "overview" ? <OnboardingChecklist /> : null}
+      {tab === "overview" ? (
+      <>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Gross revenue"
@@ -389,15 +435,52 @@ function AdminPage() {
           </ul>
         </section>
       </div>
-
-      <section className="mt-6">
-        <div className="mb-4">
-          <h2 className="text-xl font-bold">Hiring & HR</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Onboard any {config.staffTitle.toLowerCase()} or desk role, set commission splits and link payout accounts.</p>
-        </div>
-        <TeamOnboarding compact />
-      </section>
+      </>
+      ) : null}
     </AppShell>
+  );
+}
+
+function TeamTab() {
+  const { profiles, salon } = useStore();
+  const floor = profiles.filter((p) => earnsCommission(p.role));
+  const pendingPayouts = floor.filter((p) => !p.account_number).length;
+
+  return (
+    <div>
+      <div className="mb-5">
+        <p className="text-sm text-muted-foreground">
+          {salon.name} · {floor.length} on the floor · {profiles.length - floor.length} at the desk
+        </p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <MetricCard
+          label="Team size"
+          value={String(profiles.length)}
+          hint={`${floor.length} commission earners`}
+          icon={Users}
+        />
+        <MetricCard
+          label="Avg. commission"
+          value={`${Math.round(
+            (floor.reduce((s, p) => s + p.commission_rate, 0) / Math.max(1, floor.length)) * 100,
+          )}%`}
+          hint="Across floor roles"
+          icon={Percent}
+          tone="gold"
+        />
+        <MetricCard
+          label="Payout setup"
+          value={pendingPayouts === 0 ? "Complete" : `${pendingPayouts} pending`}
+          hint="Bank payout details"
+          icon={BadgeCheck}
+          tone={pendingPayouts === 0 ? "success" : "danger"}
+        />
+      </div>
+      <div className="mt-5">
+        <TeamOnboarding />
+      </div>
+    </div>
   );
 }
 

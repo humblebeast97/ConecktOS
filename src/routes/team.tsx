@@ -1,75 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { BadgeCheck, Percent, Users } from "lucide-react";
-import { AppShell, MetricCard } from "@/components/app-shell";
-import { TeamOnboarding } from "@/components/team-onboarding";
-import { useStore } from "@/lib/store";
-import { useRoleGuard } from "@/lib/access";
-import { earnsCommission } from "@/lib/groompulse";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
+// Team & HR moved into the Owner dashboard as a tab. Keep this URL alive as a
+// redirect so old bookmarks, links and shared URLs still land in the right place.
 export const Route = createFileRoute("/team")({
-  head: () => ({
-    meta: [
-      { title: "Team & HR Onboarding · ConecktOS" },
-      {
-        name: "description",
-        content:
-          "Onboard staff, front desk and managers with a guided wizard: commission splits and bank payout details.",
-      },
-      { property: "og:title", content: "Team & HR Onboarding · ConecktOS" },
-      {
-        property: "og:description",
-        content:
-          "Guided onboarding for every role — commission splits and bank payout details in minutes.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
-  component: TeamPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/admin", search: { tab: "team" } });
+  },
 });
-
-const TEAM_ROLES = ["owner", "manager"] as const;
-
-function TeamPage() {
-  useRoleGuard(TEAM_ROLES);
-  const { profiles, salon } = useStore();
-  const floor = profiles.filter((p) => earnsCommission(p.role));
-  const pendingPayouts = floor.filter((p) => !p.account_number).length;
-
-  return (
-    <AppShell
-      title="Team & HR"
-      subtitle={`${salon.name} · ${floor.length} on the floor · ${profiles.length - floor.length} at the desk`}
-    >
-      <div className="grid gap-4 sm:grid-cols-3">
-        <MetricCard
-          label="Team size"
-          value={String(profiles.length)}
-          hint={`${floor.length} commission earners`}
-          icon={Users}
-        />
-        <MetricCard
-          label="Avg. commission"
-          value={`${Math.round(
-            (floor.reduce((s, p) => s + p.commission_rate, 0) / Math.max(1, floor.length)) *
-              100,
-          )}%`}
-          hint="Across floor roles"
-          icon={Percent}
-          tone="gold"
-        />
-        <MetricCard
-          label="Payout setup"
-          value={pendingPayouts === 0 ? "Complete" : `${pendingPayouts} pending`}
-          hint="Bank payout details"
-          icon={BadgeCheck}
-          tone={pendingPayouts === 0 ? "success" : "danger"}
-        />
-      </div>
-
-      <div className="mt-5">
-        <TeamOnboarding />
-      </div>
-    </AppShell>
-  );
-}

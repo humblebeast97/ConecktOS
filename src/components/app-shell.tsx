@@ -4,7 +4,6 @@ import {
   ConciergeBell,
   Scissors,
   Sparkles,
-  UserPlus,
   ChevronDown,
   LogOut,
   Settings,
@@ -39,7 +38,6 @@ const initialsOf = (name: string) =>
 const nav = [
   { to: "/staff", labelKey: "staff", icon: Scissors },
   { to: "/reception", labelKey: "reception", icon: ConciergeBell },
-  { to: "/team", labelKey: "team", icon: UserPlus },
   { to: "/admin", labelKey: "owner", icon: Gauge },
 ] as const;
 
@@ -84,7 +82,7 @@ export function AppShell({
   }, [title, config.appName]);
 
   const navLabel = (key: (typeof nav)[number]["labelKey"]) =>
-    key === "staff" ? config.staffTitle.split(" / ")[0] : key === "reception" ? "Reception" : key === "team" ? "Team" : "Owner";
+    key === "staff" ? config.staffTitle.split(" / ")[0] : key === "reception" ? "Reception" : "Owner";
 
   return (
     <div className="min-h-dvh bg-background pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-10">
@@ -217,7 +215,7 @@ export function AppShell({
 
       <nav
         aria-label="Primary"
-        className="no-print fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden"
+        className="no-print fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden"
       >
         {nav.map((item) => {
           const active = pathname === item.to;
