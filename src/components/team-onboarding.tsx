@@ -203,15 +203,14 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
                   </div>
                   <Slider
                     value={[form.commission_rate]}
-                    min={0}
-                    max={80}
-                    step={5}
+                    min={1}
+                    max={100}
+                    step={1}
                     onValueChange={([v]) => setForm({ ...form, commission_rate: v })}
                   />
                   <p className="text-xs text-muted-foreground">
-                    {form.commission_rate === 0
-                      ? "Salary-based — no commission is earned per service."
-                      : `On a ${naira(5000)} service they earn ${naira((5000 * form.commission_rate) / 100)}.`}
+                    On a {naira(5000)} service they earn{" "}
+                    {naira((5000 * form.commission_rate) / 100)}.
                   </p>
                 </div>
               ) : null}
