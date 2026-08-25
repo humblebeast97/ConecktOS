@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Pencil, Plus, Scissors, Trash2, X } from "lucide-react";
+import { Check, ClipboardList, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -206,7 +206,7 @@ export function ServicesPanel() {
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="flex items-center gap-2 text-lg font-bold">
-            <Scissors className="size-4 text-primary" />
+            <ClipboardList className="size-4 text-primary" />
             {config.serviceTitle} menu
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">

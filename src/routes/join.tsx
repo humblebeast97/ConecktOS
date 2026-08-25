@@ -7,7 +7,7 @@ import {
   ConciergeBell,
   Eye,
   EyeOff,
-  Scissors,
+  UserRound,
   ShieldCheck,
   Sparkles,
   UserPlus,
@@ -140,7 +140,7 @@ function JoinPage() {
           >
             {teamRoles.map((r) => {
               const selected = r === role;
-              const Icon = r === "receptionist" || r === "manager" ? ConciergeBell : Scissors;
+              const Icon = r === "receptionist" || r === "manager" ? ConciergeBell : UserRound;
               return (
                 <button
                   key={r}

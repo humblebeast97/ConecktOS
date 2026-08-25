@@ -4,7 +4,7 @@ import {
   Fingerprint,
   Gauge,
   ConciergeBell,
-  Scissors,
+  UserRound,
   Sparkles,
   ShieldCheck,
   Eye,
@@ -64,7 +64,7 @@ const roles: {
     label: "Staff",
     short: "Staff",
     blurb: "Clock in, commissions, tip QR",
-    icon: Scissors,
+    icon: UserRound,
     to: "/staff",
   },
 ];
