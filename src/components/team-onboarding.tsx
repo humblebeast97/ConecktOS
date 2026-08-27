@@ -71,8 +71,8 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
 
   const submit = () => {
     const name = form.full_name.trim();
-    const salaryAmount = isFloor ? Number(form.base_salary) || 0 : 0;
-    const paydayNum = isFloor ? Math.min(31, Math.max(1, Number(form.salary_payday) || 30)) : null;
+    const salaryAmount = Number(form.base_salary) || 0;
+    const paydayNum = Math.min(31, Math.max(1, Number(form.salary_payday) || 30));
     addStylist({
       full_name: name,
       role: form.role,
@@ -200,62 +200,62 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
               ))}
 
               {isFloor ? (
-                <>
-                  <div className="space-y-3 border-t border-border pt-4">
-                    <div className="flex items-center justify-between">
-                      <Label>Commission split</Label>
-                      <span className="font-display text-sm font-bold text-primary">
-                        {form.commission_rate}%
-                      </span>
-                    </div>
-                    <Slider
-                      value={[form.commission_rate]}
-                      min={0}
-                      max={100}
-                      step={1}
-                      onValueChange={([v]) => setForm({ ...form, commission_rate: v })}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      {form.commission_rate === 0
-                        ? "No commission per service — pay is salary-only (set below)."
-                        : `On a ${naira(5000)} service they earn ${naira((5000 * form.commission_rate) / 100)}.`}
-                    </p>
+                <div className="space-y-3 border-t border-border pt-4">
+                  <div className="flex items-center justify-between">
+                    <Label>Commission split</Label>
+                    <span className="font-display text-sm font-bold text-primary">
+                      {form.commission_rate}%
+                    </span>
                   </div>
-
-                  <div className="space-y-3 border-t border-border pt-4">
-                    <div className="flex items-center justify-between">
-                      <Label>Monthly base salary</Label>
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                        Optional
-                      </span>
-                    </div>
-                    <div className="grid gap-2 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-                      <Input
-                        inputMode="numeric"
-                        value={form.base_salary}
-                        placeholder="Amount (₦)"
-                        onChange={(e) => setForm({ ...form, base_salary: e.target.value })}
-                        className="h-10"
-                      />
-                      <Input
-                        inputMode="numeric"
-                        value={form.salary_payday}
-                        placeholder="Payday (1–31)"
-                        onChange={(e) => setForm({ ...form, salary_payday: e.target.value })}
-                        className="h-10"
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {Number(form.base_salary) > 0
-                        ? `Accrues ${naira(Number(form.base_salary))} monthly — payday: day ${Math.min(
-                            31,
-                            Math.max(1, Number(form.salary_payday) || 30),
-                          )} of the month.`
-                        : "Leave blank for commission-only. Fill in for hybrid or salary-only pay."}
-                    </p>
-                  </div>
-                </>
+                  <Slider
+                    value={[form.commission_rate]}
+                    min={0}
+                    max={100}
+                    step={1}
+                    onValueChange={([v]) => setForm({ ...form, commission_rate: v })}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {form.commission_rate === 0
+                      ? "No commission per service — pay is salary-only (set below)."
+                      : `On a ${naira(5000)} service they earn ${naira((5000 * form.commission_rate) / 100)}.`}
+                  </p>
+                </div>
               ) : null}
+
+              <div className="space-y-3 border-t border-border pt-4">
+                <div className="flex items-center justify-between">
+                  <Label>Monthly base salary</Label>
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Optional
+                  </span>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+                  <Input
+                    inputMode="numeric"
+                    value={form.base_salary}
+                    placeholder="Amount (₦)"
+                    onChange={(e) => setForm({ ...form, base_salary: e.target.value })}
+                    className="h-10"
+                  />
+                  <Input
+                    inputMode="numeric"
+                    value={form.salary_payday}
+                    placeholder="Payday (1–31)"
+                    onChange={(e) => setForm({ ...form, salary_payday: e.target.value })}
+                    className="h-10"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {Number(form.base_salary) > 0
+                    ? `Accrues ${naira(Number(form.base_salary))} monthly — payday: day ${Math.min(
+                        31,
+                        Math.max(1, Number(form.salary_payday) || 30),
+                      )} of the month.`
+                    : isFloor
+                      ? "Leave blank for commission-only. Fill in for hybrid or salary-only pay."
+                      : "Leave blank if unpaid, or set a monthly amount for this role."}
+                </p>
+              </div>
             </div>
           ) : null}
 

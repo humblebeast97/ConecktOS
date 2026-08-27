@@ -4,7 +4,7 @@ import { useStore } from "./store";
 import type { Role } from "./groompulse";
 
 /** Where each role lands when they hit a screen they're not allowed to see. */
-export function homePortalFor(role: Role): string {
+function homePortalFor(role: Role): string {
   if (role === "owner") return "/admin";
   if (role === "manager" || role === "receptionist") return "/reception";
   return "/staff";

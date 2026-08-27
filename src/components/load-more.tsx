@@ -40,13 +40,3 @@ export function LoadMore({
   return null; // total === shown and no reason to show a divider mid-flow
 }
 
-/** Standalone end-of-list divider, e.g. after the last page's items. */
-export function ListEnd({ label = "You've seen everything" }: { label?: string }) {
-  return (
-    <div className="flex items-center gap-2 px-2 py-3 text-center text-xs text-muted-foreground">
-      <span className="h-px flex-1 bg-border" />
-      <span>{label}</span>
-      <span className="h-px flex-1 bg-border" />
-    </div>
-  );
-}

@@ -276,9 +276,6 @@ export function nextUnpaidPaydayDays(
   return Math.round((candidate.getTime() - today.getTime()) / 86400000);
 }
 
-/** Back-compat alias — days to next payday ignoring paid history. */
-export const daysUntilPayday = (dayOfMonth: number, from?: Date) =>
-  nextUnpaidPaydayDays(dayOfMonth, null, from);
 
 const today = (h: number, m = 0) => {
   const d = new Date();

@@ -32,7 +32,3 @@ export const appConfig: IndustryConfig = {
   showInventory: true,
 };
 
-/** Kept for backward compatibility; always returns the single app config. */
-export function getIndustryConfig(): IndustryConfig {
-  return appConfig;
-}
