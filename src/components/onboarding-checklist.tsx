@@ -16,8 +16,8 @@ export function OnboardingChecklist({
   steps: OnboardingStep[];
 }) {
   const doneCount = steps.filter((s) => s.done).length;
-  if (doneCount === steps.length) return null;
   const next = steps.find((s) => !s.done);
+  const allDone = doneCount === steps.length;
 
   return (
     <section className="card-lux mb-5 rounded-2xl p-5">
@@ -25,6 +25,11 @@ export function OnboardingChecklist({
         <div className="flex items-center gap-2">
           <Rocket className="size-5 text-primary" />
           <h2 className="text-lg font-bold">{title}</h2>
+          {allDone ? (
+            <span className="ml-1 rounded-full border border-success/40 bg-success/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-success">
+              Complete
+            </span>
+          ) : null}
         </div>
         <span className="text-sm tabular-nums text-muted-foreground">
           {doneCount}/{steps.length}
