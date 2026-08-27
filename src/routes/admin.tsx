@@ -790,12 +790,12 @@ function GeofenceBadge({ att }: { att?: { is_within_geofence: boolean; clock_in_
 }
 
 function OnboardingChecklist() {
-  const { salon, staff, services, tickets } = useStore();
+  const { salon, staff, services, inventory } = useStore();
   const steps = [
     { label: "Complete your business profile", done: salon.latitude != null, to: "/settings" as const },
     { label: "Add your team", done: staff.length > 0, to: "/team" as const },
     { label: "Add your services", done: services.length > 0, to: "/reception" as const },
-    { label: "Bill your first ticket", done: tickets.length > 0, to: "/reception" as const },
+    { label: "Stock your inventory", done: inventory.length > 0, to: "/admin" as const },
   ];
   const doneCount = steps.filter((s) => s.done).length;
   if (doneCount === steps.length) return null;

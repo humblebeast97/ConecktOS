@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, MetricCard, EmptyState } from "@/components/app-shell";
-import { TeamOnboarding } from "@/components/team-onboarding";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -640,14 +639,6 @@ function ReceptionPage() {
           </section>
         </div>
       </div>
-
-      <section className="mt-6">
-        <div className="mb-4">
-          <h2 className="text-xl font-bold">Front desk HR</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Walk-in hires: onboard a {config.staffTitle.toLowerCase()} or desk role without leaving reception.</p>
-        </div>
-        <TeamOnboarding compact />
-      </section>
 
       <Dialog open={pendingMode !== null} onOpenChange={(o) => (!o ? setPendingMode(null) : null)}>
         <DialogContent className="max-w-sm">
