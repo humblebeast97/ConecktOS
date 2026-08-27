@@ -6,13 +6,7 @@ export type Role = "owner" | "manager" | "receptionist" | "staff";
 export type AttendanceStatus = "on_time" | "late" | "absent";
 export type PaymentMethod = "pos" | "bank_transfer" | "cash";
 export type TicketStatus = "pending" | "paid";
-export type ExpenseCategory = "generator_fuel" | "maintenance" | "supplies" | "rent" | "salary";
-
-/**
- * Payroll reminder cadence on the owner dashboard.
- * 0 = off · 3 or 7 = days before payday · -1 = always visible.
- */
-export type PayrollReminderDays = 0 | 3 | 7 | -1;
+export type ExpenseCategory = "generator_fuel" | "maintenance" | "supplies" | "rent";
 
 export type BusinessType = "beauty" | "car_wash" | "tailoring" | "nightlife" | "repair";
 
@@ -26,7 +20,6 @@ export interface Salon {
   currency: string;
   open_time: string;
   close_time: string;
-  payroll_reminder_days: PayrollReminderDays;
   owner_id: string;
   created_at: string;
 }
@@ -39,12 +32,6 @@ export interface Profile {
   /** Free-text job title, e.g. "Technician", "Stylist", "Server". */
   job_title: string | null;
   commission_rate: number;
-  /** Monthly base salary in the business's currency (nullable = commission-only). */
-  base_salary: number | null;
-  /** Day of month payroll is due (1–31). Null when there's no salary. */
-  salary_payday: number | null;
-  /** ISO timestamp of the last time this person's salary was marked paid. */
-  salary_last_paid_at: string | null;
   /** Payout bank details for tips (direct transfer). */
   bank_name: string | null;
   account_number: string | null;
@@ -208,74 +195,7 @@ export const expenseLabel: Record<ExpenseCategory, string> = {
   maintenance: "Maintenance",
   supplies: "Supplies",
   rent: "Rent",
-  salary: "Salary",
 };
-
-/** How someone earns — derived from their compensation fields. */
-export type CompensationType = "commission" | "salary" | "both" | "none";
-export function compensationType(p: {
-  commission_rate: number;
-  base_salary: number | null;
-}): CompensationType {
-  const hasComm = p.commission_rate > 0;
-  const hasSal = (p.base_salary ?? 0) > 0;
-  if (hasComm && hasSal) return "both";
-  if (hasComm) return "commission";
-  if (hasSal) return "salary";
-  return "none";
-}
-
-export const compensationLabel: Record<CompensationType, string> = {
-  commission: "Commission",
-  salary: "Salary",
-  both: "Both",
-  none: "No pay",
-};
-
-/** The next monthly payday (as a Date at midnight) at or after `from`. */
-function nextMonthlyPayday(dayOfMonth: number, from: Date): Date {
-  const y = from.getFullYear();
-  const m = from.getMonth();
-  const daysInMonth = new Date(y, m + 1, 0).getDate();
-  const paydayThis = new Date(y, m, Math.min(dayOfMonth, daysInMonth));
-  paydayThis.setHours(0, 0, 0, 0);
-  const start = new Date(y, m, from.getDate());
-  start.setHours(0, 0, 0, 0);
-  if (paydayThis >= start) return paydayThis;
-  const nextDays = new Date(y, m + 2, 0).getDate();
-  const paydayNext = new Date(y, m + 1, Math.min(dayOfMonth, nextDays));
-  paydayNext.setHours(0, 0, 0, 0);
-  return paydayNext;
-}
-
-/**
- * Days until the next *unpaid* payday. If `lastPaidAt` is on or after the
- * upcoming payday, that cycle is considered already covered — the count rolls
- * to the following month automatically.
- */
-export function nextUnpaidPaydayDays(
-  dayOfMonth: number,
-  lastPaidAt: string | null,
-  from: Date = new Date(),
-): number {
-  const today = new Date(from.getFullYear(), from.getMonth(), from.getDate());
-  today.setHours(0, 0, 0, 0);
-  let candidate = nextMonthlyPayday(dayOfMonth, from);
-  if (lastPaidAt) {
-    const paid = new Date(lastPaidAt);
-    paid.setHours(0, 0, 0, 0);
-    if (paid >= candidate) {
-      // Already paid for the upcoming cycle — roll forward one month.
-      const y = candidate.getFullYear();
-      const m = candidate.getMonth() + 1;
-      const nextDays = new Date(y, m + 1, 0).getDate();
-      candidate = new Date(y, m, Math.min(dayOfMonth, nextDays));
-      candidate.setHours(0, 0, 0, 0);
-    }
-  }
-  return Math.round((candidate.getTime() - today.getTime()) / 86400000);
-}
-
 
 const today = (h: number, m = 0) => {
   const d = new Date();
@@ -293,7 +213,6 @@ export const seedSalon: Salon = {
   currency: "NGN",
   open_time: "08:00",
   close_time: "20:00",
-  payroll_reminder_days: 7,
   owner_id: "u-owner",
   created_at: today(8),
 };
@@ -306,9 +225,6 @@ export const seedProfiles: Profile[] = [
     role: "owner",
     job_title: null,
     commission_rate: 0,
-    base_salary: null,
-    salary_payday: null,
-    salary_last_paid_at: null,
     bank_name: null,
     account_number: null,
     account_name: null,
@@ -321,9 +237,6 @@ export const seedProfiles: Profile[] = [
     role: "receptionist",
     job_title: null,
     commission_rate: 0,
-    base_salary: null,
-    salary_payday: null,
-    salary_last_paid_at: null,
     bank_name: null,
     account_number: null,
     account_name: null,
@@ -336,9 +249,6 @@ export const seedProfiles: Profile[] = [
     role: "staff",
     job_title: null,
     commission_rate: 0.5,
-    base_salary: null,
-    salary_payday: null,
-    salary_last_paid_at: null,
     bank_name: "GTBank",
     account_number: "0123456789",
     account_name: "Tunde Bakare",
@@ -351,9 +261,6 @@ export const seedProfiles: Profile[] = [
     role: "staff",
     job_title: null,
     commission_rate: 0.5,
-    base_salary: null,
-    salary_payday: null,
-    salary_last_paid_at: null,
     bank_name: "Access Bank",
     account_number: "0234567890",
     account_name: "Chidinma Nwosu",
@@ -366,9 +273,6 @@ export const seedProfiles: Profile[] = [
     role: "staff",
     job_title: null,
     commission_rate: 0.5,
-    base_salary: null,
-    salary_payday: null,
-    salary_last_paid_at: null,
     bank_name: "Zenith Bank",
     account_number: "0345678901",
     account_name: "Musa Ibrahim",
