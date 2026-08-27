@@ -61,7 +61,7 @@ import { useRoleGuard } from "@/lib/access";
 import {
   compensationLabel,
   compensationType,
-  daysUntilPayday,
+  nextUnpaidPaydayDays,
   earnsCommission,
   expenseLabel,
   naira,
@@ -804,8 +804,7 @@ function CompensationTag({
 }
 
 function PayrollReminderCard() {
-  const { salon, staff, addExpense } = useStore();
-  const [dismissed, setDismissed] = useState(false);
+  const { salon, staff, addExpense, updateProfile } = useStore();
   const cadence = salon.payroll_reminder_days ?? 7;
 
   const dueList = useMemo(
@@ -817,21 +816,22 @@ function PayrollReminderCard() {
           name: s.full_name,
           amount: s.base_salary ?? 0,
           payday: s.salary_payday!,
-          days: daysUntilPayday(s.salary_payday!),
+          days: nextUnpaidPaydayDays(s.salary_payday!, s.salary_last_paid_at),
         }))
         .sort((a, b) => a.days - b.days),
     [staff],
   );
 
-  if (cadence === 0 || dueList.length === 0 || dismissed) return null;
+  if (cadence === 0 || dueList.length === 0) return null;
   const soonest = dueList[0].days;
   const showAlways = cadence === -1;
   if (!showAlways && soonest > cadence) return null;
 
   const total = dueList.reduce((s, r) => s + r.amount, 0);
-  const overdue = soonest === 0;
+  const overdue = soonest <= 0;
 
   const markAllPaid = () => {
+    const now = new Date().toISOString();
     dueList.forEach((row) => {
       addExpense({
         category: "salary",
@@ -839,11 +839,13 @@ function PayrollReminderCard() {
         generator_hours_run: null,
         notes: `Salary · ${row.name}`,
       });
+      // Advance this staff's paid cursor — the card now considers this cycle
+      // covered and rolls the countdown to next month's payday.
+      updateProfile(row.id, { salary_last_paid_at: now });
     });
-    toast.success("Payroll logged as expenses", {
-      description: `${dueList.length} salary entries added to the expense log.`,
+    toast.success("Payroll paid & rolled forward", {
+      description: `${dueList.length} salary entries logged; next payday in about a month.`,
     });
-    setDismissed(true);
   };
 
   return (
@@ -890,10 +892,7 @@ function PayrollReminderCard() {
           </li>
         ))}
       </ul>
-      <div className="mt-4 flex flex-wrap justify-end gap-2">
-        <Button variant="ghost" onClick={() => setDismissed(true)}>
-          Dismiss
-        </Button>
+      <div className="mt-4 flex justify-end">
         <Button onClick={markAllPaid}>Mark all paid</Button>
       </div>
     </section>

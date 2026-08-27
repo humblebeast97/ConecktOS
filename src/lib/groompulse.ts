@@ -43,6 +43,8 @@ export interface Profile {
   base_salary: number | null;
   /** Day of month payroll is due (1–31). Null when there's no salary. */
   salary_payday: number | null;
+  /** ISO timestamp of the last time this person's salary was marked paid. */
+  salary_last_paid_at: string | null;
   /** Payout bank details for tips (direct transfer). */
   bank_name: string | null;
   account_number: string | null;
@@ -230,26 +232,53 @@ export const compensationLabel: Record<CompensationType, string> = {
   none: "No pay",
 };
 
-/** Days until the next monthly payday from today, in the given month. */
-export function daysUntilPayday(dayOfMonth: number, from: Date = new Date()): number {
+/** The next monthly payday (as a Date at midnight) at or after `from`. */
+function nextMonthlyPayday(dayOfMonth: number, from: Date): Date {
   const y = from.getFullYear();
   const m = from.getMonth();
   const daysInMonth = new Date(y, m + 1, 0).getDate();
-  const paydayThis = Math.min(dayOfMonth, daysInMonth);
-  const thisMonthPay = new Date(y, m, paydayThis);
-  thisMonthPay.setHours(0, 0, 0, 0);
+  const paydayThis = new Date(y, m, Math.min(dayOfMonth, daysInMonth));
+  paydayThis.setHours(0, 0, 0, 0);
   const start = new Date(y, m, from.getDate());
   start.setHours(0, 0, 0, 0);
-  if (thisMonthPay >= start) {
-    return Math.round((thisMonthPay.getTime() - start.getTime()) / 86400000);
-  }
-  // payday this month has passed → look at next month
-  const nextDaysInMonth = new Date(y, m + 2, 0).getDate();
-  const paydayNext = Math.min(dayOfMonth, nextDaysInMonth);
-  const nextMonthPay = new Date(y, m + 1, paydayNext);
-  nextMonthPay.setHours(0, 0, 0, 0);
-  return Math.round((nextMonthPay.getTime() - start.getTime()) / 86400000);
+  if (paydayThis >= start) return paydayThis;
+  const nextDays = new Date(y, m + 2, 0).getDate();
+  const paydayNext = new Date(y, m + 1, Math.min(dayOfMonth, nextDays));
+  paydayNext.setHours(0, 0, 0, 0);
+  return paydayNext;
 }
+
+/**
+ * Days until the next *unpaid* payday. If `lastPaidAt` is on or after the
+ * upcoming payday, that cycle is considered already covered — the count rolls
+ * to the following month automatically.
+ */
+export function nextUnpaidPaydayDays(
+  dayOfMonth: number,
+  lastPaidAt: string | null,
+  from: Date = new Date(),
+): number {
+  const today = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+  today.setHours(0, 0, 0, 0);
+  let candidate = nextMonthlyPayday(dayOfMonth, from);
+  if (lastPaidAt) {
+    const paid = new Date(lastPaidAt);
+    paid.setHours(0, 0, 0, 0);
+    if (paid >= candidate) {
+      // Already paid for the upcoming cycle — roll forward one month.
+      const y = candidate.getFullYear();
+      const m = candidate.getMonth() + 1;
+      const nextDays = new Date(y, m + 1, 0).getDate();
+      candidate = new Date(y, m, Math.min(dayOfMonth, nextDays));
+      candidate.setHours(0, 0, 0, 0);
+    }
+  }
+  return Math.round((candidate.getTime() - today.getTime()) / 86400000);
+}
+
+/** Back-compat alias — days to next payday ignoring paid history. */
+export const daysUntilPayday = (dayOfMonth: number, from?: Date) =>
+  nextUnpaidPaydayDays(dayOfMonth, null, from);
 
 const today = (h: number, m = 0) => {
   const d = new Date();
@@ -282,6 +311,7 @@ export const seedProfiles: Profile[] = [
     commission_rate: 0,
     base_salary: null,
     salary_payday: null,
+    salary_last_paid_at: null,
     bank_name: null,
     account_number: null,
     account_name: null,
@@ -296,6 +326,7 @@ export const seedProfiles: Profile[] = [
     commission_rate: 0,
     base_salary: null,
     salary_payday: null,
+    salary_last_paid_at: null,
     bank_name: null,
     account_number: null,
     account_name: null,
@@ -310,6 +341,7 @@ export const seedProfiles: Profile[] = [
     commission_rate: 0.5,
     base_salary: null,
     salary_payday: null,
+    salary_last_paid_at: null,
     bank_name: "GTBank",
     account_number: "0123456789",
     account_name: "Tunde Bakare",
@@ -324,6 +356,7 @@ export const seedProfiles: Profile[] = [
     commission_rate: 0.5,
     base_salary: null,
     salary_payday: null,
+    salary_last_paid_at: null,
     bank_name: "Access Bank",
     account_number: "0234567890",
     account_name: "Chidinma Nwosu",
@@ -338,6 +371,7 @@ export const seedProfiles: Profile[] = [
     commission_rate: 0.5,
     base_salary: null,
     salary_payday: null,
+    salary_last_paid_at: null,
     bank_name: "Zenith Bank",
     account_number: "0345678901",
     account_name: "Musa Ibrahim",
