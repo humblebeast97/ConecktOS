@@ -143,7 +143,6 @@ function StaffPortal() {
         steps={[
           { label: "Add your payout account", done: Boolean(me.account_number), to: "/staff" },
           { label: "Clock in for the first time", done: Boolean(open), to: "/staff" },
-          { label: "Earn your first commission", done: daily.earned > 0, to: "/staff" },
         ]}
       />
       {/* Clock-in hero — the staff member's primary action, status-tinted. */}
