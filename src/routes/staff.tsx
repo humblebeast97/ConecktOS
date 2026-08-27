@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, MetricCard } from "@/components/app-shell";
+import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -137,6 +138,14 @@ function StaffPortal() {
       subtitle={`${salon.name} · commission rate ${Math.round(me.commission_rate * 100)}%`}
       actions={config.showTipping ? <TipQrDialog /> : null}
     >
+      <OnboardingChecklist
+        title="Your setup"
+        steps={[
+          { label: "Add your payout account", done: Boolean(me.account_number), to: "/staff" },
+          { label: "Clock in for the first time", done: Boolean(open), to: "/staff" },
+          { label: "Earn your first commission", done: daily.earned > 0, to: "/staff" },
+        ]}
+      />
       {/* Clock-in hero — the staff member's primary action, status-tinted. */}
       <section
         className={

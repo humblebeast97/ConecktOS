@@ -70,6 +70,7 @@ import {
 import { buildAudit } from "@/lib/reports";
 import { usePaginated } from "@/lib/paginate";
 import { LoadMore } from "@/components/load-more";
+import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { useIndustryConfig } from "@/config/industry-context";
 
 export const Route = createFileRoute("/admin")({
@@ -204,7 +205,7 @@ function AdminPage() {
       </div>
 
       {tab === "team" ? <TeamTab /> : null}
-      {tab === "overview" ? <OnboardingChecklist /> : null}
+      {tab === "overview" ? <OwnerOnboarding /> : null}
       {tab === "overview" ? (
       <>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -789,51 +790,18 @@ function GeofenceBadge({ att }: { att?: { is_within_geofence: boolean; clock_in_
   );
 }
 
-function OnboardingChecklist() {
+function OwnerOnboarding() {
   const { salon, staff, services, inventory } = useStore();
-  const steps = [
-    { label: "Complete your business profile", done: salon.latitude != null, to: "/settings" as const },
-    { label: "Add your team", done: staff.length > 0, to: "/team" as const },
-    { label: "Add your services", done: services.length > 0, to: "/reception" as const },
-    { label: "Stock your inventory", done: inventory.length > 0, to: "/admin" as const },
-  ];
-  const doneCount = steps.filter((s) => s.done).length;
-  if (doneCount === steps.length) return null;
-  const next = steps.find((s) => !s.done);
-
   return (
-    <section className="card-lux mb-5 rounded-2xl p-5">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Rocket className="size-5 text-primary" />
-          <h2 className="text-lg font-bold">Getting started</h2>
-        </div>
-        <span className="text-sm tabular-nums text-muted-foreground">
-          {doneCount}/{steps.length}
-        </span>
-      </div>
-      <Progress value={(doneCount / steps.length) * 100} className="mt-3 h-2" />
-      <ul className="mt-4 space-y-2">
-        {steps.map((s) => (
-          <li key={s.label} className="flex items-center gap-2.5 text-sm">
-            {s.done ? (
-              <CheckCircle2 className="size-4 shrink-0 text-success" />
-            ) : (
-              <Circle className="size-4 shrink-0 text-muted-foreground" />
-            )}
-            <span className={s.done ? "text-muted-foreground line-through" : ""}>{s.label}</span>
-            {!s.done && s === next ? (
-              <Link
-                to={s.to}
-                className="ml-auto shrink-0 text-xs font-medium text-primary underline-offset-4 hover:underline"
-              >
-                Do it →
-              </Link>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-    </section>
+    <OnboardingChecklist
+      title="Owner setup"
+      steps={[
+        { label: "Complete your business profile", done: salon.latitude != null, to: "/settings" },
+        { label: "Add your team", done: staff.length > 0, to: "/team" },
+        { label: "Add your services", done: services.length > 0, to: "/reception" },
+        { label: "Stock your inventory", done: inventory.length > 0, to: "/admin" },
+      ]}
+    />
   );
 }
 
