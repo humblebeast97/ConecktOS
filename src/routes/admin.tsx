@@ -59,6 +59,9 @@ import {
 import { useStore } from "@/lib/store";
 import { useRoleGuard } from "@/lib/access";
 import {
+  compensationLabel,
+  compensationType,
+  daysUntilPayday,
   earnsCommission,
   expenseLabel,
   naira,
@@ -205,6 +208,7 @@ function AdminPage() {
 
       {tab === "team" ? <TeamTab /> : null}
       {tab === "overview" ? <OnboardingChecklist /> : null}
+      {tab === "overview" ? <PayrollReminderCard /> : null}
       {tab === "overview" ? (
       <>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -309,72 +313,93 @@ function AdminPage() {
                   <TableHead className="text-right" aria-sort={ariaSort("commission")}>
                     <SortButton label="Commission" active={attSort.key === "commission"} dir={attSort.dir} onClick={() => toggleSort("commission")} align="right" />
                   </TableHead>
+                  <TableHead className="text-right">Salary (monthly)</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {attRows.map(({ s, att, earned }) => (
-                  <TableRow key={s.id} className="border-border">
-                    <TableCell className="font-medium">
-                      {s.full_name}
-                      <span className="block text-xs text-muted-foreground">
-                        {Math.round(s.commission_rate * 100)}% rate
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {att ? timeOf(att.clock_in_time) : "—"}
-                      {att ? (
-                        <span
-                          className={
-                            att.status === "late"
-                              ? "block text-xs text-warning"
-                              : "block text-xs text-success"
-                          }
-                        >
-                          {att.status === "late" ? "Late" : "On time"}
+                {attRows.map(({ s, att, earned }) => {
+                  const comp = compensationType(s);
+                  return (
+                    <TableRow key={s.id} className="border-border">
+                      <TableCell className="font-medium">
+                        {s.full_name}
+                        <span className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
+                          <CompensationTag type={comp} />
+                          {comp !== "salary" ? `${Math.round(s.commission_rate * 100)}% rate` : null}
                         </span>
-                      ) : null}
-                    </TableCell>
-                    <TableCell>
-                      <GeofenceBadge att={att} />
-                    </TableCell>
-                    <TableCell className="text-right font-semibold tabular-nums text-primary">
-                      {naira(earned)}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {att ? timeOf(att.clock_in_time) : "—"}
+                        {att ? (
+                          <span
+                            className={
+                              att.status === "late"
+                                ? "block text-xs text-warning"
+                                : "block text-xs text-success"
+                            }
+                          >
+                            {att.status === "late" ? "Late" : "On time"}
+                          </span>
+                        ) : null}
+                      </TableCell>
+                      <TableCell>
+                        <GeofenceBadge att={att} />
+                      </TableCell>
+                      <TableCell className="text-right font-semibold tabular-nums text-primary">
+                        {comp === "salary" ? "—" : naira(earned)}
+                      </TableCell>
+                      <TableCell className="text-right font-semibold tabular-nums">
+                        {s.base_salary ? naira(s.base_salary) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
 
           {/* Mobile: stacked cards */}
           <ul className="divide-y divide-border md:hidden">
-            {attRows.map(({ s, att, earned }) => (
-              <li key={s.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold">{s.full_name}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {Math.round(s.commission_rate * 100)}% rate ·{" "}
-                    {att ? (
-                      <>
-                        in {timeOf(att.clock_in_time)}
-                        <span className={att.status === "late" ? "text-warning" : "text-success"}>
-                          {" "}
-                          ({att.status === "late" ? "late" : "on time"})
-                        </span>
-                      </>
-                    ) : (
-                      "not clocked in"
-                    )}
-                  </p>
-                  <div className="mt-1.5">
-                    <GeofenceBadge att={att} />
+            {attRows.map(({ s, att, earned }) => {
+              const comp = compensationType(s);
+              return (
+                <li key={s.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">{s.full_name}</p>
+                    <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                      <CompensationTag type={comp} />
+                      {att ? (
+                        <>
+                          <span>in {timeOf(att.clock_in_time)}</span>
+                          <span className={att.status === "late" ? "text-warning" : "text-success"}>
+                            ({att.status === "late" ? "late" : "on time"})
+                          </span>
+                        </>
+                      ) : (
+                        <span>not clocked in</span>
+                      )}
+                    </p>
+                    <div className="mt-1.5">
+                      <GeofenceBadge att={att} />
+                    </div>
                   </div>
-                </div>
-                <span className="shrink-0 text-sm font-semibold tabular-nums text-primary">
-                  {naira(earned)}
-                </span>
-              </li>
-            ))}
+                  <div className="shrink-0 text-right">
+                    {comp !== "salary" ? (
+                      <p className="text-sm font-semibold tabular-nums text-primary">
+                        {naira(earned)}
+                      </p>
+                    ) : null}
+                    {s.base_salary ? (
+                      <p className="text-xs tabular-nums text-muted-foreground">
+                        +{naira(s.base_salary)}/mo
+                      </p>
+                    ) : null}
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </section>
 
@@ -762,6 +787,116 @@ function CloseDayDialog() {
         </Button>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function CompensationTag({
+  type,
+}: {
+  type: ReturnType<typeof compensationType>;
+}) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-2 py-[1px] text-[10px] font-medium text-muted-foreground">
+      <span className="size-1.5 rounded-full bg-current opacity-60" />
+      {compensationLabel[type]}
+    </span>
+  );
+}
+
+function PayrollReminderCard() {
+  const { salon, staff, addExpense } = useStore();
+  const [dismissed, setDismissed] = useState(false);
+  const cadence = salon.payroll_reminder_days ?? 7;
+
+  const dueList = useMemo(
+    () =>
+      staff
+        .filter((s) => (s.base_salary ?? 0) > 0 && s.salary_payday != null)
+        .map((s) => ({
+          id: s.id,
+          name: s.full_name,
+          amount: s.base_salary ?? 0,
+          payday: s.salary_payday!,
+          days: daysUntilPayday(s.salary_payday!),
+        }))
+        .sort((a, b) => a.days - b.days),
+    [staff],
+  );
+
+  if (cadence === 0 || dueList.length === 0 || dismissed) return null;
+  const soonest = dueList[0].days;
+  const showAlways = cadence === -1;
+  if (!showAlways && soonest > cadence) return null;
+
+  const total = dueList.reduce((s, r) => s + r.amount, 0);
+  const overdue = soonest === 0;
+
+  const markAllPaid = () => {
+    dueList.forEach((row) => {
+      addExpense({
+        category: "salary",
+        amount: row.amount,
+        generator_hours_run: null,
+        notes: `Salary · ${row.name}`,
+      });
+    });
+    toast.success("Payroll logged as expenses", {
+      description: `${dueList.length} salary entries added to the expense log.`,
+    });
+    setDismissed(true);
+  };
+
+  return (
+    <section
+      className={
+        overdue
+          ? "mb-5 rounded-2xl border border-warning/40 bg-warning/10 p-5"
+          : "mb-5 rounded-2xl border border-primary/30 bg-primary/5 p-5"
+      }
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
+            <Clock className="size-4" />
+          </span>
+          <div>
+            <p className="text-sm font-bold">
+              {overdue
+                ? "Payroll overdue"
+                : soonest === 1
+                  ? "Payroll due tomorrow"
+                  : `Payroll due in ${soonest} days`}
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {dueList.length} staff · reminder{" "}
+              {showAlways ? "always on" : `set to ${cadence} days`}
+            </p>
+          </div>
+        </div>
+        <span className="font-display text-lg font-bold tabular-nums text-primary">
+          {naira(total)}
+        </span>
+      </div>
+      <ul className="mt-4 divide-y divide-border border-t border-border">
+        {dueList.map((row) => (
+          <li key={row.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+            <span>
+              {row.name}
+              <span className="ml-2 text-xs text-muted-foreground">
+                payday {row.payday} · {row.days === 0 ? "today" : `in ${row.days}d`}
+              </span>
+            </span>
+            <span className="tabular-nums text-primary">{naira(row.amount)}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-4 flex flex-wrap justify-end gap-2">
+        <Button variant="ghost" onClick={() => setDismissed(true)}>
+          Dismiss
+        </Button>
+        <Button onClick={markAllPaid}>Mark all paid</Button>
+      </div>
+    </section>
   );
 }
 

@@ -92,6 +92,8 @@ function JoinPage() {
       role,
       job_title: jobTitle.trim() || null,
       commission_rate: isFrontDesk ? 0 : 0.5,
+      base_salary: null,
+      salary_payday: null,
       bank_name: isFrontDesk ? null : bankName.trim() || null,
       account_number: isFrontDesk ? null : accountNumber.trim() || null,
       account_name: isFrontDesk ? null : accountName.trim() || fullName.trim(),

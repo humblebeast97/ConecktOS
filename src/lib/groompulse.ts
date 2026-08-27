@@ -6,7 +6,13 @@ export type Role = "owner" | "manager" | "receptionist" | "staff";
 export type AttendanceStatus = "on_time" | "late" | "absent";
 export type PaymentMethod = "pos" | "bank_transfer" | "cash";
 export type TicketStatus = "pending" | "paid";
-export type ExpenseCategory = "generator_fuel" | "maintenance" | "supplies" | "rent";
+export type ExpenseCategory = "generator_fuel" | "maintenance" | "supplies" | "rent" | "salary";
+
+/**
+ * Payroll reminder cadence on the owner dashboard.
+ * 0 = off · 3 or 7 = days before payday · -1 = always visible.
+ */
+export type PayrollReminderDays = 0 | 3 | 7 | -1;
 
 export type BusinessType = "beauty" | "car_wash" | "tailoring" | "nightlife" | "repair";
 
@@ -20,6 +26,7 @@ export interface Salon {
   currency: string;
   open_time: string;
   close_time: string;
+  payroll_reminder_days: PayrollReminderDays;
   owner_id: string;
   created_at: string;
 }
@@ -32,6 +39,10 @@ export interface Profile {
   /** Free-text job title, e.g. "Technician", "Stylist", "Server". */
   job_title: string | null;
   commission_rate: number;
+  /** Monthly base salary in the business's currency (nullable = commission-only). */
+  base_salary: number | null;
+  /** Day of month payroll is due (1–31). Null when there's no salary. */
+  salary_payday: number | null;
   /** Payout bank details for tips (direct transfer). */
   bank_name: string | null;
   account_number: string | null;
@@ -195,7 +206,50 @@ export const expenseLabel: Record<ExpenseCategory, string> = {
   maintenance: "Maintenance",
   supplies: "Supplies",
   rent: "Rent",
+  salary: "Salary",
 };
+
+/** How someone earns — derived from their compensation fields. */
+export type CompensationType = "commission" | "salary" | "both" | "none";
+export function compensationType(p: {
+  commission_rate: number;
+  base_salary: number | null;
+}): CompensationType {
+  const hasComm = p.commission_rate > 0;
+  const hasSal = (p.base_salary ?? 0) > 0;
+  if (hasComm && hasSal) return "both";
+  if (hasComm) return "commission";
+  if (hasSal) return "salary";
+  return "none";
+}
+
+export const compensationLabel: Record<CompensationType, string> = {
+  commission: "Commission",
+  salary: "Salary",
+  both: "Both",
+  none: "No pay",
+};
+
+/** Days until the next monthly payday from today, in the given month. */
+export function daysUntilPayday(dayOfMonth: number, from: Date = new Date()): number {
+  const y = from.getFullYear();
+  const m = from.getMonth();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const paydayThis = Math.min(dayOfMonth, daysInMonth);
+  const thisMonthPay = new Date(y, m, paydayThis);
+  thisMonthPay.setHours(0, 0, 0, 0);
+  const start = new Date(y, m, from.getDate());
+  start.setHours(0, 0, 0, 0);
+  if (thisMonthPay >= start) {
+    return Math.round((thisMonthPay.getTime() - start.getTime()) / 86400000);
+  }
+  // payday this month has passed → look at next month
+  const nextDaysInMonth = new Date(y, m + 2, 0).getDate();
+  const paydayNext = Math.min(dayOfMonth, nextDaysInMonth);
+  const nextMonthPay = new Date(y, m + 1, paydayNext);
+  nextMonthPay.setHours(0, 0, 0, 0);
+  return Math.round((nextMonthPay.getTime() - start.getTime()) / 86400000);
+}
 
 const today = (h: number, m = 0) => {
   const d = new Date();
@@ -213,6 +267,7 @@ export const seedSalon: Salon = {
   currency: "NGN",
   open_time: "08:00",
   close_time: "20:00",
+  payroll_reminder_days: 7,
   owner_id: "u-owner",
   created_at: today(8),
 };
@@ -225,6 +280,8 @@ export const seedProfiles: Profile[] = [
     role: "owner",
     job_title: null,
     commission_rate: 0,
+    base_salary: null,
+    salary_payday: null,
     bank_name: null,
     account_number: null,
     account_name: null,
@@ -237,6 +294,8 @@ export const seedProfiles: Profile[] = [
     role: "receptionist",
     job_title: null,
     commission_rate: 0,
+    base_salary: null,
+    salary_payday: null,
     bank_name: null,
     account_number: null,
     account_name: null,
@@ -249,6 +308,8 @@ export const seedProfiles: Profile[] = [
     role: "staff",
     job_title: null,
     commission_rate: 0.5,
+    base_salary: null,
+    salary_payday: null,
     bank_name: "GTBank",
     account_number: "0123456789",
     account_name: "Tunde Bakare",
@@ -261,6 +322,8 @@ export const seedProfiles: Profile[] = [
     role: "staff",
     job_title: null,
     commission_rate: 0.5,
+    base_salary: null,
+    salary_payday: null,
     bank_name: "Access Bank",
     account_number: "0234567890",
     account_name: "Chidinma Nwosu",
@@ -273,6 +336,8 @@ export const seedProfiles: Profile[] = [
     role: "staff",
     job_title: null,
     commission_rate: 0.5,
+    base_salary: null,
+    salary_payday: null,
     bank_name: "Zenith Bank",
     account_number: "0345678901",
     account_name: "Musa Ibrahim",

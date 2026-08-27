@@ -113,6 +113,8 @@ interface StoreValue {
     role: Role;
     job_title: string | null;
     commission_rate: number;
+    base_salary: number | null;
+    salary_payday: number | null;
     bank_name: string | null;
     account_number: string | null;
     account_name: string | null;
@@ -125,6 +127,8 @@ interface StoreValue {
         | "full_name"
         | "job_title"
         | "commission_rate"
+        | "base_salary"
+        | "salary_payday"
         | "bank_name"
         | "account_number"
         | "account_name"
@@ -140,7 +144,7 @@ interface StoreValue {
 const StoreContext = createContext<StoreValue | null>(null);
 
 /** localStorage key for the persisted demo state. Bump the suffix to reset all clients. */
-const STORE_KEY = "conecktos-store-v4";
+const STORE_KEY = "conecktos-store-v5";
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [salon, setSalon] = useState<Salon>(seedSalon);

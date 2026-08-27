@@ -43,6 +43,9 @@ function SettingsPage() {
   const [lng, setLng] = useState(salon.longitude?.toString() ?? "");
   const [open, setOpen] = useState(salon.open_time);
   const [close, setClose] = useState(salon.close_time);
+  const [payrollReminder, setPayrollReminder] = useState<0 | 3 | 7 | -1>(
+    (salon.payroll_reminder_days ?? 7) as 0 | 3 | 7 | -1,
+  );
   const [locating, setLocating] = useState(false);
 
   const useMyLocation = () => {
@@ -77,6 +80,7 @@ function SettingsPage() {
       geofence_radius_meters: Number(radius) || 50,
       open_time: open,
       close_time: close,
+      payroll_reminder_days: payrollReminder,
       ...(lat ? { latitude: Number(lat) } : {}),
       ...(lng ? { longitude: Number(lng) } : {}),
     });
@@ -162,6 +166,43 @@ function SettingsPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section className="card-lux rounded-2xl p-5 sm:p-6">
+          <div>
+            <h2 className="text-lg font-semibold">Payroll reminder</h2>
+            <p className="text-sm text-muted-foreground">
+              When to show the "Payroll due" card on the Owner dashboard. Overdue paydays are
+              always highlighted, regardless of setting.
+            </p>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {(
+              [
+                { value: 0, label: "Off" },
+                { value: 3, label: "3 days before" },
+                { value: 7, label: "7 days before" },
+                { value: -1, label: "Always" },
+              ] as const
+            ).map((opt) => {
+              const active = payrollReminder === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setPayrollReminder(opt.value)}
+                  aria-pressed={active}
+                  className={
+                    active
+                      ? "cursor-pointer rounded-full bg-gradient-gold px-4 py-1.5 text-xs font-semibold text-gold-foreground"
+                      : "cursor-pointer rounded-full border border-border bg-surface px-4 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                  }
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
           </div>
         </section>
 
