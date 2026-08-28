@@ -2,12 +2,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
   AlertTriangle,
-  ArrowDown,
-  ArrowUp,
   BadgeCheck,
   Banknote,
   CheckCircle2,
-  ChevronsUpDown,
   Circle,
   Clock,
   Flame,
@@ -29,7 +26,6 @@ import { TeamOnboarding } from "@/components/team-onboarding";
 import { InventoryPanel } from "@/components/inventory-panel";
 import { ServicesPanel } from "@/components/services-panel";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -71,6 +67,8 @@ import { buildAudit } from "@/lib/reports";
 import { usePaginated } from "@/lib/paginate";
 import { LoadMore } from "@/components/load-more";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
+import { SortButton } from "@/components/sort-button";
+import { GeofenceBadge } from "@/components/geofence-badge";
 import { useIndustryConfig } from "@/config/industry-context";
 
 export const Route = createFileRoute("/admin")({
@@ -785,34 +783,6 @@ function CloseDayDialog() {
   );
 }
 
-function GeofenceBadge({
-  att,
-}: {
-  att?: { is_within_geofence: boolean; clock_in_lat: number | null };
-}) {
-  if (!att) {
-    return (
-      <Badge variant="outline" className="text-muted-foreground">
-        Absent
-      </Badge>
-    );
-  }
-  return (
-    <Badge
-      variant="outline"
-      className={
-        att.is_within_geofence
-          ? "border-success/40 text-success"
-          : att.clock_in_lat === null
-            ? "border-warning/40 text-warning"
-            : "border-destructive/40 text-destructive"
-      }
-    >
-      {att.is_within_geofence ? "Verified" : att.clock_in_lat === null ? "Unverified" : "Flagged"}
-    </Badge>
-  );
-}
-
 function OwnerOnboarding() {
   const { salon, staff, services, inventory } = useStore();
   return (
@@ -825,41 +795,6 @@ function OwnerOnboarding() {
         { label: "Stock your inventory", done: inventory.length > 0, to: "/admin" },
       ]}
     />
-  );
-}
-
-function SortButton({
-  label,
-  active,
-  dir,
-  onClick,
-  align,
-}: {
-  label: string;
-  active: boolean;
-  dir: "asc" | "desc";
-  onClick: () => void;
-  align?: "right";
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex cursor-pointer items-center gap-1 font-medium transition-colors hover:text-foreground ${
-        align === "right" ? "flex-row-reverse" : ""
-      } ${active ? "text-foreground" : ""}`}
-    >
-      {label}
-      {active ? (
-        dir === "asc" ? (
-          <ArrowUp className="size-3.5" />
-        ) : (
-          <ArrowDown className="size-3.5" />
-        )
-      ) : (
-        <ChevronsUpDown className="size-3.5 opacity-50" />
-      )}
-    </button>
   );
 }
 
