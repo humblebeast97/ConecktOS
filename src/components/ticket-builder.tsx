@@ -508,7 +508,7 @@ function ConsumablesPanel({
       </div>
 
       {addable.length > 0 ? (
-        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_5rem_auto] gap-2 rounded-lg border border-dashed border-border p-2">
+        <div className="mt-3 grid grid-cols-1 gap-2 rounded-lg border border-dashed border-border p-2 sm:grid-cols-[minmax(0,1fr)_5rem_auto]">
           <Select value={pickerId} onValueChange={setPickerId}>
             <SelectTrigger className="h-9 bg-background text-xs">
               <SelectValue

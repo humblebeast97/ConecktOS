@@ -93,7 +93,7 @@ function AddItemDialog() {
               />
               <FieldError id="inv-name-error" message={nameError} />
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="grid gap-2">
                 <Label htmlFor="inv-qty">Quantity</Label>
                 <Input
