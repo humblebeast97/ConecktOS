@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FieldError } from "@/components/field-error";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useSubmit } from "@/lib/use-submit";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -48,6 +49,10 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
   const [form, setForm] = useState(emptyForm);
   const [step, setStep] = useState(0);
   const [filter, setFilter] = useState<"all" | "floor" | "desk">("all");
+  const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
+  const pendingRemove = pendingRemoveId
+    ? (profiles.find((p) => p.id === pendingRemoveId) ?? null)
+    : null;
 
   const roster = useMemo(() => {
     if (filter === "floor") return profiles.filter((p) => earnsCommission(p.role));
@@ -354,10 +359,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
                       variant="ghost"
                       size="icon"
                       aria-label={`Remove ${p.full_name}`}
-                      onClick={() => {
-                        removeProfile(p.id);
-                        toast.success(`${p.full_name} removed from the team`);
-                      }}
+                      onClick={() => setPendingRemoveId(p.id)}
                     >
                       <Trash2 className="size-4 text-destructive" />
                     </Button>
@@ -368,6 +370,24 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
           })}
         </ul>
       </section>
+
+      <ConfirmDialog
+        open={pendingRemove !== null}
+        onOpenChange={(open) => !open && setPendingRemoveId(null)}
+        title={pendingRemove ? `Remove ${pendingRemove.full_name}?` : "Remove team member?"}
+        description={
+          pendingRemove
+            ? `${pendingRemove.full_name} will lose access immediately. Past tickets and commissions are kept.`
+            : ""
+        }
+        confirmLabel="Remove"
+        destructive
+        onConfirm={() => {
+          if (!pendingRemove) return;
+          removeProfile(pendingRemove.id);
+          toast.success(`${pendingRemove.full_name} removed from the team`);
+        }}
+      />
     </div>
   );
 }

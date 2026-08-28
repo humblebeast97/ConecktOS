@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { useInventory } from "@/api";
 import { FieldError } from "@/components/field-error";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useSubmit } from "@/lib/use-submit";
 import { lowStock } from "@/lib/reports";
 import type { InventoryItem } from "@/lib/groompulse";
@@ -141,6 +142,7 @@ function AddItemDialog() {
 function ItemRow({ item }: { item: InventoryItem }) {
   const { addInventoryStock, updateInventoryItem, removeInventoryItem } = useInventory();
   const [editing, setEditing] = useState(false);
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
   const [draft, setDraft] = useState({
     item_name: item.item_name,
     quantity: String(item.quantity),
@@ -220,15 +222,24 @@ function ItemRow({ item }: { item: InventoryItem }) {
             size="sm"
             variant="ghost"
             className="ml-auto h-7 px-2 text-xs text-destructive"
-            onClick={() => {
-              removeInventoryItem(item.id);
-              toast.success(`${item.item_name} removed`);
-            }}
+            onClick={() => setConfirmingRemove(true)}
           >
             <Trash2 className="size-3" />
             Delete
           </Button>
         </div>
+        <ConfirmDialog
+          open={confirmingRemove}
+          onOpenChange={setConfirmingRemove}
+          title={`Delete ${item.item_name}?`}
+          description={`This inventory item and its stock (${item.quantity} ${item.unit}) will be removed. Past ticket usage is kept.`}
+          confirmLabel="Delete"
+          destructive
+          onConfirm={() => {
+            removeInventoryItem(item.id);
+            toast.success(`${item.item_name} removed`);
+          }}
+        />
       </li>
     );
   }

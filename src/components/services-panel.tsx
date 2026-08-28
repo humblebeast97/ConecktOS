@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { useServices } from "@/api";
 import { FieldError } from "@/components/field-error";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useSubmit } from "@/lib/use-submit";
 import { naira, type Service } from "@/lib/groompulse";
 import { useIndustryConfig } from "@/config/industry-context";
@@ -135,6 +136,7 @@ function ServiceRow({ service }: { service: Service }) {
   const config = useIndustryConfig();
   const { updateService, removeService } = useServices();
   const [editing, setEditing] = useState(false);
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
   const [name, setName] = useState(service.name);
   const [price, setPrice] = useState(String(service.price));
   const [duration, setDuration] = useState(String(service.duration_minutes));
@@ -240,15 +242,24 @@ function ServiceRow({ service }: { service: Service }) {
           size="icon"
           variant="ghost"
           className="text-muted-foreground hover:text-destructive"
-          onClick={() => {
-            removeService(service.id);
-            toast.success(`${service.name} removed`);
-          }}
+          onClick={() => setConfirmingRemove(true)}
           aria-label={`Remove ${service.name}`}
         >
           <Trash2 className="size-4" />
         </Button>
       </div>
+      <ConfirmDialog
+        open={confirmingRemove}
+        onOpenChange={setConfirmingRemove}
+        title={`Remove ${service.name}?`}
+        description={`This ${config.serviceTitle.toLowerCase()} will disappear from the billing menu. Past tickets that used it are kept.`}
+        confirmLabel="Remove"
+        destructive
+        onConfirm={() => {
+          removeService(service.id);
+          toast.success(`${service.name} removed`);
+        }}
+      />
     </li>
   );
 }
