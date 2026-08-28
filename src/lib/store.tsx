@@ -141,7 +141,7 @@ interface StoreValue {
 const StoreContext = createContext<StoreValue | null>(null);
 
 /** localStorage key for the persisted demo state. Bump the suffix to reset all clients. */
-const STORE_KEY = "conecktos-store-v8";
+const STORE_KEY = "conecktos-store-v9";
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [salon, setSalon] = useState<Salon>(seedSalon);

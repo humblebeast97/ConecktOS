@@ -80,6 +80,7 @@ import { LoadMore } from "@/components/load-more";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { SortButton } from "@/components/sort-button";
 import { GeofenceBadge } from "@/components/geofence-badge";
+import { PayrollReminderCard } from "@/components/payroll-reminder-card";
 import { RouteError } from "@/components/route-error";
 import { useIndustryConfig } from "@/config/industry-context";
 
@@ -211,6 +212,7 @@ function AdminPage() {
 
       {tab === "team" ? <TeamTab /> : null}
       {tab === "overview" ? <OwnerOnboarding /> : null}
+      {tab === "overview" ? <PayrollReminderCard /> : null}
       {tab === "overview" ? (
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

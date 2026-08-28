@@ -10,6 +10,12 @@ export type ExpenseCategory = "generator_fuel" | "maintenance" | "supplies" | "r
 
 type BusinessType = "beauty" | "car_wash" | "tailoring" | "nightlife" | "repair";
 
+/**
+ * Payroll reminder cadence on the owner dashboard.
+ * 0 = off · 3 or 7 = days before payday · -1 = always visible.
+ */
+export type PayrollReminderDays = 0 | 3 | 7 | -1;
+
 export interface Salon {
   id: string;
   name: string;
@@ -20,6 +26,7 @@ export interface Salon {
   currency: string;
   open_time: string;
   close_time: string;
+  payroll_reminder_days: PayrollReminderDays;
   owner_id: string;
   created_at: string;
 }
@@ -221,6 +228,50 @@ export const compensationLabel: Record<CompensationType, string> = {
   none: "No pay",
 };
 
+/** The next monthly payday (Date at midnight) at or after `from`. */
+function nextMonthlyPayday(dayOfMonth: number, from: Date): Date {
+  const y = from.getFullYear();
+  const m = from.getMonth();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const paydayThis = new Date(y, m, Math.min(dayOfMonth, daysInMonth));
+  paydayThis.setHours(0, 0, 0, 0);
+  const start = new Date(y, m, from.getDate());
+  start.setHours(0, 0, 0, 0);
+  if (paydayThis >= start) return paydayThis;
+  const nextDays = new Date(y, m + 2, 0).getDate();
+  const paydayNext = new Date(y, m + 1, Math.min(dayOfMonth, nextDays));
+  paydayNext.setHours(0, 0, 0, 0);
+  return paydayNext;
+}
+
+/**
+ * Days until the next *unpaid* payday. If `lastPaidAt` is on or after the
+ * upcoming payday, that cycle is considered already covered — the count rolls
+ * to the following month automatically.
+ */
+export function nextUnpaidPaydayDays(
+  dayOfMonth: number,
+  lastPaidAt: string | null,
+  from: Date = new Date(),
+): number {
+  const startOfToday = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+  startOfToday.setHours(0, 0, 0, 0);
+  let candidate = nextMonthlyPayday(dayOfMonth, from);
+  if (lastPaidAt) {
+    const paid = new Date(lastPaidAt);
+    paid.setHours(0, 0, 0, 0);
+    if (paid >= candidate) {
+      // This cycle is covered — roll to next month.
+      const y = candidate.getFullYear();
+      const m = candidate.getMonth() + 1;
+      const nextDays = new Date(y, m + 1, 0).getDate();
+      candidate = new Date(y, m, Math.min(dayOfMonth, nextDays));
+      candidate.setHours(0, 0, 0, 0);
+    }
+  }
+  return Math.round((candidate.getTime() - startOfToday.getTime()) / 86400000);
+}
+
 const today = (h: number, m = 0) => {
   const d = new Date();
   d.setHours(h, m, 0, 0);
@@ -237,6 +288,7 @@ export const seedSalon: Salon = {
   currency: "NGN",
   open_time: "08:00",
   close_time: "20:00",
+  payroll_reminder_days: 7,
   owner_id: "u-owner",
   created_at: today(8),
 };
