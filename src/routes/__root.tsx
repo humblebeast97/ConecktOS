@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { StoreProvider } from "../lib/store";
 import { IndustryProvider } from "../config/industry-context";
 import { Toaster } from "../components/ui/sonner";
+import { RouteProgress } from "../components/route-progress";
 
 // Social scrapers need an absolute og:image. Set VITE_SITE_URL at deploy time
 // (e.g. https://app.conecktos.com); falls back to a relative path locally.
@@ -152,6 +153,7 @@ function RootComponent() {
           >
             Skip to main content
           </a>
+          <RouteProgress />
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
           <Toaster position="top-center" />

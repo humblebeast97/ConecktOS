@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 /**
@@ -8,18 +8,23 @@ import { toast } from "sonner";
  *
  * If the callback throws, the thrown value is exposed on `error` for
  * inline surfacing and a toast is shown. `isSubmitting` always clears.
+ * `retry()` re-runs the most recent `submit(fn)` — pair it with the
+ * error surface so users don't have to re-fill the form.
  *
- *   const { isSubmitting, error, submit } = useSubmit();
+ *   const { isSubmitting, error, submit, retry } = useSubmit();
  *   <Button disabled={isSubmitting} onClick={() => submit(() => draft.submit("paid"))}>
  *     {isSubmitting ? <Loader2 /> : "Save"}
  *   </Button>
+ *   {error ? <button onClick={retry}>Try again</button> : null}
  */
 export function useSubmit() {
   const [isSubmitting, setSubmitting] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const lastFn = useRef<null | (() => void | Promise<void>)>(null);
 
-  const submit = async (fn: () => void | Promise<void>) => {
+  const run = async (fn: () => void | Promise<void>) => {
     if (isSubmitting) return;
+    lastFn.current = fn;
     setSubmitting(true);
     setError(null);
     try {
@@ -33,5 +38,9 @@ export function useSubmit() {
     }
   };
 
-  return { isSubmitting, error, submit };
+  const retry = () => {
+    if (lastFn.current) void run(lastFn.current);
+  };
+
+  return { isSubmitting, error, submit: run, retry };
 }

@@ -268,9 +268,19 @@ function StaffPortal() {
               return (
                 <li key={item.id} className="flex items-center justify-between gap-3 py-3">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold">{service?.name}</p>
+                    <p className="truncate text-sm font-semibold">
+                      {service?.name ?? (
+                        <span className="italic text-muted-foreground">Service removed</span>
+                      )}
+                    </p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {ticket?.client_name} · {ticket ? timeOf(ticket.created_at) : ""}
+                      {ticket ? (
+                        <>
+                          {ticket.client_name} · {timeOf(ticket.created_at)}
+                        </>
+                      ) : (
+                        <span className="italic">Ticket no longer exists</span>
+                      )}
                     </p>
                   </div>
                   <div className="shrink-0 text-right">

@@ -248,3 +248,16 @@
     animation: none;
   }
 }
+
+/* Indeterminate progress bar for slow route transitions (see RouteProgress). */
+@keyframes route-progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(150%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}

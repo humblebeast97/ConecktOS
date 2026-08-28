@@ -264,9 +264,13 @@ function ReceiptDialog({ ticket }: { ticket: Ticket }) {
               return (
                 <div key={it.id} className="flex items-start justify-between gap-3 text-sm">
                   <span className="min-w-0">
-                    <span className="block truncate">{svc?.name}</span>
+                    <span className="block truncate">
+                      {svc?.name ?? (
+                        <span className="italic text-muted-foreground">Service removed</span>
+                      )}
+                    </span>
                     <span className="block truncate text-xs text-muted-foreground">
-                      {who?.full_name}
+                      {who?.full_name ?? <span className="italic">Team member removed</span>}
                     </span>
                   </span>
                   <span className="shrink-0 font-medium tabular-nums">
