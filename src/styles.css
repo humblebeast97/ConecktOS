@@ -221,12 +221,22 @@
     box-shadow: none !important;
     padding: 0 !important;
   }
+  .print-sheet,
   .print-sheet * {
     color: #000 !important;
     background: transparent !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   .print-sheet [class*="border"] {
     border-color: #ccc !important;
+  }
+  /* Print table borders visible even after color reset. */
+  .print-sheet table {
+    border-collapse: collapse;
+  }
+  .print-sheet table td {
+    border-color: #999 !important;
   }
   /* Keep each audit section intact across page breaks. */
   .audit-section {

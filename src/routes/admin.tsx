@@ -814,7 +814,7 @@ function CloseDayDialog() {
           />
         </div>
 
-        <div className="print-sheet rounded-2xl border border-border bg-gradient-surface p-5">
+        <div className="print-sheet print:hidden rounded-2xl border border-border bg-gradient-surface p-5">
           <p className="font-display text-sm font-bold">{salon.name}</p>
           <p className="text-xs text-muted-foreground">
             {isTodaySelected ? "Daily audit" : "Day audit"} ·{" "}
@@ -861,6 +861,55 @@ function CloseDayDialog() {
               ))
             )}
           </Section>
+        </div>
+
+        {/* Print-only: clean figures table. Guarantees labels + values render. */}
+        <div className="print-sheet hidden print:block">
+          <h1 className="mb-1 text-lg font-bold">{salon.name}</h1>
+          <p className="mb-4 text-xs">
+            {isTodaySelected ? "Daily audit" : "Day audit"} ·{" "}
+            {auditDate.toLocaleDateString("en-NG", { dateStyle: "full" })}
+          </p>
+          <table className="w-full border-collapse text-sm">
+            <tbody>
+              <tr>
+                <td
+                  colSpan={2}
+                  className="border-t border-b border-black/40 py-1 text-xs font-semibold uppercase tracking-wider"
+                >
+                  Gross revenue
+                </td>
+              </tr>
+              <PrintRow label="POS" value={naira(audit.byMethod.pos)} />
+              <PrintRow
+                label={paymentLabel.bank_transfer}
+                value={naira(audit.byMethod.bank_transfer)}
+              />
+              <PrintRow label="Cash" value={naira(audit.byMethod.cash)} />
+              <PrintRow label="Total collected" value={naira(audit.gross)} strong />
+              <PrintRow
+                label="Unsettled tickets"
+                value={`${audit.pendingCount} · ${naira(audit.pendingAmount)}`}
+              />
+
+              <tr>
+                <td
+                  colSpan={2}
+                  className="border-t border-b border-black/40 pt-4 py-1 text-xs font-semibold uppercase tracking-wider"
+                >
+                  Payouts & overheads
+                </td>
+              </tr>
+              <PrintRow label="Staff commissions payable" value={naira(audit.commissionsPayable)} />
+              <PrintRow label="Generator / fuel" value={naira(audit.fuelExpense)} />
+              <PrintRow label="All expenses" value={naira(audit.totalExpenses)} />
+              <PrintRow
+                label="Generator overhead per billed service"
+                value={naira(audit.overheadPerService)}
+              />
+              <PrintRow label="Net position" value={naira(audit.netPosition)} strong />
+            </tbody>
+          </table>
         </div>
 
         <Button
@@ -913,5 +962,14 @@ function Row({ label, value, strong }: { label: string; value: string; strong?: 
         {value}
       </span>
     </div>
+  );
+}
+
+function PrintRow({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <tr className={strong ? "font-bold" : ""}>
+      <td className="py-1 pr-4">{label}</td>
+      <td className="py-1 text-right font-mono tabular-nums">{value}</td>
+    </tr>
   );
 }
