@@ -1,5 +1,5 @@
 /**
- * Field-level error text — pair with `aria-describedby={id}` on the input.
+ * Field-level error text. Pair with `aria-describedby={id}` on the input.
  * Renders nothing when `message` is empty so it can sit under every field.
  */
 export function FieldError({ id, message }: { id: string; message?: string | null }) {

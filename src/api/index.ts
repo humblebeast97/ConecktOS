@@ -1,7 +1,7 @@
 import { useStore } from "@/lib/store";
 
 /**
- * Thin API layer — the ONLY interface routes and components should use for
+ * Thin API layer. The ONLY interface routes and components should use for
  * app data. Each slice hook groups the reads + mutations for one domain and
  * returns a stable shape. Today they wrap the in-memory mock store; Phase 1
  * will re-implement them against Supabase (React Query + RPC) without any

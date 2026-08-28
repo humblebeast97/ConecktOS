@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Placeholder block for loading states — a subtle pulsing surface that matches
+ * Placeholder block for loading states. A subtle pulsing surface that matches
  * the app's card tone in both themes. Size + rounding come from the caller
  * (className), so it fits table cells, avatars, hero areas etc.
  */

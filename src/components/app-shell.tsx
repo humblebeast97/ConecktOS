@@ -51,7 +51,7 @@ export function AppShell({
   const config = useIndustryConfig();
   const navigate = useNavigate();
 
-  // Ops notifications — only for owner / manager / front desk.
+  // Ops notifications. Only for owner / manager / front desk.
   const showOps = ["owner", "manager", "receptionist"].includes(currentUser.role);
   const low = showOps ? lowStock(inventory) : [];
   const pending = showOps ? tickets.filter((t) => t.status === "pending") : [];

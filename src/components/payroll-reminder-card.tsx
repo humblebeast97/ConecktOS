@@ -10,7 +10,7 @@ import { useSubmit } from "@/lib/use-submit";
  * Owner-dashboard card that surfaces upcoming (or overdue) monthly payroll.
  * Reads each staff member's base_salary + salary_payday + salary_last_paid_at,
  * hides itself when cadence is Off or nobody is due, and lets the owner mark
- * every entry paid — which logs a Salary expense per person and rolls each
+ * every entry paid. Which logs a Salary expense per person and rolls each
  * paid cursor forward so the next cycle picks up automatically.
  */
 export function PayrollReminderCard() {

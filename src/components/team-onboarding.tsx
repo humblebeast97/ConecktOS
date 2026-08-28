@@ -188,7 +188,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
                   maxLength={60}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Anything you like — this is just their title.
+                  Anything you like. This is just their title.
                 </p>
               </div>
             </div>
@@ -245,7 +245,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
                   />
                   <p className="text-xs text-muted-foreground">
                     {form.commission_rate === 0
-                      ? "No commission per service — pay is salary-only (set below)."
+                      ? "No commission per service. Pay is salary-only (set below)."
                       : `On a ${naira(5000)} service they earn ${naira((5000 * form.commission_rate) / 100)}.`}
                   </p>
                 </div>
@@ -284,7 +284,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {Number(form.base_salary) > 0
-                    ? `Accrues ${naira(Number(form.base_salary))} monthly — payday: day ${Math.min(
+                    ? `Accrues ${naira(Number(form.base_salary))} monthly. Payday: day ${Math.min(
                         31,
                         Math.max(1, Number(form.salary_payday) || 30),
                       )} of the month.`

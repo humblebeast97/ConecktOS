@@ -31,7 +31,7 @@ export function OfflineBanner() {
       className="no-print flex items-center justify-center gap-2 border-b border-warning/40 bg-warning/10 px-4 py-2 text-xs font-medium text-warning"
     >
       <WifiOff className="size-3.5" />
-      You're offline — changes save locally and will sync when you're back.
+      You're offline. Changes save locally and will sync when you're back.
     </div>
   );
 }

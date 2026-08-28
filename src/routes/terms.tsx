@@ -51,7 +51,7 @@ function TermsPage() {
           <Section title="Payments & tips">
             <p>
               Tips are made by direct bank transfer between the customer and the staff member.
-              ConecktOS only displays the bank details you provide — it is not a party to the
+              ConecktOS only displays the bank details you provide. It is not a party to the
               transaction, does not process or hold funds, and is not responsible for transfers.
               You're responsible for the accuracy of the commission rates and bank details you
               configure.

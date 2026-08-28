@@ -1,4 +1,4 @@
-// ConecktOS domain model — mirrors the planned Supabase schema.
+// ConecktOS domain model. Mirrors the planned Supabase schema.
 // Currently backed by in-memory mock state (see src/lib/store.tsx).
 
 /** Permission tiers. A person's actual job title is free text (Profile.job_title). */
@@ -70,7 +70,7 @@ export interface Service {
   name: string;
   price: number;
   duration_minutes: number;
-  /** Consumables typically used by this service — powers auto-suggested deductions. */
+  /** Consumables typically used by this service. Powers auto-suggested deductions. */
   suggested_inventory: { inventory_id: string; quantity: number }[];
 }
 
@@ -206,7 +206,7 @@ export const expenseLabel: Record<ExpenseCategory, string> = {
   salary: "Salary",
 };
 
-/** How someone earns — derived from their compensation fields. */
+/** How someone earns. Derived from their compensation fields. */
 export type CompensationType = "commission" | "salary" | "both" | "none";
 
 export function compensationType(p: {
@@ -246,7 +246,7 @@ function nextMonthlyPayday(dayOfMonth: number, from: Date): Date {
 
 /**
  * Days until the next *unpaid* payday. If `lastPaidAt` is on or after the
- * upcoming payday, that cycle is considered already covered — the count rolls
+ * upcoming payday, that cycle is considered already covered. The count rolls
  * to the following month automatically.
  */
 export function nextUnpaidPaydayDays(
@@ -261,7 +261,7 @@ export function nextUnpaidPaydayDays(
     const paid = new Date(lastPaidAt);
     paid.setHours(0, 0, 0, 0);
     if (paid >= candidate) {
-      // This cycle is covered — roll to next month.
+      // This cycle is covered. Roll to next month.
       const y = candidate.getFullYear();
       const m = candidate.getMonth() + 1;
       const nextDays = new Date(y, m + 1, 0).getDate();

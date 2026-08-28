@@ -4,11 +4,11 @@ import { toast } from "sonner";
 /**
  * Guards a submit action against double-clicks and gives every form the
  * shape it needs for a disabled/loading button. Works with sync or async
- * work — the button stays disabled until the callback resolves.
+ * work. The button stays disabled until the callback resolves.
  *
  * If the callback throws, the thrown value is exposed on `error` for
  * inline surfacing and a toast is shown. `isSubmitting` always clears.
- * `retry()` re-runs the most recent `submit(fn)` — pair it with the
+ * `retry()` re-runs the most recent `submit(fn)`. Pair it with the
  * error surface so users don't have to re-fill the form.
  *
  *   const { isSubmitting, error, submit, retry } = useSubmit();

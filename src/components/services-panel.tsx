@@ -63,7 +63,7 @@ function AddServiceDialog() {
         <DialogHeader>
           <DialogTitle>Add a {config.serviceTitle.toLowerCase()}</DialogTitle>
           <DialogDescription>
-            Name it yourself — price and duration can be edited any time.
+            Name it yourself. Price and duration can be edited any time.
           </DialogDescription>
         </DialogHeader>
         <form
@@ -290,7 +290,7 @@ export function ServicesPanel() {
           <EmptyState
             icon={ClipboardList}
             title={`No ${config.serviceTitle.toLowerCase()} options yet`}
-            description={`Add your first ${config.serviceTitle.toLowerCase()} — you can set price and duration from the roster.`}
+            description={`Add your first ${config.serviceTitle.toLowerCase()}. You can set price and duration from the roster.`}
           />
         </div>
       ) : (

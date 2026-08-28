@@ -66,7 +66,7 @@ function AddItemDialog() {
         <DialogHeader>
           <DialogTitle>Add inventory item</DialogTitle>
           <DialogDescription>
-            Log a consumable manually — stock, unit and the reorder threshold.
+            Log a consumable manually. Stock, unit and the reorder threshold.
           </DialogDescription>
         </DialogHeader>
         <form

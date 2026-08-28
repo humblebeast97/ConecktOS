@@ -14,7 +14,7 @@ function homePortalFor(role: Role): string {
 /**
  * Client-side role guard for the mock/demo. Pass a *stable* (module-level) list
  * of roles allowed on the screen; anyone else is redirected to their own portal.
- * This is demo-grade RBAC — real enforcement lands with server auth + RLS.
+ * This is demo-grade RBAC. Real enforcement lands with server auth + RLS.
  */
 export function useRoleGuard(allowed: readonly Role[]) {
   const { currentUser } = useAuth();

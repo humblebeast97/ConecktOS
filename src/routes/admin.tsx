@@ -359,7 +359,7 @@ function AdminPage() {
                             </span>
                           </TableCell>
                           <TableCell className="text-muted-foreground">
-                            {att ? timeOf(att.clock_in_time) : "—"}
+                            {att ? timeOf(att.clock_in_time) : "-"}
                             {att ? (
                               <span
                                 className={
@@ -376,13 +376,13 @@ function AdminPage() {
                             <GeofenceBadge att={att} />
                           </TableCell>
                           <TableCell className="text-right font-semibold tabular-nums text-primary">
-                            {comp === "salary" ? "—" : naira(earned)}
+                            {comp === "salary" ? "-" : naira(earned)}
                           </TableCell>
                           <TableCell className="text-right font-semibold tabular-nums">
                             {s.base_salary ? (
                               naira(s.base_salary)
                             ) : (
-                              <span className="text-muted-foreground">—</span>
+                              <span className="text-muted-foreground">-</span>
                             )}
                           </TableCell>
                         </TableRow>
@@ -466,10 +466,10 @@ function AdminPage() {
                       <TableRow key={e.id} className="border-border">
                         <TableCell className="font-medium">{expenseLabel[e.category]}</TableCell>
                         <TableCell className="max-w-40 truncate text-muted-foreground">
-                          {e.notes || "—"}
+                          {e.notes || "-"}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
-                          {e.generator_hours_run ?? "—"}
+                          {e.generator_hours_run ?? "-"}
                         </TableCell>
                         <TableCell className="text-right font-semibold tabular-nums">
                           {naira(e.amount)}
@@ -596,7 +596,7 @@ function ResetAllDialog() {
             onClick={() => {
               resetAll();
               setOpen(false);
-              toast.success("New period started — figures reset to zero");
+              toast.success("New period started. Figures reset to zero");
             }}
           >
             <RotateCcw className="size-4" />
@@ -708,7 +708,7 @@ function ExpenseForm({
             id="notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Diesel top-up — 20 litres"
+            placeholder="Diesel top-up. 20 litres"
             className="h-11 bg-surface"
           />
         </div>

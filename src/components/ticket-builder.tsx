@@ -29,7 +29,7 @@ import { useIndustryConfig } from "@/config/industry-context";
 import { naira, paymentLabel, timeOf, type PaymentMethod } from "@/lib/groompulse";
 
 /**
- * The full "Quick service billing" card — client lookup, service lines,
+ * The full "Quick service billing" card. Client lookup, service lines,
  * consumables, totals, payment method, and open/pay actions. All state lives
  * in the useTicketDraft hook so the route file stays thin.
  */
@@ -101,7 +101,7 @@ export function TicketBuilder() {
           </div>
           {draft.clients.length === 0 ? (
             <p className="mt-3 text-xs text-muted-foreground">
-              No clients yet — the first ticket you bill starts the client book.
+              No clients yet. The first ticket you bill starts the client book.
             </p>
           ) : (
             <>
@@ -217,7 +217,7 @@ export function TicketBuilder() {
                 <SelectContent>
                   {services.map((s) => (
                     <SelectItem key={s.id} value={s.id}>
-                      {s.name} — {naira(s.price)}
+                      {s.name} - {naira(s.price)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -448,7 +448,7 @@ function ConsumablesPanel({
 
       <p className="mt-2 text-xs text-muted-foreground">
         {mode === "auto"
-          ? "Pre-filled from the services on this ticket — edit quantity or uncheck to skip."
+          ? "Pre-filled from the services on this ticket. Edit quantity or uncheck to skip."
           : "Add exactly what was used on this ticket."}
       </p>
 
@@ -501,7 +501,7 @@ function ConsumablesPanel({
         {nothingShown ? (
           <p className="py-2 text-center text-xs text-muted-foreground">
             {mode === "manual"
-              ? "Nothing added yet — pick a consumable below."
+              ? "Nothing added yet. Pick a consumable below."
               : "No suggestions for the current services."}
           </p>
         ) : null}

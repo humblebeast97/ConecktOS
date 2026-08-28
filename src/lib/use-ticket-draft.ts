@@ -18,7 +18,7 @@ export type ClientCard = {
 /**
  * Owns the entire ticket-draft state for the reception ticket builder:
  * client fields, service lines, consumables mode, payment method, and the
- * derived preview + effective consumable list. Also owns the submit flow —
+ * derived preview + effective consumable list. Also owns the submit flow -
  * validation, createTicket call, toast, and reset.
  */
 export function useTicketDraft() {
@@ -83,7 +83,7 @@ export function useTicketDraft() {
     const service = services.find((s) => s.id === line.service_id);
     const member = profiles.find((p) => p.id === line.staff_id);
     if (!service || !member) {
-      return { ...line, price: 0, commission: 0, serviceName: "—", staffName: "—" };
+      return { ...line, price: 0, commission: 0, serviceName: "-", staffName: "-" };
     }
     return {
       ...line,

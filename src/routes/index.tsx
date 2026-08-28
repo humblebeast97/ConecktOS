@@ -105,8 +105,7 @@ function LoginPage() {
           </h1>
           <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
             ConecktOS handles geofenced staff clock-ins, automatic commission splits, consumables
-            tracking, overheads and a fraud-proof end-of-day audit — on any phone, tablet or
-            desktop.
+            tracking, overheads and a fraud-proof end-of-day audit. On any phone, tablet or desktop.
           </p>
           <dl className="mt-8 grid grid-cols-2 gap-3 sm:max-w-md">
             {[
@@ -259,7 +258,7 @@ function LoginPage() {
 
           <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
             <ShieldCheck className="size-3.5 shrink-0 text-success" />
-            One workspace for your whole team — owner, front desk and floor staff.
+            One workspace for your whole team. Owner, front desk and floor staff.
           </p>
           <p className="mt-4 border-t border-border pt-3 text-xs text-muted-foreground">
             <Link

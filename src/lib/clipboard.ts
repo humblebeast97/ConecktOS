@@ -5,7 +5,7 @@
 export async function copyText(text: string): Promise<boolean> {
   if (typeof window === "undefined") return false;
 
-  // 1) Modern API — available on HTTPS or localhost.
+  // 1) Modern API. Available on HTTPS or localhost.
   if (window.isSecureContext && navigator.clipboard?.writeText) {
     try {
       await navigator.clipboard.writeText(text);
@@ -17,7 +17,7 @@ export async function copyText(text: string): Promise<boolean> {
 
   // 2) Legacy fallback: hidden textarea + document.execCommand("copy").
   //    Some browsers refuse to copy from opacity:0 or offscreen elements, and
-  //    Radix Dialog's focus trap can steal focus mid-copy — so we mount the
+  //    Radix Dialog's focus trap can steal focus mid-copy. So we mount the
   //    textarea inside the currently-active element's container when possible,
   //    keep it visible-but-tiny, and select via setSelectionRange.
   try {

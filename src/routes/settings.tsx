@@ -183,7 +183,7 @@ function SettingsPage() {
                 </span>
               ) : (
                 <span className="text-muted-foreground">
-                  No location set — tap “Use my location” while you're at the business.
+                  No location set. Tap “Use my location” while you're at the business.
                 </span>
               )}
             </div>

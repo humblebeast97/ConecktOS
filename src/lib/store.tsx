@@ -379,7 +379,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         if (s.currentUserId) setCurrentUserId(s.currentUserId);
       }
     } catch {
-      // Corrupt/blocked storage — fall back to seed state.
+      // Corrupt/blocked storage. Fall back to seed state.
     }
     setHydrated(true);
   }, []);
@@ -404,7 +404,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }),
       );
     } catch {
-      // Storage full/blocked — ignore.
+      // Storage full/blocked. Ignore.
     }
   }, [
     hydrated,

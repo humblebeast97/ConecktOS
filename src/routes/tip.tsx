@@ -26,7 +26,7 @@ function TipPage() {
     if (!a) return;
     const ok = await copyText(a);
     if (ok) toast.success("Account number copied");
-    else toast.error("Couldn't copy — long-press the number to copy");
+    else toast.error("Couldn't copy. Long-press the number to copy");
   };
 
   return (
@@ -44,7 +44,7 @@ function TipPage() {
             ) : null}
             <h1 className="mt-2 font-display text-2xl font-bold">Tip {firstName}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Send your tip by bank transfer — any amount is appreciated.
+              Send your tip by bank transfer. Any amount is appreciated.
             </p>
 
             <div className="mt-6 rounded-2xl border border-border bg-surface p-5">

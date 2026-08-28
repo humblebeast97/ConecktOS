@@ -77,7 +77,7 @@ function SignUpPage() {
     setSubmitted(true);
     if (!fullName.trim() || !passwordStrong) return;
     submitCreate(() => {
-      toast.success("Account created — now set up your business.");
+      toast.success("Account created. Now set up your business.");
       setStep(2);
     });
   };
@@ -132,7 +132,7 @@ function SignUpPage() {
         </h1>
         <p className="mt-3 max-w-md text-sm text-muted-foreground">
           {step === 1
-            ? "One account runs your whole operation — team, tickets, stock and payouts."
+            ? "One account runs your whole operation. Team, tickets, stock and payouts."
             : "Your category tailors labels, tipping and stock tracking across the app."}
         </p>
 
@@ -258,7 +258,7 @@ function SignUpPage() {
                 submitEnter(() => {
                   signIn(defaultUserForRole.owner);
                   navigate({ to: "/admin" });
-                  toast.success("You're all set — welcome to ConecktOS");
+                  toast.success("You're all set. Welcome to ConecktOS");
                 })
               }
             >

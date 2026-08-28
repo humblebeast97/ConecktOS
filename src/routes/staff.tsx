@@ -33,7 +33,7 @@ import { copyText } from "@/lib/clipboard";
 import { staffDailyCommission } from "@/lib/reports";
 import { useIndustryConfig } from "@/config/industry-context";
 
-// The QR library only renders inside the tip dialog — load it on demand so it
+// The QR library only renders inside the tip dialog. Load it on demand so it
 // stays out of the staff route's initial bundle.
 const QRCode = lazy(() => import("react-qr-code"));
 
@@ -98,10 +98,10 @@ function StaffPortal() {
     setLocating(true);
     const evaluate = (coords: { lat: number; lng: number } | null) => {
       setLocating(false);
-      // Location is required — we can't confirm you're at the business without it.
+      // Location is required. We can't confirm you're at the business without it.
       if (!coords) {
         toast.error("Location required to clock in", {
-          description: `Turn on location access — we verify you're at ${salon.name}.`,
+          description: `Turn on location access. We verify you're at ${salon.name}.`,
         });
         return;
       }
@@ -112,7 +112,7 @@ function StaffPortal() {
           description: `Verified ${Math.round(distance)}m from ${salon.name}.`,
         });
       } else {
-        // Outside the business's geofence — block the clock-in.
+        // Outside the business's geofence. Block the clock-in.
         toast.error("You're too far to clock in", {
           description: `You're ${Math.round(distance)}m from ${salon.name}. Get within ${salon.geofence_radius_meters}m and try again.`,
         });
@@ -143,7 +143,7 @@ function StaffPortal() {
           { label: "Clock in for the first time", done: Boolean(open), to: "/staff" },
         ]}
       />
-      {/* Clock-in hero — the staff member's primary action, status-tinted. */}
+      {/* Clock-in hero. The staff member's primary action, status-tinted. */}
       <section
         className={
           open
@@ -181,7 +181,7 @@ function StaffPortal() {
               <>
                 <h2 className="text-lg font-bold">Ready to start your shift?</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Clock in with GPS — matched against {salon.name} within{" "}
+                  Clock in with GPS. Matched against {salon.name} within{" "}
                   {salon.geofence_radius_meters}m.
                 </p>
               </>
@@ -311,7 +311,7 @@ function StaffPortal() {
             <DialogTitle>Use your location to clock in?</DialogTitle>
             <DialogDescription>
               ConecktOS reads your device location once, only when you clock in, to confirm you're
-              at {salon.name}. It's never tracked in the background. Clock-in only works on-site —
+              at {salon.name}. It's never tracked in the background. Clock-in only works on-site -
               within {salon.geofence_radius_meters}m of the business.
             </DialogDescription>
           </DialogHeader>
@@ -358,7 +358,7 @@ function TipQrDialog() {
     if (!me.account_number) return;
     const ok = await copyText(me.account_number);
     if (ok) toast.success("Account number copied");
-    else toast.error("Couldn't copy — long-press to copy manually");
+    else toast.error("Couldn't copy. Long-press to copy manually");
   };
 
   return (
@@ -375,7 +375,7 @@ function TipQrDialog() {
           <DialogDescription>
             {hasBank
               ? "Clients scan or copy your bank details to transfer a tip directly."
-              : "No payout account yet — ask your manager to add your bank details."}
+              : "No payout account yet. Ask your manager to add your bank details."}
           </DialogDescription>
         </DialogHeader>
 
@@ -399,7 +399,7 @@ function TipQrDialog() {
                 </p>
               </div>
 
-              {/* On-screen details (not printed — the scanned page shows these). */}
+              {/* On-screen details (not printed. The scanned page shows these). */}
               <div className="print:hidden">
                 <p className="mt-4 font-display text-lg font-bold">{me.full_name}</p>
                 <div className="mt-2 text-sm">

@@ -35,7 +35,7 @@ export function BusinessProfilePanel() {
       },
       () => {
         setLocating(false);
-        toast.error("Couldn't get your location — allow location access and try again");
+        toast.error("Couldn't get your location. Allow location access and try again");
       },
       { enableHighAccuracy: true, timeout: 8000 },
     );

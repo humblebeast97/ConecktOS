@@ -32,7 +32,7 @@ export const Route = createFileRoute("/join")({
       {
         name: "description",
         content:
-          "Onboarded staff create their own ConecktOS login here — front desk gets the billing portal, floor staff get GPS clock-in and commissions.",
+          "Onboarded staff create their own ConecktOS login here. Front desk gets the billing portal, floor staff get GPS clock-in and commissions.",
       },
       { property: "og:title", content: "Team sign-up · ConecktOS" },
       {
@@ -110,7 +110,7 @@ function JoinPage() {
         account_number: isFrontDesk ? null : accountNumber.trim() || null,
         account_name: isFrontDesk ? null : accountName.trim() || fullName.trim(),
       });
-      toast.success(`Welcome aboard — opening your ${roleTitle} portal.`);
+      toast.success(`Welcome aboard. Opening your ${roleTitle} portal.`);
       signIn(member.id);
       navigate({ to: portalFor(role) });
     });
@@ -130,7 +130,7 @@ function JoinPage() {
           Create your <span className="text-gradient-gold">team login.</span>
         </h1>
         <p className="mt-3 max-w-md text-sm text-muted-foreground">
-          Already onboarded by your owner or manager? Pick your role and set a password — you will
+          Already onboarded by your owner or manager? Pick your role and set a password. You will
           land straight in the right portal.
         </p>
 
@@ -297,7 +297,7 @@ function JoinPage() {
                 <p className="text-sm font-semibold">
                   Payout details{" "}
                   <span className="font-normal text-muted-foreground">
-                    — where your tips are sent
+                    . Where your tips are sent
                   </span>
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -341,7 +341,7 @@ function JoinPage() {
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  You can leave this blank and add it later — but your tip QR won't work until it's
+                  You can leave this blank and add it later. But your tip QR won't work until it's
                   set.
                 </p>
               </div>

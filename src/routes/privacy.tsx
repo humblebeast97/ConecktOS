@@ -36,21 +36,21 @@ function PrivacyPage() {
           <Section title="Data we collect">
             <ul className="list-disc space-y-1.5 pl-5">
               <li>
-                <span className="text-foreground">Account data</span> — name, email and role of each
+                <span className="text-foreground">Account data</span>. Name, email and role of each
                 team member.
               </li>
               <li>
-                <span className="text-foreground">Business records</span> — services, tickets,
+                <span className="text-foreground">Business records</span>. Services, tickets,
                 commissions, inventory and expenses you enter.
               </li>
               <li>
-                <span className="text-foreground">Location data</span> — a staff member's device
+                <span className="text-foreground">Location data</span>. A staff member's device
                 location is read only at the moment they choose to clock in, to verify attendance
                 against your business's geofence. We do not track location continuously or in the
                 background.
               </li>
               <li>
-                <span className="text-foreground">Device data</span> — basic technical information
+                <span className="text-foreground">Device data</span>. Basic technical information
                 needed to run the app.
               </li>
             </ul>
@@ -66,7 +66,7 @@ function PrivacyPage() {
           <Section title="Location consent">
             <p>
               Location is only captured when a staff member taps "Clock in" and grants permission.
-              Declining still lets them clock in — the record is simply marked unverified. You can
+              Declining still lets them clock in. The record is simply marked unverified. You can
               revoke device location permission at any time in your browser or phone settings.
             </p>
           </Section>
@@ -76,7 +76,7 @@ function PrivacyPage() {
               We use <span className="text-foreground">Supabase</span> for authentication and
               database hosting. Tips are made by{" "}
               <span className="text-foreground">direct bank transfer</span> between the customer and
-              the staff member — ConecktOS only displays the staff member's bank details and never
+              the staff member. ConecktOS only displays the staff member's bank details and never
               processes, routes or holds any funds.
             </p>
           </Section>
