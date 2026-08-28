@@ -64,6 +64,8 @@ import {
 } from "@/api";
 import { useRoleGuard } from "@/lib/access";
 import {
+  compensationLabel,
+  compensationType,
   earnsCommission,
   expenseLabel,
   naira,
@@ -329,74 +331,101 @@ function AdminPage() {
                           align="right"
                         />
                       </TableHead>
+                      <TableHead className="text-right">Salary (monthly)</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {attRows.map(({ s, att, earned }) => (
-                      <TableRow key={s.id} className="border-border">
-                        <TableCell className="font-medium">
-                          {s.full_name}
-                          <span className="mt-0.5 block text-xs text-muted-foreground">
-                            {Math.round(s.commission_rate * 100)}% rate
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {att ? timeOf(att.clock_in_time) : "—"}
-                          {att ? (
-                            <span
-                              className={
-                                att.status === "late"
-                                  ? "block text-xs text-warning"
-                                  : "block text-xs text-success"
-                              }
-                            >
-                              {att.status === "late" ? "Late" : "On time"}
+                    {attRows.map(({ s, att, earned }) => {
+                      const comp = compensationType(s);
+                      return (
+                        <TableRow key={s.id} className="border-border">
+                          <TableCell className="font-medium">
+                            {s.full_name}
+                            <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                              <span className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-2 py-[1px] text-[10px] font-medium">
+                                <span className="size-1.5 rounded-full bg-current opacity-60" />
+                                {compensationLabel[comp]}
+                              </span>
+                              {comp !== "salary" ? (
+                                <span>{Math.round(s.commission_rate * 100)}% rate</span>
+                              ) : null}
                             </span>
-                          ) : null}
-                        </TableCell>
-                        <TableCell>
-                          <GeofenceBadge att={att} />
-                        </TableCell>
-                        <TableCell className="text-right font-semibold tabular-nums text-primary">
-                          {naira(earned)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {att ? timeOf(att.clock_in_time) : "—"}
+                            {att ? (
+                              <span
+                                className={
+                                  att.status === "late"
+                                    ? "block text-xs text-warning"
+                                    : "block text-xs text-success"
+                                }
+                              >
+                                {att.status === "late" ? "Late" : "On time"}
+                              </span>
+                            ) : null}
+                          </TableCell>
+                          <TableCell>
+                            <GeofenceBadge att={att} />
+                          </TableCell>
+                          <TableCell className="text-right font-semibold tabular-nums text-primary">
+                            {comp === "salary" ? "—" : naira(earned)}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold tabular-nums">
+                            {s.base_salary ? (
+                              naira(s.base_salary)
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
 
               {/* Mobile: stacked cards */}
               <ul className="divide-y divide-border md:hidden">
-                {attRows.map(({ s, att, earned }) => (
-                  <li key={s.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold">{s.full_name}</p>
-                      <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                        {att ? (
-                          <>
-                            <span>in {timeOf(att.clock_in_time)}</span>
-                            <span
-                              className={att.status === "late" ? "text-warning" : "text-success"}
-                            >
-                              ({att.status === "late" ? "late" : "on time"})
-                            </span>
-                          </>
-                        ) : (
-                          <span>not clocked in</span>
-                        )}
-                      </p>
-                      <div className="mt-1.5">
-                        <GeofenceBadge att={att} />
+                {attRows.map(({ s, att, earned }) => {
+                  const comp = compensationType(s);
+                  return (
+                    <li key={s.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold">{s.full_name}</p>
+                        <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                          {att ? (
+                            <>
+                              <span>in {timeOf(att.clock_in_time)}</span>
+                              <span
+                                className={att.status === "late" ? "text-warning" : "text-success"}
+                              >
+                                ({att.status === "late" ? "late" : "on time"})
+                              </span>
+                            </>
+                          ) : (
+                            <span>not clocked in</span>
+                          )}
+                        </p>
+                        <div className="mt-1.5">
+                          <GeofenceBadge att={att} />
+                        </div>
                       </div>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <p className="text-sm font-semibold tabular-nums text-primary">
-                        {naira(earned)}
-                      </p>
-                    </div>
-                  </li>
-                ))}
+                      <div className="shrink-0 text-right">
+                        {comp !== "salary" ? (
+                          <p className="text-sm font-semibold tabular-nums text-primary">
+                            {naira(earned)}
+                          </p>
+                        ) : null}
+                        {s.base_salary ? (
+                          <p className="text-xs tabular-nums text-muted-foreground">
+                            +{naira(s.base_salary)}/mo
+                          </p>
+                        ) : null}
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             </section>
 
