@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useStore } from "@/lib/store";
+import { useStaff, useTickets } from "@/api";
 import {
   earnsCommission,
   naira,
@@ -31,7 +31,8 @@ const steps = ["Identity", "Role"] as const;
 /** Reusable onboarding wizard + roster. Embedded on /team, /admin and /reception. */
 export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
   const config = useIndustryConfig();
-  const { profiles, ticketItems, addStylist, removeProfile } = useStore();
+  const { profiles, addStylist, removeProfile } = useStaff();
+  const { ticketItems } = useTickets();
   const industryRoleLabel = (role: Role) =>
     role === "staff" ? config.staffTitle : roleLabel[role];
   const [form, setForm] = useState(emptyForm);

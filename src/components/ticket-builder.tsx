@@ -21,7 +21,8 @@ import {
 import { EmptyState } from "@/components/app-shell";
 import { LoadMore } from "@/components/load-more";
 import { usePaginated } from "@/lib/paginate";
-import { useStore, type DraftUsage } from "@/lib/store";
+import { useInventory, useServices, useStaff } from "@/api";
+import type { DraftUsage } from "@/lib/store";
 import { useTicketDraft } from "@/lib/use-ticket-draft";
 import { useIndustryConfig } from "@/config/industry-context";
 import { naira, paymentLabel, timeOf, type PaymentMethod } from "@/lib/groompulse";
@@ -33,7 +34,9 @@ import { naira, paymentLabel, timeOf, type PaymentMethod } from "@/lib/groompuls
  */
 export function TicketBuilder() {
   const config = useIndustryConfig();
-  const { services, staff, inventory } = useStore();
+  const { services } = useServices();
+  const { staff } = useStaff();
+  const { inventory } = useInventory();
   const draft = useTicketDraft();
 
   const q = draft.lookup.trim().toLowerCase();
@@ -352,7 +355,7 @@ type ConsumablesPanelProps = {
   setAutoExtras: React.Dispatch<React.SetStateAction<DraftUsage[]>>;
   manualEntries: DraftUsage[];
   setManualEntries: React.Dispatch<React.SetStateAction<DraftUsage[]>>;
-  inventory: ReturnType<typeof useStore>["inventory"];
+  inventory: ReturnType<typeof useInventory>["inventory"];
 };
 
 function ConsumablesPanel({

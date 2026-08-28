@@ -17,7 +17,7 @@ import { RouteError } from "@/components/route-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useStore } from "@/lib/store";
+import { useAuth, useStaff } from "@/api";
 import { commissionRoles, roleHint, roleLabel } from "@/lib/groompulse";
 import type { Role } from "@/lib/groompulse";
 import { useIndustryConfig } from "@/config/industry-context";
@@ -53,7 +53,8 @@ const portalFor = (role: Role) =>
 function JoinPage() {
   const navigate = useNavigate();
   const config = useIndustryConfig();
-  const { signIn, addStylist } = useStore();
+  const { signIn } = useAuth();
+  const { addStylist } = useStaff();
 
   const [role, setRole] = useState<Role>("staff");
   const [fullName, setFullName] = useState("");

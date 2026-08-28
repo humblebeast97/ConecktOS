@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useStore, type DraftLine, type DraftUsage } from "@/lib/store";
+import { useAuth, useServices, useStaff, useTickets } from "@/api";
+import type { DraftLine, DraftUsage } from "@/lib/store";
 import { useIndustryConfig } from "@/config/industry-context";
 import { naira, type PaymentMethod } from "@/lib/groompulse";
 
@@ -22,7 +23,10 @@ export type ClientCard = {
  */
 export function useTicketDraft() {
   const config = useIndustryConfig();
-  const { services, staff, profiles, tickets, currentUser, createTicket } = useStore();
+  const { services } = useServices();
+  const { staff, profiles } = useStaff();
+  const { tickets, createTicket } = useTickets();
+  const { currentUser } = useAuth();
 
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");

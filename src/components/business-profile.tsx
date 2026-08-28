@@ -4,10 +4,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useStore } from "@/lib/store";
+import { useSalon } from "@/api";
 
 export function BusinessProfilePanel() {
-  const { salon, updateSalon } = useStore();
+  const { salon, updateSalon } = useSalon();
 
   const [name, setName] = useState(salon.name);
   const [radius, setRadius] = useState(String(salon.geofence_radius_meters));

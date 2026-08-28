@@ -18,7 +18,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useStore } from "@/lib/store";
+import { useAttendance, useSalon, useServices, useStaff, useTickets } from "@/api";
 import { useRoleGuard } from "@/lib/access";
 import { naira, paymentLabel, timeOf, type Ticket } from "@/lib/groompulse";
 import { isToday } from "@/lib/reports";
@@ -50,7 +50,9 @@ const RECEPTION_ROLES = ["owner", "manager", "receptionist"] as const;
 function ReceptionPage() {
   useRoleGuard(RECEPTION_ROLES);
   const config = useIndustryConfig();
-  const { staff, tickets, ticketItems, attendance, profiles, markPaid } = useStore();
+  const { staff, profiles } = useStaff();
+  const { tickets, ticketItems, markPaid } = useTickets();
+  const { attendance } = useAttendance();
 
   const todays = tickets.filter((t) => isToday(t.created_at));
   const openTickets = todays.filter((t) => t.status === "pending");
@@ -201,7 +203,10 @@ function ReceptionPage() {
 }
 
 function ReceiptDialog({ ticket }: { ticket: Ticket }) {
-  const { salon, ticketItems, services, staff } = useStore();
+  const { salon } = useSalon();
+  const { ticketItems } = useTickets();
+  const { services } = useServices();
+  const { staff } = useStaff();
   const items = ticketItems.filter((i) => i.ticket_id === ticket.id);
 
   return (

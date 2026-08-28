@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { useStore } from "./store";
+import { useAuth } from "@/api";
 import type { Role } from "./groompulse";
 
 /** Where each role lands when they hit a screen they're not allowed to see. */
@@ -16,7 +16,7 @@ function homePortalFor(role: Role): string {
  * This is demo-grade RBAC — real enforcement lands with server auth + RLS.
  */
 export function useRoleGuard(allowed: readonly Role[]) {
-  const { currentUser } = useStore();
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {

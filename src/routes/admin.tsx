@@ -52,7 +52,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useStore } from "@/lib/store";
+import {
+  useAdminOps,
+  useAttendance,
+  useExpenses,
+  useInventory,
+  useSalon,
+  useServices,
+  useStaff,
+  useTickets,
+} from "@/api";
 import { useRoleGuard } from "@/lib/access";
 import {
   earnsCommission,
@@ -102,18 +111,12 @@ function AdminPage() {
   const config = useIndustryConfig();
   const { tab = "overview" } = Route.useSearch();
   const navigate = useNavigate();
-  const {
-    salon,
-    profiles,
-    staff,
-    inventory,
-    tickets,
-    ticketItems,
-    usage,
-    attendance,
-    expenses,
-    addExpense,
-  } = useStore();
+  const { salon } = useSalon();
+  const { staff, profiles } = useStaff();
+  const { inventory, usage } = useInventory();
+  const { tickets, ticketItems } = useTickets();
+  const { attendance } = useAttendance();
+  const { expenses, addExpense } = useExpenses();
 
   const audit = useMemo(
     () => buildAudit({ tickets, ticketItems, usage, inventory, expenses }),
@@ -484,7 +487,8 @@ function AdminPage() {
 }
 
 function TeamTab() {
-  const { profiles, salon } = useStore();
+  const { profiles } = useStaff();
+  const { salon } = useSalon();
   const floor = profiles.filter((p) => earnsCommission(p.role));
   const pendingPayouts = floor.filter((p) => !p.account_number).length;
 
@@ -527,7 +531,7 @@ function TeamTab() {
 }
 
 function ResetAllDialog() {
-  const { resetAll } = useStore();
+  const { resetAll } = useAdminOps();
   const [open, setOpen] = useState(false);
 
   return (
@@ -685,7 +689,10 @@ const toDateInput = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 function CloseDayDialog() {
-  const { salon, tickets, ticketItems, usage, inventory, expenses } = useStore();
+  const { salon } = useSalon();
+  const { tickets, ticketItems } = useTickets();
+  const { inventory, usage } = useInventory();
+  const { expenses } = useExpenses();
   const [dateStr, setDateStr] = useState(() => toDateInput(new Date()));
   const auditDate = useMemo(() => new Date(`${dateStr}T00:00:00`), [dateStr]);
   const audit = useMemo(
@@ -786,7 +793,10 @@ function CloseDayDialog() {
 }
 
 function OwnerOnboarding() {
-  const { salon, staff, services, inventory } = useStore();
+  const { salon } = useSalon();
+  const { staff } = useStaff();
+  const { services } = useServices();
+  const { inventory } = useInventory();
   return (
     <OnboardingChecklist
       title="Owner setup"

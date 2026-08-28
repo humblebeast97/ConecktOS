@@ -13,13 +13,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useStore } from "@/lib/store";
+import { useServices } from "@/api";
 import { naira, type Service } from "@/lib/groompulse";
 import { useIndustryConfig } from "@/config/industry-context";
 
 function AddServiceDialog() {
   const config = useIndustryConfig();
-  const { addService } = useStore();
+  const { addService } = useServices();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("0");
@@ -103,7 +103,7 @@ function AddServiceDialog() {
 
 function ServiceRow({ service }: { service: Service }) {
   const config = useIndustryConfig();
-  const { updateService, removeService } = useStore();
+  const { updateService, removeService } = useServices();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(service.name);
   const [price, setPrice] = useState(String(service.price));
@@ -215,7 +215,7 @@ function ServiceRow({ service }: { service: Service }) {
 
 export function ServicesPanel() {
   const config = useIndustryConfig();
-  const { services } = useStore();
+  const { services } = useServices();
 
   return (
     <section className="card-lux rounded-2xl p-5">

@@ -27,7 +27,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useStore } from "@/lib/store";
+import { useAttendance, useAuth, useSalon, useServices, useStaff, useTickets } from "@/api";
 import { haversineMeters, naira, timeOf } from "@/lib/groompulse";
 import { copyText } from "@/lib/clipboard";
 import { staffDailyCommission } from "@/lib/reports";
@@ -59,17 +59,12 @@ export const Route = createFileRoute("/staff")({
 
 function StaffPortal() {
   const config = useIndustryConfig();
-  const {
-    currentUser,
-    staff,
-    salon,
-    tickets,
-    ticketItems,
-    services,
-    clockIn,
-    clockOut,
-    openAttendanceFor,
-  } = useStore();
+  const { currentUser } = useAuth();
+  const { staff } = useStaff();
+  const { salon } = useSalon();
+  const { tickets, ticketItems } = useTickets();
+  const { services } = useServices();
+  const { clockIn, clockOut, openAttendanceFor } = useAttendance();
 
   // Owners/receptionists previewing this portal see the first staff member's view.
   const me = currentUser.role === "staff" ? currentUser : staff[0];
@@ -326,7 +321,9 @@ function StaffPortal() {
 }
 
 function TipQrDialog() {
-  const { currentUser, staff, salon } = useStore();
+  const { currentUser } = useAuth();
+  const { staff } = useStaff();
+  const { salon } = useSalon();
   const me = currentUser.role === "staff" ? currentUser : staff[0];
   const hasBank = Boolean(me.account_number);
   const accountName = me.account_name ?? me.full_name;

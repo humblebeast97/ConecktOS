@@ -14,13 +14,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useStore } from "@/lib/store";
+import { useInventory } from "@/api";
 import { lowStock } from "@/lib/reports";
 import type { InventoryItem } from "@/lib/groompulse";
 import { useIndustryConfig } from "@/config/industry-context";
 
 function AddItemDialog() {
-  const { addInventoryItem } = useStore();
+  const { addInventoryItem } = useInventory();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [unit, setUnit] = useState("bottles");
@@ -112,7 +112,7 @@ function AddItemDialog() {
 }
 
 function ItemRow({ item }: { item: InventoryItem }) {
-  const { addInventoryStock, updateInventoryItem, removeInventoryItem } = useStore();
+  const { addInventoryStock, updateInventoryItem, removeInventoryItem } = useInventory();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState({
     item_name: item.item_name,
@@ -259,7 +259,7 @@ function ItemRow({ item }: { item: InventoryItem }) {
 
 export function InventoryPanel() {
   const config = useIndustryConfig();
-  const { inventory } = useStore();
+  const { inventory } = useInventory();
   const low = lowStock(inventory);
 
   return (

@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useStore } from "@/lib/store";
+import { useSalon } from "@/api";
 import { useRoleGuard } from "@/lib/access";
 import { currencyOptions } from "@/lib/groompulse";
 
@@ -37,7 +37,7 @@ const SETTINGS_ROLES = ["owner", "manager"] as const;
 
 function SettingsPage() {
   useRoleGuard(SETTINGS_ROLES);
-  const { salon, updateSalon } = useStore();
+  const { salon, updateSalon } = useSalon();
 
   const [name, setName] = useState(salon.name);
   const [currency, setCurrency] = useState(salon.currency);

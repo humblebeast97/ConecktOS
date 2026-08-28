@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BusinessProfilePanel } from "@/components/business-profile";
-import { defaultUserForRole, useStore } from "@/lib/store";
+import { defaultUserForRole } from "@/lib/store";
+import { useAuth } from "@/api";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -32,7 +33,7 @@ export const Route = createFileRoute("/signup")({
 
 function SignUpPage() {
   const navigate = useNavigate();
-  const { signIn } = useStore();
+  const { signIn } = useAuth();
   const [step, setStep] = useState<1 | 2>(1);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");

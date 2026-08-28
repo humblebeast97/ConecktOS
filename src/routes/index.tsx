@@ -14,7 +14,8 @@ import { RouteError } from "@/components/route-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { defaultUserForRole, useStore } from "@/lib/store";
+import { defaultUserForRole } from "@/lib/store";
+import { useAuth } from "@/api";
 import type { Role } from "@/lib/groompulse";
 
 export const Route = createFileRoute("/")({
@@ -77,7 +78,7 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const { signIn } = useStore();
+  const { signIn } = useAuth();
 
   const active = roles.find((r) => r.role === role)!;
 

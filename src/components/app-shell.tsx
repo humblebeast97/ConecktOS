@@ -10,7 +10,7 @@ import {
   MapPinOff,
 } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
-import { useStore } from "@/lib/store";
+import { useAttendance, useAuth, useInventory, useTickets } from "@/api";
 import { useIndustryConfig } from "@/config/industry-context";
 import { personTitle } from "@/lib/groompulse";
 import { lowStock } from "@/lib/reports";
@@ -43,7 +43,10 @@ export function AppShell({
   children: ReactNode;
   actions?: ReactNode;
 }) {
-  const { currentUser, inventory, tickets, attendance } = useStore();
+  const { currentUser } = useAuth();
+  const { inventory } = useInventory();
+  const { tickets } = useTickets();
+  const { attendance } = useAttendance();
   const config = useIndustryConfig();
   const navigate = useNavigate();
 
