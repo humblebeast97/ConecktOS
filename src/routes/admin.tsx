@@ -168,13 +168,20 @@ function AdminPage() {
     total: totalExpenses,
   } = usePaginated(expenses, 10);
 
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
   return (
     <AppShell
-      title={tab === "team" ? "Team & HR" : "Owner Dashboard"}
+      title={tab === "team" ? "Team & HR" : `${greeting}, ${salon.name}`}
       subtitle={
         tab === "team"
           ? `${salon.name} · manage the roster and onboard members`
-          : `${salon.name} · ${new Date().toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long" })}`
+          : new Date().toLocaleDateString("en-NG", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+            })
       }
       actions={
         tab === "overview" ? (

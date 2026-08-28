@@ -20,7 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useAttendance, useSalon, useServices, useStaff, useTickets } from "@/api";
+import { useAttendance, useAuth, useSalon, useServices, useStaff, useTickets } from "@/api";
 import { useRoleGuard } from "@/lib/access";
 import { naira, paymentLabel, timeOf, type Ticket } from "@/lib/groompulse";
 import { isToday } from "@/lib/reports";
@@ -52,6 +52,7 @@ const RECEPTION_ROLES = ["owner", "manager", "receptionist"] as const;
 function ReceptionPage() {
   useRoleGuard(RECEPTION_ROLES);
   const config = useIndustryConfig();
+  const { currentUser } = useAuth();
   const { staff, profiles } = useStaff();
   const { tickets, ticketItems, markPaid } = useTickets();
   const { attendance } = useAttendance();
@@ -60,9 +61,13 @@ function ReceptionPage() {
   const openTickets = todays.filter((t) => t.status === "pending");
   const onDuty = attendance.filter((a) => !a.clock_out_time);
 
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const firstName = currentUser.full_name.split(" ")[0];
+
   return (
     <AppShell
-      title="Front Desk"
+      title={`${greeting}, ${firstName}`}
       subtitle={`${todays.length} tickets today · ${onDuty.length} ${config.staffPlural.toLowerCase()} on duty`}
     >
       <OnboardingChecklist
