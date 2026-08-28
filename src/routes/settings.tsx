@@ -94,7 +94,13 @@ function SettingsPage() {
 
   return (
     <AppShell title="Business settings" subtitle="Profile, location, currency and hours">
-      <div className="mx-auto max-w-2xl space-y-5">
+      <form
+        className="mx-auto max-w-2xl space-y-5"
+        onSubmit={(e) => {
+          e.preventDefault();
+          save();
+        }}
+      >
         <section className="card-lux rounded-2xl p-5 sm:p-6">
           <div className="flex items-start gap-3">
             <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
@@ -231,7 +237,7 @@ function SettingsPage() {
               Terms
             </Link>
           </p>
-          <Button onClick={save} disabled={isSubmitting} className="h-11 font-semibold">
+          <Button type="submit" disabled={isSubmitting} className="h-11 font-semibold">
             {isSubmitting ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (
@@ -240,7 +246,7 @@ function SettingsPage() {
             {isSubmitting ? "Saving…" : "Save settings"}
           </Button>
         </div>
-      </div>
+      </form>
     </AppShell>
   );
 }

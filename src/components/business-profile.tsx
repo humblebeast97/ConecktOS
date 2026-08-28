@@ -57,7 +57,13 @@ export function BusinessProfilePanel() {
   };
 
   return (
-    <section className="card-lux p-5 sm:p-6 space-y-5">
+    <form
+      className="card-lux p-5 sm:p-6 space-y-5"
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSave();
+      }}
+    >
       <div className="flex items-start gap-3">
         <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
           <Building2 className="size-5" />
@@ -129,10 +135,10 @@ export function BusinessProfilePanel() {
         />
       </div>
 
-      <Button onClick={onSave} disabled={isSubmitting} className="h-11 w-full sm:w-auto">
+      <Button type="submit" disabled={isSubmitting} className="h-11 w-full sm:w-auto">
         {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
         {isSubmitting ? "Saving…" : "Save business profile"}
       </Button>
-    </section>
+    </form>
   );
 }

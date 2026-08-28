@@ -305,7 +305,13 @@ function MatchRow({ onMatch, id }: { onMatch: (ref: string) => void; id: string 
   const [ref, setRef] = useState("");
   const { isSubmitting, submit } = useSubmit();
   return (
-    <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+    <form
+      className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        submit(() => onMatch(ref.trim() || "MANUAL"));
+      }}
+    >
       <div className="min-w-0">
         <Label htmlFor={id} className="sr-only">
           Payment reference
@@ -319,15 +325,10 @@ function MatchRow({ onMatch, id }: { onMatch: (ref: string) => void; id: string 
           maxLength={40}
         />
       </div>
-      <Button
-        size="sm"
-        className="h-10"
-        disabled={isSubmitting}
-        onClick={() => submit(() => onMatch(ref.trim() || "MANUAL"))}
-      >
+      <Button type="submit" size="sm" className="h-10" disabled={isSubmitting}>
         {isSubmitting ? <Loader2 className="size-3 animate-spin" /> : null}
         {isSubmitting ? "Matching…" : "Match"}
       </Button>
-    </div>
+    </form>
   );
 }

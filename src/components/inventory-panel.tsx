@@ -67,65 +67,72 @@ function AddItemDialog() {
             Log a consumable manually — stock, unit and the reorder threshold.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="inv-name">
-              Item name <span className="text-primary">*</span>
-            </Label>
-            <Input
-              id="inv-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Edge Control Gel"
-              required
-              minLength={1}
-              maxLength={60}
-              aria-invalid={Boolean(nameError)}
-              aria-describedby="inv-name-error"
-            />
-            <FieldError id="inv-name-error" message={nameError} />
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            submit();
+          }}
+        >
+          <div className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="inv-name">
+                Item name <span className="text-primary">*</span>
+              </Label>
+              <Input
+                id="inv-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Edge Control Gel"
+                required
+                minLength={1}
+                maxLength={60}
+                aria-invalid={Boolean(nameError)}
+                aria-describedby="inv-name-error"
+              />
+              <FieldError id="inv-name-error" message={nameError} />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="grid gap-2">
+                <Label htmlFor="inv-qty">Quantity</Label>
+                <Input
+                  id="inv-qty"
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={qty}
+                  onChange={(e) => setQty(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="inv-unit">Unit</Label>
+                <Input
+                  id="inv-unit"
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value)}
+                  placeholder="bottles"
+                  maxLength={20}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="inv-reorder">Reorder at</Label>
+                <Input
+                  id="inv-reorder"
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={reorder}
+                  onChange={(e) => setReorder(e.target.value)}
+                />
+              </div>
+            </div>
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="grid gap-2">
-              <Label htmlFor="inv-qty">Quantity</Label>
-              <Input
-                id="inv-qty"
-                type="number"
-                min={0}
-                step={1}
-                value={qty}
-                onChange={(e) => setQty(e.target.value)}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="inv-unit">Unit</Label>
-              <Input
-                id="inv-unit"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                placeholder="bottles"
-                maxLength={20}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="inv-reorder">Reorder at</Label>
-              <Input
-                id="inv-reorder"
-                type="number"
-                min={0}
-                step={1}
-                value={reorder}
-                onChange={(e) => setReorder(e.target.value)}
-              />
-            </div>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button onClick={submit} disabled={isSubmitting}>
-            {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
-            {isSubmitting ? "Saving…" : "Save item"}
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
+              {isSubmitting ? "Saving…" : "Save item"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

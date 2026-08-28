@@ -64,61 +64,68 @@ function AddServiceDialog() {
             Name it yourself — price and duration can be edited any time.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="svc-name">
-              {config.serviceTitle} name <span className="text-primary">*</span>
-            </Label>
-            <Input
-              id="svc-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Silk Press"
-              className="h-11 bg-surface"
-              required
-              minLength={1}
-              maxLength={60}
-              aria-invalid={Boolean(nameError)}
-              aria-describedby="svc-name-error"
-            />
-            <FieldError id="svc-name-error" message={nameError} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            submit();
+          }}
+        >
+          <div className="grid gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="svc-price">Price (₦)</Label>
+              <Label htmlFor="svc-name">
+                {config.serviceTitle} name <span className="text-primary">*</span>
+              </Label>
               <Input
-                id="svc-price"
-                type="number"
-                inputMode="numeric"
-                min={0}
-                step={100}
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                id="svc-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Silk Press"
                 className="h-11 bg-surface"
+                required
+                minLength={1}
+                maxLength={60}
+                aria-invalid={Boolean(nameError)}
+                aria-describedby="svc-name-error"
               />
+              <FieldError id="svc-name-error" message={nameError} />
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="svc-mins">Duration (mins)</Label>
-              <Input
-                id="svc-mins"
-                type="number"
-                inputMode="numeric"
-                min={0}
-                max={480}
-                step={5}
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                className="h-11 bg-surface"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="svc-price">Price (₦)</Label>
+                <Input
+                  id="svc-price"
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  step={100}
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  className="h-11 bg-surface"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="svc-mins">Duration (mins)</Label>
+                <Input
+                  id="svc-mins"
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  max={480}
+                  step={5}
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  className="h-11 bg-surface"
+                />
+              </div>
             </div>
           </div>
-        </div>
-        <DialogFooter>
-          <Button onClick={submit} disabled={isSubmitting} className="w-full font-semibold">
-            {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
-            {isSubmitting ? "Adding…" : "Add to menu"}
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button type="submit" disabled={isSubmitting} className="w-full font-semibold">
+              {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
+              {isSubmitting ? "Adding…" : "Add to menu"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
