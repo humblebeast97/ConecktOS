@@ -21,6 +21,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useAttendance, useAuth, useSalon, useServices, useStaff, useTickets } from "@/api";
+import { currentGreeting } from "@/lib/greeting";
 import { useRoleGuard } from "@/lib/access";
 import { naira, paymentLabel, timeOf, type Ticket } from "@/lib/groompulse";
 import { isToday } from "@/lib/reports";
@@ -61,13 +62,11 @@ function ReceptionPage() {
   const openTickets = todays.filter((t) => t.status === "pending");
   const onDuty = attendance.filter((a) => !a.clock_out_time);
 
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   const firstName = currentUser.full_name.split(" ")[0];
 
   return (
     <AppShell
-      title={`${greeting}, ${firstName}`}
+      title={`${currentGreeting()}, ${firstName}`}
       subtitle={`${todays.length} tickets today · ${onDuty.length} ${config.staffPlural.toLowerCase()} on duty`}
     >
       <OnboardingChecklist

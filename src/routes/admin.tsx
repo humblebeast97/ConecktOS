@@ -81,6 +81,7 @@ import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { SortButton } from "@/components/sort-button";
 import { GeofenceBadge } from "@/components/geofence-badge";
 import { PayrollReminderCard } from "@/components/payroll-reminder-card";
+import { currentGreeting } from "@/lib/greeting";
 import { RouteError } from "@/components/route-error";
 import { useIndustryConfig } from "@/config/industry-context";
 
@@ -168,12 +169,9 @@ function AdminPage() {
     total: totalExpenses,
   } = usePaginated(expenses, 10);
 
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-
   return (
     <AppShell
-      title={tab === "team" ? "Team & HR" : `${greeting}, ${salon.name}`}
+      title={tab === "team" ? "Team & HR" : `${currentGreeting()}, ${salon.name}`}
       subtitle={
         tab === "team"
           ? `${salon.name} · manage the roster and onboard members`
