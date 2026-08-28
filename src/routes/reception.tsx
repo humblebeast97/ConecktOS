@@ -6,6 +6,7 @@ import { AppShell, MetricCard } from "@/components/app-shell";
 import { TeamOnboarding } from "@/components/team-onboarding";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { TicketBuilder } from "@/components/ticket-builder";
+import { RouteError } from "@/components/route-error";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,7 @@ export const Route = createFileRoute("/reception")({
     ],
   }),
   component: ReceptionPage,
+  errorComponent: RouteError,
 });
 
 const RECEPTION_ROLES = ["owner", "manager", "receptionist"] as const;

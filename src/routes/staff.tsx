@@ -15,6 +15,8 @@ import {
 import { toast } from "sonner";
 import { AppShell, MetricCard } from "@/components/app-shell";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
+import { RouteError } from "@/components/route-error";
+import { Skeleton } from "@/components/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -52,6 +54,7 @@ export const Route = createFileRoute("/staff")({
     ],
   }),
   component: StaffPortal,
+  errorComponent: RouteError,
 });
 
 function StaffPortal() {
@@ -376,7 +379,7 @@ function TipQrDialog() {
                 {salon.name}
               </p>
               <div className="mx-auto mt-4 grid size-[168px] w-fit place-items-center rounded-xl bg-white p-3">
-                <Suspense fallback={<Loader2 className="size-6 animate-spin text-[#111318]" />}>
+                <Suspense fallback={<Skeleton className="size-[144px] bg-black/5" />}>
                   <QRCode value={tipUrl} size={168} bgColor="#ffffff" fgColor="#111318" />
                 </Suspense>
               </div>

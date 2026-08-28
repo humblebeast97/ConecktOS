@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowRight, Check, Circle, Eye, EyeOff, ShieldCheck, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import { RouteError } from "@/components/route-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +27,7 @@ export const Route = createFileRoute("/signup")({
     ],
   }),
   component: SignUpPage,
+  errorComponent: RouteError,
 });
 
 function SignUpPage() {

@@ -69,6 +69,7 @@ import { LoadMore } from "@/components/load-more";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { SortButton } from "@/components/sort-button";
 import { GeofenceBadge } from "@/components/geofence-badge";
+import { RouteError } from "@/components/route-error";
 import { useIndustryConfig } from "@/config/industry-context";
 
 export const Route = createFileRoute("/admin")({
@@ -91,6 +92,7 @@ export const Route = createFileRoute("/admin")({
     ],
   }),
   component: AdminPage,
+  errorComponent: RouteError,
 });
 
 const ADMIN_ROLES = ["owner"] as const;

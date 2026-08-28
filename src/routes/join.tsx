@@ -13,6 +13,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
+import { RouteError } from "@/components/route-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,6 +41,7 @@ export const Route = createFileRoute("/join")({
     ],
   }),
   component: JoinPage,
+  errorComponent: RouteError,
 });
 
 /** Team roles an onboarded member can self-register as (owner accounts use /signup). */

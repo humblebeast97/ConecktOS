@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Building2, Save, MapPin, Loader2, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
+import { RouteError } from "@/components/route-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/settings")({
     ],
   }),
   component: SettingsPage,
+  errorComponent: RouteError,
 });
 
 const SETTINGS_ROLES = ["owner", "manager"] as const;
