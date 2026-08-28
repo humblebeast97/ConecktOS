@@ -15,6 +15,7 @@ import { useIndustryConfig } from "@/config/industry-context";
 import { personTitle } from "@/lib/groompulse";
 import { lowStock } from "@/lib/reports";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { OfflineBanner } from "@/components/offline-banner";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -90,6 +91,7 @@ export function AppShell({
 
   return (
     <div className="min-h-dvh bg-background pb-10">
+      <OfflineBanner />
       <header className="no-print sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur-xl">
         <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-6">
           <Link to="/" className="flex min-w-0 items-center gap-2.5">

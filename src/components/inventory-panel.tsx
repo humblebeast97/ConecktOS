@@ -17,6 +17,7 @@ import {
 import { useInventory } from "@/api";
 import { FieldError } from "@/components/field-error";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { EmptyState } from "@/components/app-shell";
 import { useSubmit } from "@/lib/use-submit";
 import { lowStock } from "@/lib/reports";
 import type { InventoryItem } from "@/lib/groompulse";
@@ -313,9 +314,13 @@ export function InventoryPanel() {
         <AddItemDialog />
       </div>
       {inventory.length === 0 ? (
-        <p className="mt-4 text-sm text-muted-foreground">
-          No items yet — add your first consumable.
-        </p>
+        <div className="mt-4">
+          <EmptyState
+            icon={Package}
+            title="No items yet"
+            description="Add your first consumable so ticket-usage can deduct stock automatically."
+          />
+        </div>
       ) : (
         <ul className="mt-4 space-y-3">
           {inventory.map((item) => (

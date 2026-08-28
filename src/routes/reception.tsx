@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { BadgeCheck, CircleDollarSign, Loader2, Printer, Receipt, Users } from "lucide-react";
 import { toast } from "sonner";
-import { AppShell, MetricCard } from "@/components/app-shell";
+import { AppShell, EmptyState, MetricCard } from "@/components/app-shell";
 import { TeamOnboarding } from "@/components/team-onboarding";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { TicketBuilder } from "@/components/ticket-builder";
@@ -111,13 +111,17 @@ function ReceptionPage() {
             <p className="mt-1 text-sm text-muted-foreground">
               Confirm POS slips and bank alerts against open tickets.
             </p>
-            <ul className="mt-4 space-y-3">
-              {openTickets.length === 0 ? (
-                <li className="rounded-xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
-                  All tickets settled. 🎉
-                </li>
-              ) : (
-                openTickets.map((t) => (
+            {openTickets.length === 0 ? (
+              <div className="mt-4">
+                <EmptyState
+                  icon={BadgeCheck}
+                  title="All tickets settled"
+                  description="No open tickets waiting on a POS slip or transfer alert."
+                />
+              </div>
+            ) : (
+              <ul className="mt-4 space-y-3">
+                {openTickets.map((t) => (
                   <li key={t.id} className="rounded-xl border border-border bg-surface p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -141,9 +145,9 @@ function ReceptionPage() {
                       }}
                     />
                   </li>
-                ))
-              )}
-            </ul>
+                ))}
+              </ul>
+            )}
           </section>
 
           <section className="card-lux rounded-2xl p-5">

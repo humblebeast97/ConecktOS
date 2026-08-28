@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { EmptyState } from "@/components/app-shell";
 import {
   Dialog,
   DialogContent,
@@ -284,15 +285,21 @@ export function ServicesPanel() {
         <AddServiceDialog />
       </div>
 
-      <ul className="mt-4 space-y-2">
-        {services.length === 0 ? (
-          <li className="rounded-xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
-            No {config.serviceTitle.toLowerCase()} options yet — add your first one.
-          </li>
-        ) : (
-          services.map((s) => <ServiceRow key={s.id} service={s} />)
-        )}
-      </ul>
+      {services.length === 0 ? (
+        <div className="mt-4">
+          <EmptyState
+            icon={ClipboardList}
+            title={`No ${config.serviceTitle.toLowerCase()} options yet`}
+            description={`Add your first ${config.serviceTitle.toLowerCase()} — you can set price and duration from the roster.`}
+          />
+        </div>
+      ) : (
+        <ul className="mt-4 space-y-2">
+          {services.map((s) => (
+            <ServiceRow key={s.id} service={s} />
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

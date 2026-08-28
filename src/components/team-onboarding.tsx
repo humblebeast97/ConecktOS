@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FieldError } from "@/components/field-error";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { EmptyState } from "@/components/app-shell";
 import { useSubmit } from "@/lib/use-submit";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -305,11 +306,21 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
         </div>
 
         {roster.length === 0 ? (
-          <p className="mt-4 rounded-xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
-            {filter === "all"
-              ? "No team members yet — add your first one above."
-              : `No ${filter === "floor" ? "floor" : "desk"} roles yet.`}
-          </p>
+          <div className="mt-4">
+            <EmptyState
+              icon={UserPlus}
+              title={
+                filter === "all"
+                  ? "No team members yet"
+                  : `No ${filter === "floor" ? "floor" : "desk"} roles yet`
+              }
+              description={
+                filter === "all"
+                  ? "Add your first team member from the form on the left."
+                  : "Switch the filter or add someone with this role from the form."
+              }
+            />
+          </div>
         ) : null}
         <ul className="mt-3 divide-y divide-border">
           {roster.map((p) => {
