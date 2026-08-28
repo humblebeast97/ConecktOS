@@ -18,7 +18,7 @@ export function SortButton({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex cursor-pointer items-center gap-1 font-medium transition-colors hover:text-foreground ${
+      className={`inline-flex cursor-pointer items-center gap-1 rounded-sm font-medium transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
         align === "right" ? "flex-row-reverse" : ""
       } ${active ? "text-foreground" : ""}`}
     >

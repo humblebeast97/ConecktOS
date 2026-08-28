@@ -156,8 +156,8 @@ function LoginPage() {
                   onClick={() => setRole(r.role)}
                   className={
                     selected
-                      ? "flex min-h-[5.5rem] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-primary/70 bg-primary/10 px-2 py-3 text-center transition-all active:scale-[0.98]"
-                      : "flex min-h-[5.5rem] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-2 py-3 text-center transition-all hover:border-primary/40 active:scale-[0.98]"
+                      ? "flex min-h-[5.5rem] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-primary/70 bg-primary/10 px-2 py-3 text-center transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      : "flex min-h-[5.5rem] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-2 py-3 text-center transition-all hover:border-primary/40 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   }
                 >
                   <span

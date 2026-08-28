@@ -299,8 +299,8 @@ export function TicketBuilder() {
                 aria-pressed={draft.method === m}
                 className={
                   draft.method === m
-                    ? "cursor-pointer rounded-xl border-2 border-primary/70 bg-primary/10 px-2 py-2.5 text-xs font-semibold text-primary transition-colors"
-                    : "cursor-pointer rounded-xl border border-border px-2 py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                    ? "cursor-pointer rounded-xl border-2 border-primary/70 bg-primary/10 px-2 py-2.5 text-xs font-semibold text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    : "cursor-pointer rounded-xl border border-border px-2 py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 }
               >
                 {paymentLabel[m]}
@@ -435,8 +435,8 @@ function ConsumablesPanel({
                 onClick={() => onModeSwitch(m)}
                 className={
                   active
-                    ? "cursor-pointer rounded-full bg-gradient-gold px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-gold-foreground"
-                    : "cursor-pointer rounded-full px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+                    ? "cursor-pointer rounded-full bg-gradient-gold px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-gold-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    : "cursor-pointer rounded-full px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 }
               >
                 {m}

@@ -28,7 +28,7 @@ export function LoadMore({
         <button
           type="button"
           onClick={onLoadMore}
-          className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-surface px-4 py-1.5 text-xs font-semibold transition-colors hover:border-primary/50 hover:text-foreground"
+          className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-surface px-4 py-1.5 text-xs font-semibold transition-colors hover:border-primary/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <ChevronDown className="size-3.5" />
           Load more
