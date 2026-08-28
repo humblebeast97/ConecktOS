@@ -1,6 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { BadgeCheck, CircleDollarSign, Loader2, Printer, Receipt, Users } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  BadgeCheck,
+  CircleDollarSign,
+  Loader2,
+  Printer,
+  Receipt,
+  Search,
+  Users,
+} from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, EmptyState, MetricCard } from "@/components/app-shell";
 import { TeamOnboarding } from "@/components/team-onboarding";
@@ -12,6 +20,15 @@ import { useSubmit } from "@/lib/use-submit";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { LoadMore } from "@/components/load-more";
+import { usePaginated } from "@/lib/paginate";
 import {
   Dialog,
   DialogContent,
@@ -61,6 +78,30 @@ function ReceptionPage() {
   const todays = tickets.filter((t) => isToday(t.created_at));
   const openTickets = todays.filter((t) => t.status === "pending");
   const onDuty = attendance.filter((a) => !a.clock_out_time);
+
+  const [historyQuery, setHistoryQuery] = useState("");
+  const [historyStatus, setHistoryStatus] = useState<"all" | "paid" | "pending">("all");
+  const filteredHistory = useMemo(() => {
+    const q = historyQuery.trim().toLowerCase();
+    const digitsOnly = q.replace(/\D/g, "");
+    return tickets
+      .filter((t) => {
+        if (historyStatus !== "all" && t.status !== historyStatus) return false;
+        if (!q) return true;
+        if (t.client_name.toLowerCase().includes(q)) return true;
+        if (digitsOnly && t.client_phone.replace(/\D/g, "").includes(digitsOnly)) return true;
+        if (t.reference?.toLowerCase().includes(q)) return true;
+        return false;
+      })
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  }, [tickets, historyQuery, historyStatus]);
+  const {
+    items: historyPage,
+    hasMore: hasMoreHistory,
+    loadMore: loadMoreHistory,
+    shown: shownHistory,
+    total: totalHistory,
+  } = usePaginated(filteredHistory, 8);
 
   const firstName = currentUser.full_name.split(" ")[0];
 
@@ -198,6 +239,94 @@ function ReceptionPage() {
           </section>
         </div>
       </div>
+
+      <section className="mt-6 card-lux overflow-hidden rounded-2xl">
+        <div className="flex items-center justify-between gap-3 p-5 pb-3">
+          <div>
+            <h2 className="text-lg font-bold">Ticket history</h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Every billed ticket, newest first. Search by client, phone or payment ref.
+            </p>
+          </div>
+          <Receipt className="size-4 text-muted-foreground" />
+        </div>
+        <div className="grid gap-2 px-5 pb-3 sm:grid-cols-[minmax(0,1fr)_9rem]">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={historyQuery}
+              onChange={(e) => setHistoryQuery(e.target.value)}
+              placeholder="Search name, phone, ref"
+              aria-label="Search tickets"
+              className="h-10 bg-surface pl-9 text-sm"
+            />
+          </div>
+          <Select
+            value={historyStatus}
+            onValueChange={(v) => setHistoryStatus(v as "all" | "paid" | "pending")}
+          >
+            <SelectTrigger className="h-10 bg-surface text-sm" aria-label="Filter by status">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="paid">Paid</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {tickets.length === 0 ? (
+          <div className="px-5 pb-5">
+            <EmptyState
+              icon={Receipt}
+              title="No tickets yet"
+              description="Bill your first ticket from the Quick service billing card above."
+            />
+          </div>
+        ) : totalHistory === 0 ? (
+          <p className="px-5 pb-5 text-sm text-muted-foreground">No tickets match this search.</p>
+        ) : (
+          <>
+            <ul className="divide-y divide-border">
+              {historyPage.map((t) => (
+                <li key={t.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">{t.client_name}</p>
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                      {paymentLabel[t.payment_method]} · {timeOf(t.created_at)}
+                      {t.reference ? ` · ref ${t.reference}` : ""}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className={
+                        t.status === "paid"
+                          ? "border-success/40 text-success"
+                          : "border-warning/40 text-warning"
+                      }
+                    >
+                      {t.status === "paid" ? "Paid" : "Pending"}
+                    </Badge>
+                    <span className="font-display text-sm font-bold tabular-nums">
+                      {naira(t.total_amount)}
+                    </span>
+                    <ReceiptDialog ticket={t} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div className="px-5 pb-4">
+              <LoadMore
+                hasMore={hasMoreHistory}
+                onLoadMore={loadMoreHistory}
+                shown={shownHistory}
+                total={totalHistory}
+              />
+            </div>
+          </>
+        )}
+      </section>
 
       <section className="mt-6">
         <div className="mb-4">
