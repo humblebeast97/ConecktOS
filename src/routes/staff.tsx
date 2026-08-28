@@ -209,7 +209,11 @@ function StaffPortal() {
               disabled={locating}
               onClick={startClockIn}
             >
-              {locating ? <Loader2 className="size-5 animate-spin" /> : <MapPin className="size-5" />}
+              {locating ? (
+                <Loader2 className="size-5 animate-spin" />
+              ) : (
+                <MapPin className="size-5" />
+              )}
               {locating ? "Locating…" : "Clock In"}
             </Button>
           )}
@@ -239,7 +243,13 @@ function StaffPortal() {
         />
         <MetricCard
           label="Geofence"
-          value={open ? (open.is_within_geofence ? "Verified" : "Flagged") : `${salon.geofence_radius_meters}m`}
+          value={
+            open
+              ? open.is_within_geofence
+                ? "Verified"
+                : "Flagged"
+              : `${salon.geofence_radius_meters}m`
+          }
           hint={open?.is_within_geofence === false ? "Outside business radius" : "Within radius"}
           icon={MapPin}
           tone={open && !open.is_within_geofence ? "danger" : "default"}
@@ -292,9 +302,9 @@ function StaffPortal() {
           <DialogHeader>
             <DialogTitle>Use your location to clock in?</DialogTitle>
             <DialogDescription>
-              ConecktOS reads your device location once, only when you clock in, to confirm you're at{" "}
-              {salon.name}. It's never tracked in the background. Clock-in only works on-site — within{" "}
-              {salon.geofence_radius_meters}m of the business.
+              ConecktOS reads your device location once, only when you clock in, to confirm you're
+              at {salon.name}. It's never tracked in the background. Clock-in only works on-site —
+              within {salon.geofence_radius_meters}m of the business.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2">
@@ -373,9 +383,7 @@ function TipQrDialog() {
 
               {/* Print-only: a clean tip poster (details live on the scanned page). */}
               <div className="mt-5 hidden print:block">
-                <p className="font-display text-lg font-bold">
-                  Tip {me.full_name.split(" ")[0]}
-                </p>
+                <p className="font-display text-lg font-bold">Tip {me.full_name.split(" ")[0]}</p>
                 <p className="mx-auto mt-1 max-w-[16rem] text-sm text-muted-foreground">
                   Scan to tip {me.full_name.split(" ")[0]} by bank transfer.
                 </p>

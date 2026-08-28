@@ -3,12 +3,12 @@
 
 /** Permission tiers. A person's actual job title is free text (Profile.job_title). */
 export type Role = "owner" | "manager" | "receptionist" | "staff";
-export type AttendanceStatus = "on_time" | "late" | "absent";
+type AttendanceStatus = "on_time" | "late" | "absent";
 export type PaymentMethod = "pos" | "bank_transfer" | "cash";
-export type TicketStatus = "pending" | "paid";
+type TicketStatus = "pending" | "paid";
 export type ExpenseCategory = "generator_fuel" | "maintenance" | "supplies" | "rent";
 
-export type BusinessType = "beauty" | "car_wash" | "tailoring" | "nightlife" | "repair";
+type BusinessType = "beauty" | "car_wash" | "tailoring" | "nightlife" | "repair";
 
 export interface Salon {
   id: string;
@@ -139,12 +139,7 @@ export const timeOf = (iso: string) =>
   new Date(iso).toLocaleTimeString("en-NG", { hour: "2-digit", minute: "2-digit" });
 
 /** Great-circle distance in metres between two WGS84 coordinates. */
-export function haversineMeters(
-  lat1: number,
-  lng1: number,
-  lat2: number,
-  lng2: number,
-): number {
+export function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371000;
   const toRad = (d: number) => (d * Math.PI) / 180;
   const dLat = toRad(lat2 - lat1);
@@ -281,11 +276,46 @@ export const seedProfiles: Profile[] = [
 ];
 
 export const seedInventory: InventoryItem[] = [
-  { id: "inv-1", salon_id: SALON_ID, item_name: "Consumable A", quantity: 0, unit: "bottles", reorder_level: 6 },
-  { id: "inv-2", salon_id: SALON_ID, item_name: "Cleaning Solution (1L)", quantity: 0, unit: "bottles", reorder_level: 4 },
-  { id: "inv-3", salon_id: SALON_ID, item_name: "Refill Kit", quantity: 0, unit: "packs", reorder_level: 5 },
-  { id: "inv-4", salon_id: SALON_ID, item_name: "Disposable Gloves", quantity: 0, unit: "boxes", reorder_level: 6 },
-  { id: "inv-5", salon_id: SALON_ID, item_name: "Spare Parts", quantity: 0, unit: "pcs", reorder_level: 3 },
+  {
+    id: "inv-1",
+    salon_id: SALON_ID,
+    item_name: "Consumable A",
+    quantity: 0,
+    unit: "bottles",
+    reorder_level: 6,
+  },
+  {
+    id: "inv-2",
+    salon_id: SALON_ID,
+    item_name: "Cleaning Solution (1L)",
+    quantity: 0,
+    unit: "bottles",
+    reorder_level: 4,
+  },
+  {
+    id: "inv-3",
+    salon_id: SALON_ID,
+    item_name: "Refill Kit",
+    quantity: 0,
+    unit: "packs",
+    reorder_level: 5,
+  },
+  {
+    id: "inv-4",
+    salon_id: SALON_ID,
+    item_name: "Disposable Gloves",
+    quantity: 0,
+    unit: "boxes",
+    reorder_level: 6,
+  },
+  {
+    id: "inv-5",
+    salon_id: SALON_ID,
+    item_name: "Spare Parts",
+    quantity: 0,
+    unit: "pcs",
+    reorder_level: 3,
+  },
 ];
 
 export const seedServices: Service[] = [

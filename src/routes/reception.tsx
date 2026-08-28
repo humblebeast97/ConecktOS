@@ -56,7 +56,8 @@ export const Route = createFileRoute("/reception")({
       { property: "og:title", content: "Front Desk · ConecktOS" },
       {
         property: "og:description",
-        content: "Quick service billing, payment matching and live staff status for the front desk.",
+        content:
+          "Quick service billing, payment matching and live staff status for the front desk.",
       },
     ],
   }),
@@ -118,12 +119,11 @@ function ReceptionPage() {
 
   const q = lookup.trim().toLowerCase();
   const allMatches = q
-    ? clients
-        .filter(
-          (c) =>
-            c.name.toLowerCase().includes(q) ||
-            c.phone.replace(/\s/g, "").includes(q.replace(/\s/g, "")),
-        )
+    ? clients.filter(
+        (c) =>
+          c.name.toLowerCase().includes(q) ||
+          c.phone.replace(/\s/g, "").includes(q.replace(/\s/g, "")),
+      )
     : clients.slice(0, 4);
 
   // Paginate search results only — the default "recent clients" view stays small.
@@ -140,7 +140,6 @@ function ReceptionPage() {
       c.name.toLowerCase() === clientName.trim().toLowerCase() ||
       (!!clientPhone.trim() && c.phone.replace(/\s/g, "") === clientPhone.replace(/\s/g, "")),
   );
-
 
   const suggestedUsage = useMemo(() => {
     const map = new Map<string, number>();
@@ -251,7 +250,11 @@ function ReceptionPage() {
         steps={[
           { label: "Confirm today's roster is on duty", done: onDuty.length > 0, to: "/reception" },
           { label: "Bill your first ticket", done: tickets.length > 0, to: "/reception" },
-          { label: "Match a paid ticket", done: tickets.some((t) => t.status === "paid"), to: "/reception" },
+          {
+            label: "Match a paid ticket",
+            done: tickets.some((t) => t.status === "paid"),
+            to: "/reception",
+          },
         ]}
       />
       <div className="grid gap-4 sm:grid-cols-3">
@@ -283,7 +286,8 @@ function ReceptionPage() {
         <section className="card-lux rounded-2xl p-5">
           <h2 className="text-lg font-bold">Quick {config.serviceTitle.toLowerCase()} billing</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Commission splits are calculated automatically from each {config.staffTitle.toLowerCase()} rate.
+            Commission splits are calculated automatically from each{" "}
+            {config.staffTitle.toLowerCase()} rate.
           </p>
 
           {services.length === 0 || staff.length === 0 ? (
@@ -403,7 +407,6 @@ function ReceptionPage() {
           ) : null}
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-
             <div className="space-y-1.5">
               <Label htmlFor="client">
                 {config.clientAssetLabel} <span className="text-destructive">*</span>
@@ -461,9 +464,7 @@ function ReceptionPage() {
                 <Select
                   value={line.staff_id}
                   onValueChange={(v) =>
-                    setLines((prev) =>
-                      prev.map((l, i) => (i === idx ? { ...l, staff_id: v } : l)),
-                    )
+                    setLines((prev) => prev.map((l, i) => (i === idx ? { ...l, staff_id: v } : l)))
                   }
                 >
                   <SelectTrigger className="h-11 bg-background">
@@ -591,10 +592,12 @@ function ReceptionPage() {
                         <ReceiptDialog ticket={t} />
                       </div>
                     </div>
-                    <MatchRow onMatch={(ref) => {
-                      markPaid(t.id, ref);
-                      toast.success(`Ticket for ${t.client_name} marked paid`);
-                    }} />
+                    <MatchRow
+                      onMatch={(ref) => {
+                        markPaid(t.id, ref);
+                        toast.success(`Ticket for ${t.client_name} marked paid`);
+                      }}
+                    />
                   </li>
                 ))
               )}
@@ -607,11 +610,7 @@ function ReceptionPage() {
               {staff.map((s) => {
                 const att = onDuty.find((a) => a.staff_id === s.id);
                 const earned = ticketItems
-                  .filter(
-                    (i) =>
-                      i.staff_id === s.id &&
-                      todays.some((t) => t.id === i.ticket_id),
-                  )
+                  .filter((i) => i.staff_id === s.id && todays.some((t) => t.id === i.ticket_id))
                   .reduce((sum, i) => sum + i.staff_commission_amount, 0);
                 return (
                   <li
@@ -653,7 +652,10 @@ function ReceptionPage() {
       <section className="mt-6">
         <div className="mb-4">
           <h2 className="text-xl font-bold">Front desk HR</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Walk-in hires: onboard a {config.staffTitle.toLowerCase()} or desk role without leaving reception.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Walk-in hires: onboard a {config.staffTitle.toLowerCase()} or desk role without leaving
+            reception.
+          </p>
         </div>
         <TeamOnboarding compact />
       </section>
@@ -741,7 +743,9 @@ function ReceiptDialog({ ticket }: { ticket: Ticket }) {
                       {who?.full_name}
                     </span>
                   </span>
-                  <span className="shrink-0 font-medium tabular-nums">{naira(it.service_price)}</span>
+                  <span className="shrink-0 font-medium tabular-nums">
+                    {naira(it.service_price)}
+                  </span>
                 </div>
               );
             })}
@@ -749,7 +753,8 @@ function ReceiptDialog({ ticket }: { ticket: Ticket }) {
 
           <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
             <span className="text-sm text-muted-foreground">
-              {paymentLabel[ticket.payment_method]} · {ticket.status === "paid" ? "Paid" : "Pending"}
+              {paymentLabel[ticket.payment_method]} ·{" "}
+              {ticket.status === "paid" ? "Paid" : "Pending"}
             </span>
             <span className="font-display text-lg font-bold tabular-nums text-primary">
               {naira(ticket.total_amount)}
@@ -880,9 +885,7 @@ function ConsumablesPanel({
                   stockHint={item ? `${item.quantity} in stock` : ""}
                   unit={item?.unit ?? ""}
                   qty={qty}
-                  onQtyChange={(v) =>
-                    setQtyOverride((prev) => ({ ...prev, [u.inventory_id]: v }))
-                  }
+                  onQtyChange={(v) => setQtyOverride((prev) => ({ ...prev, [u.inventory_id]: v }))}
                   skipped={skipped}
                   onToggleSkip={() =>
                     setSkipUsage((prev) =>
@@ -910,9 +913,7 @@ function ConsumablesPanel({
                   prev.map((p, i) => (i === idx ? { ...p, quantity_used: v } : p)),
                 )
               }
-              onRemove={() =>
-                setActiveExtras((prev) => prev.filter((_, i) => i !== idx))
-              }
+              onRemove={() => setActiveExtras((prev) => prev.filter((_, i) => i !== idx))}
             />
           );
         })}
@@ -930,7 +931,9 @@ function ConsumablesPanel({
         <div className="mt-3 grid grid-cols-[minmax(0,1fr)_5rem_auto] gap-2 rounded-lg border border-dashed border-border p-2">
           <Select value={pickerId} onValueChange={setPickerId}>
             <SelectTrigger className="h-9 bg-background text-xs">
-              <SelectValue placeholder={mode === "manual" ? "+ Add a consumable" : "+ Add another"} />
+              <SelectValue
+                placeholder={mode === "manual" ? "+ Add a consumable" : "+ Add another"}
+              />
             </SelectTrigger>
             <SelectContent>
               {addable.map((i) => (

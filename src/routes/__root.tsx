@@ -19,7 +19,6 @@ import { Toaster } from "../components/ui/sonner";
 const SITE_URL = (import.meta.env["VITE_SITE_URL"] ?? "").replace(/\/$/, "");
 const OG_IMAGE = SITE_URL ? `${SITE_URL}/og.png` : "/og.png";
 
-
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -158,7 +157,6 @@ function RootComponent() {
           <Toaster position="top-center" />
         </IndustryProvider>
       </StoreProvider>
-
     </QueryClientProvider>
   );
 }

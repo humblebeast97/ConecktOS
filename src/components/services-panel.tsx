@@ -134,7 +134,11 @@ function ServiceRow({ service }: { service: Service }) {
     return (
       <li className="rounded-xl border border-primary/40 bg-surface p-3">
         <div className="grid gap-2 sm:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
-          <Input value={name} onChange={(e) => setName(e.target.value)} className="h-10 bg-background text-sm" />
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="h-10 bg-background text-sm"
+          />
           <Input
             value={price}
             inputMode="numeric"
@@ -150,10 +154,22 @@ function ServiceRow({ service }: { service: Service }) {
             aria-label="Duration in minutes"
           />
           <div className="flex gap-1 justify-self-end">
-            <Button size="icon" variant="ghost" className="text-success" onClick={save} aria-label="Save changes">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="text-success"
+              onClick={save}
+              aria-label="Save changes"
+            >
               <Check className="size-4" />
             </Button>
-            <Button size="icon" variant="ghost" className="text-muted-foreground" onClick={cancel} aria-label="Cancel editing">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="text-muted-foreground"
+              onClick={cancel}
+              aria-label="Cancel editing"
+            >
               <X className="size-4" />
             </Button>
           </div>
@@ -210,8 +226,8 @@ export function ServicesPanel() {
             {config.serviceTitle} menu
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Add {config.serviceTitle.toLowerCase()} options manually, rename them, and set price
-            and duration.
+            Add {config.serviceTitle.toLowerCase()} options manually, rename them, and set price and
+            duration.
           </p>
         </div>
         <AddServiceDialog />

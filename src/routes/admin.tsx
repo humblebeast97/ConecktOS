@@ -127,7 +127,9 @@ function AdminPage() {
   }>({ key: "commission", dir: "desc" });
 
   const toggleSort = (key: "name" | "clock" | "commission") =>
-    setAttSort((s) => (s.key === key ? { key, dir: s.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" }));
+    setAttSort((s) =>
+      s.key === key ? { key, dir: s.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" },
+    );
 
   const ariaSort = (key: "name" | "clock" | "commission") =>
     attSort.key === key ? (attSort.dir === "asc" ? "ascending" : "descending") : "none";
@@ -178,12 +180,10 @@ function AdminPage() {
       }
     >
       <div className="no-print mb-5 flex w-fit items-center gap-1 rounded-full border border-border bg-surface p-1">
-        {(
-          [
-            { key: "overview" as const, label: "Overview", icon: LayoutDashboard },
-            { key: "team" as const, label: "Team", icon: Users },
-          ]
-        ).map((t) => {
+        {[
+          { key: "overview" as const, label: "Overview", icon: LayoutDashboard },
+          { key: "team" as const, label: "Team", icon: Users },
+        ].map((t) => {
           const active = tab === t.key;
           return (
             <button
@@ -207,257 +207,277 @@ function AdminPage() {
       {tab === "team" ? <TeamTab /> : null}
       {tab === "overview" ? <OwnerOnboarding /> : null}
       {tab === "overview" ? (
-      <>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Gross revenue"
-          value={naira(audit.gross)}
-          hint={`${naira(audit.pendingAmount)} still pending`}
-          icon={TrendingUp}
-          tone="gold"
-        />
-        <MetricCard
-          label="Commissions payable"
-          value={naira(audit.commissionsPayable)}
-          hint={`${audit.billedServices} billed ${config.serviceTitle.toLowerCase()} jobs`}
-          icon={Wallet}
-        />
-        <MetricCard
-          label={config.powerCostLabel}
-          value={naira(audit.fuelExpense)}
-          hint={`${audit.generatorHours}h run · ${naira(audit.overheadPerService)}/service`}
-          icon={Fuel}
-          tone={audit.fuelExpense > 0 ? "danger" : "default"}
-        />
-        <MetricCard
-          label="Net position"
-          value={naira(audit.netPosition)}
-          hint="Revenue − commissions − expenses"
-          icon={Banknote}
-          tone={audit.netPosition >= 0 ? "success" : "danger"}
-        />
-      </div>
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <MetricCard
+              label="Gross revenue"
+              value={naira(audit.gross)}
+              hint={`${naira(audit.pendingAmount)} still pending`}
+              icon={TrendingUp}
+              tone="gold"
+            />
+            <MetricCard
+              label="Commissions payable"
+              value={naira(audit.commissionsPayable)}
+              hint={`${audit.billedServices} billed ${config.serviceTitle.toLowerCase()} jobs`}
+              icon={Wallet}
+            />
+            <MetricCard
+              label={config.powerCostLabel}
+              value={naira(audit.fuelExpense)}
+              hint={`${audit.generatorHours}h run · ${naira(audit.overheadPerService)}/service`}
+              icon={Fuel}
+              tone={audit.fuelExpense > 0 ? "danger" : "default"}
+            />
+            <MetricCard
+              label="Net position"
+              value={naira(audit.netPosition)}
+              hint="Revenue − commissions − expenses"
+              icon={Banknote}
+              tone={audit.netPosition >= 0 ? "success" : "danger"}
+            />
+          </div>
 
-      <section className="card-lux mt-5 rounded-2xl p-5">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-bold">Revenue by method</h2>
-          <span className="text-sm font-semibold tabular-nums text-muted-foreground">
-            {naira(audit.gross)} total
-          </span>
-        </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          {(["pos", "bank_transfer", "cash"] as PaymentMethod[]).map((m) => {
-            const val = audit.byMethod[m];
-            const pct = audit.gross > 0 ? Math.round((val / audit.gross) * 100) : 0;
-            return (
-              <div key={m} className="rounded-xl border border-border bg-surface p-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">{paymentLabel[m]}</span>
-                  <span className="text-xs text-muted-foreground tabular-nums">{pct}%</span>
-                </div>
-                <p className="mt-1 font-display text-lg font-bold tabular-nums">{naira(val)}</p>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-background">
-                  <div
-                    className="h-full rounded-full bg-gradient-gold transition-[width] duration-500 ease-out"
-                    style={{ width: `${pct}%` }}
+          <section className="card-lux mt-5 rounded-2xl p-5">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-lg font-bold">Revenue by method</h2>
+              <span className="text-sm font-semibold tabular-nums text-muted-foreground">
+                {naira(audit.gross)} total
+              </span>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              {(["pos", "bank_transfer", "cash"] as PaymentMethod[]).map((m) => {
+                const val = audit.byMethod[m];
+                const pct = audit.gross > 0 ? Math.round((val / audit.gross) * 100) : 0;
+                return (
+                  <div key={m} className="rounded-xl border border-border bg-surface p-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{paymentLabel[m]}</span>
+                      <span className="text-xs text-muted-foreground tabular-nums">{pct}%</span>
+                    </div>
+                    <p className="mt-1 font-display text-lg font-bold tabular-nums">{naira(val)}</p>
+                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-background">
+                      <div
+                        className="h-full rounded-full bg-gradient-gold transition-[width] duration-500 ease-out"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {(offsiteAlerts.length > 0 || audit.discrepancies.length > 0) && (
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {offsiteAlerts.length > 0 ? (
+                <AlertCard
+                  title={`${offsiteAlerts.length} off-site clock-in${offsiteAlerts.length > 1 ? "s" : ""}`}
+                  body={offsiteAlerts
+                    .map((a) => profiles.find((p) => p.id === a.staff_id)?.full_name)
+                    .join(", ")}
+                />
+              ) : null}
+              {audit.discrepancies.length > 0 ? (
+                <AlertCard
+                  title="Inventory discrepancy"
+                  body={audit.discrepancies
+                    .map((d) => `${d.quantity} ${d.unit} ${d.item} used with no billed ticket`)
+                    .join(" · ")}
+                />
+              ) : null}
+            </div>
+          )}
+
+          <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+            <section className="card-lux overflow-hidden rounded-2xl">
+              <div className="flex items-center justify-between gap-3 p-5 pb-3">
+                <h2 className="text-lg font-bold">{config.staffPlural} attendance & earnings</h2>
+                <Clock className="size-4 text-muted-foreground" />
+              </div>
+              {/* Desktop / tablet: full table */}
+              <div className="hidden overflow-x-auto md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-border hover:bg-transparent">
+                      <TableHead aria-sort={ariaSort("name")}>
+                        <SortButton
+                          label={config.staffTitle}
+                          active={attSort.key === "name"}
+                          dir={attSort.dir}
+                          onClick={() => toggleSort("name")}
+                        />
+                      </TableHead>
+                      <TableHead aria-sort={ariaSort("clock")}>
+                        <SortButton
+                          label="Clock in"
+                          active={attSort.key === "clock"}
+                          dir={attSort.dir}
+                          onClick={() => toggleSort("clock")}
+                        />
+                      </TableHead>
+                      <TableHead>Geofence</TableHead>
+                      <TableHead className="text-right" aria-sort={ariaSort("commission")}>
+                        <SortButton
+                          label="Commission"
+                          active={attSort.key === "commission"}
+                          dir={attSort.dir}
+                          onClick={() => toggleSort("commission")}
+                          align="right"
+                        />
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {attRows.map(({ s, att, earned }) => (
+                      <TableRow key={s.id} className="border-border">
+                        <TableCell className="font-medium">
+                          {s.full_name}
+                          <span className="mt-0.5 block text-xs text-muted-foreground">
+                            {Math.round(s.commission_rate * 100)}% rate
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {att ? timeOf(att.clock_in_time) : "—"}
+                          {att ? (
+                            <span
+                              className={
+                                att.status === "late"
+                                  ? "block text-xs text-warning"
+                                  : "block text-xs text-success"
+                              }
+                            >
+                              {att.status === "late" ? "Late" : "On time"}
+                            </span>
+                          ) : null}
+                        </TableCell>
+                        <TableCell>
+                          <GeofenceBadge att={att} />
+                        </TableCell>
+                        <TableCell className="text-right font-semibold tabular-nums text-primary">
+                          {naira(earned)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile: stacked cards */}
+              <ul className="divide-y divide-border md:hidden">
+                {attRows.map(({ s, att, earned }) => (
+                  <li key={s.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold">{s.full_name}</p>
+                      <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                        {att ? (
+                          <>
+                            <span>in {timeOf(att.clock_in_time)}</span>
+                            <span
+                              className={att.status === "late" ? "text-warning" : "text-success"}
+                            >
+                              ({att.status === "late" ? "late" : "on time"})
+                            </span>
+                          </>
+                        ) : (
+                          <span>not clocked in</span>
+                        )}
+                      </p>
+                      <div className="mt-1.5">
+                        <GeofenceBadge att={att} />
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-sm font-semibold tabular-nums text-primary">
+                        {naira(earned)}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <div className="space-y-5">
+              {config.showInventory ? <InventoryPanel /> : null}
+              <ServicesPanel />
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+            <ExpenseForm onSubmit={addExpense} />
+
+            <section className="card-lux overflow-hidden rounded-2xl">
+              <div className="flex items-center justify-between gap-3 p-5 pb-3">
+                <h2 className="text-lg font-bold">Expense log</h2>
+                <Flame className="size-4 text-muted-foreground" />
+              </div>
+              {/* Desktop / tablet: full table */}
+              <div className="hidden overflow-x-auto md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-border hover:bg-transparent">
+                      <TableHead>Category</TableHead>
+                      <TableHead>Notes</TableHead>
+                      <TableHead>Gen. hrs</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {expensesPage.map((e) => (
+                      <TableRow key={e.id} className="border-border">
+                        <TableCell className="font-medium">{expenseLabel[e.category]}</TableCell>
+                        <TableCell className="max-w-40 truncate text-muted-foreground">
+                          {e.notes || "—"}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {e.generator_hours_run ?? "—"}
+                        </TableCell>
+                        <TableCell className="text-right font-semibold tabular-nums">
+                          {naira(e.amount)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile: stacked cards */}
+              <ul className="divide-y divide-border md:hidden">
+                {totalExpenses === 0 ? (
+                  <li className="px-5 py-4 text-sm text-muted-foreground">
+                    No expenses logged yet.
+                  </li>
+                ) : (
+                  expensesPage.map((e) => (
+                    <li key={e.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold">{expenseLabel[e.category]}</p>
+                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                          {e.notes || "No notes"}
+                          {e.generator_hours_run != null ? ` · ${e.generator_hours_run}h run` : ""}
+                        </p>
+                      </div>
+                      <span className="shrink-0 text-sm font-semibold tabular-nums">
+                        {naira(e.amount)}
+                      </span>
+                    </li>
+                  ))
+                )}
+              </ul>
+
+              {totalExpenses > 0 ? (
+                <div className="px-5 pb-4">
+                  <LoadMore
+                    hasMore={hasMoreExpenses}
+                    onLoadMore={loadMoreExpenses}
+                    shown={shownExpenses}
+                    total={totalExpenses}
                   />
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {(offsiteAlerts.length > 0 || audit.discrepancies.length > 0) && (
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          {offsiteAlerts.length > 0 ? (
-            <AlertCard
-              title={`${offsiteAlerts.length} off-site clock-in${offsiteAlerts.length > 1 ? "s" : ""}`}
-              body={offsiteAlerts
-                .map((a) => profiles.find((p) => p.id === a.staff_id)?.full_name)
-                .join(", ")}
-            />
-          ) : null}
-          {audit.discrepancies.length > 0 ? (
-            <AlertCard
-              title="Inventory discrepancy"
-              body={audit.discrepancies
-                .map((d) => `${d.quantity} ${d.unit} ${d.item} used with no billed ticket`)
-                .join(" · ")}
-            />
-          ) : null}
-        </div>
-      )}
-
-      <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-        <section className="card-lux overflow-hidden rounded-2xl">
-          <div className="flex items-center justify-between gap-3 p-5 pb-3">
-            <h2 className="text-lg font-bold">{config.staffPlural} attendance & earnings</h2>
-            <Clock className="size-4 text-muted-foreground" />
+              ) : null}
+            </section>
           </div>
-          {/* Desktop / tablet: full table */}
-          <div className="hidden overflow-x-auto md:block">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border hover:bg-transparent">
-                  <TableHead aria-sort={ariaSort("name")}>
-                    <SortButton label={config.staffTitle} active={attSort.key === "name"} dir={attSort.dir} onClick={() => toggleSort("name")} />
-                  </TableHead>
-                  <TableHead aria-sort={ariaSort("clock")}>
-                    <SortButton label="Clock in" active={attSort.key === "clock"} dir={attSort.dir} onClick={() => toggleSort("clock")} />
-                  </TableHead>
-                  <TableHead>Geofence</TableHead>
-                  <TableHead className="text-right" aria-sort={ariaSort("commission")}>
-                    <SortButton label="Commission" active={attSort.key === "commission"} dir={attSort.dir} onClick={() => toggleSort("commission")} align="right" />
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {attRows.map(({ s, att, earned }) => (
-                  <TableRow key={s.id} className="border-border">
-                    <TableCell className="font-medium">
-                      {s.full_name}
-                      <span className="mt-0.5 block text-xs text-muted-foreground">
-                        {Math.round(s.commission_rate * 100)}% rate
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {att ? timeOf(att.clock_in_time) : "—"}
-                      {att ? (
-                        <span
-                          className={
-                            att.status === "late"
-                              ? "block text-xs text-warning"
-                              : "block text-xs text-success"
-                          }
-                        >
-                          {att.status === "late" ? "Late" : "On time"}
-                        </span>
-                      ) : null}
-                    </TableCell>
-                    <TableCell>
-                      <GeofenceBadge att={att} />
-                    </TableCell>
-                    <TableCell className="text-right font-semibold tabular-nums text-primary">
-                      {naira(earned)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* Mobile: stacked cards */}
-          <ul className="divide-y divide-border md:hidden">
-            {attRows.map(({ s, att, earned }) => (
-              <li key={s.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold">{s.full_name}</p>
-                  <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                    {att ? (
-                      <>
-                        <span>in {timeOf(att.clock_in_time)}</span>
-                        <span className={att.status === "late" ? "text-warning" : "text-success"}>
-                          ({att.status === "late" ? "late" : "on time"})
-                        </span>
-                      </>
-                    ) : (
-                      <span>not clocked in</span>
-                    )}
-                  </p>
-                  <div className="mt-1.5">
-                    <GeofenceBadge att={att} />
-                  </div>
-                </div>
-                <div className="shrink-0 text-right">
-                  <p className="text-sm font-semibold tabular-nums text-primary">
-                    {naira(earned)}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <div className="space-y-5">
-          {config.showInventory ? <InventoryPanel /> : null}
-          <ServicesPanel />
-        </div>
-      </div>
-
-      <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
-        <ExpenseForm onSubmit={addExpense} />
-
-        <section className="card-lux overflow-hidden rounded-2xl">
-          <div className="flex items-center justify-between gap-3 p-5 pb-3">
-            <h2 className="text-lg font-bold">Expense log</h2>
-            <Flame className="size-4 text-muted-foreground" />
-          </div>
-          {/* Desktop / tablet: full table */}
-          <div className="hidden overflow-x-auto md:block">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border hover:bg-transparent">
-                  <TableHead>Category</TableHead>
-                  <TableHead>Notes</TableHead>
-                  <TableHead>Gen. hrs</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {expensesPage.map((e) => (
-                  <TableRow key={e.id} className="border-border">
-                    <TableCell className="font-medium">{expenseLabel[e.category]}</TableCell>
-                    <TableCell className="max-w-40 truncate text-muted-foreground">
-                      {e.notes || "—"}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {e.generator_hours_run ?? "—"}
-                    </TableCell>
-                    <TableCell className="text-right font-semibold tabular-nums">
-                      {naira(e.amount)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* Mobile: stacked cards */}
-          <ul className="divide-y divide-border md:hidden">
-            {totalExpenses === 0 ? (
-              <li className="px-5 py-4 text-sm text-muted-foreground">No expenses logged yet.</li>
-            ) : (
-              expensesPage.map((e) => (
-                <li key={e.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold">{expenseLabel[e.category]}</p>
-                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                      {e.notes || "No notes"}
-                      {e.generator_hours_run != null ? ` · ${e.generator_hours_run}h run` : ""}
-                    </p>
-                  </div>
-                  <span className="shrink-0 text-sm font-semibold tabular-nums">
-                    {naira(e.amount)}
-                  </span>
-                </li>
-              ))
-            )}
-          </ul>
-
-          {totalExpenses > 0 ? (
-            <div className="px-5 pb-4">
-              <LoadMore
-                hasMore={hasMoreExpenses}
-                onLoadMore={loadMoreExpenses}
-                shown={shownExpenses}
-                total={totalExpenses}
-              />
-            </div>
-          ) : null}
-        </section>
-      </div>
-      </>
+        </>
       ) : null}
     </AppShell>
   );
@@ -522,9 +542,9 @@ function ResetAllDialog() {
         <DialogHeader>
           <DialogTitle>Start a new period?</DialogTitle>
           <DialogDescription>
-            Closes out the current period: clears tickets, commissions, expenses and attendance,
-            and resets stock on hand to 0. Your team roster, services and inventory item list stay
-            in place. Print the end-of-day audit first if you need a record.
+            Closes out the current period: clears tickets, commissions, expenses and attendance, and
+            resets stock on hand to 0. Your team roster, services and inventory item list stay in
+            place. Print the end-of-day audit first if you need a record.
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-end gap-2">
@@ -673,8 +693,7 @@ function CloseDayDialog() {
     [tickets, ticketItems, usage, inventory, expenses, auditDate],
   );
   const isTodaySelected = toDateInput(new Date()) === dateStr;
-  const noActivity =
-    audit.gross === 0 && audit.pendingCount === 0 && audit.totalExpenses === 0;
+  const noActivity = audit.gross === 0 && audit.pendingCount === 0 && audit.totalExpenses === 0;
 
   return (
     <Dialog>
@@ -766,7 +785,11 @@ function CloseDayDialog() {
   );
 }
 
-function GeofenceBadge({ att }: { att?: { is_within_geofence: boolean; clock_in_lat: number | null } }) {
+function GeofenceBadge({
+  att,
+}: {
+  att?: { is_within_geofence: boolean; clock_in_lat: number | null };
+}) {
   if (!att) {
     return (
       <Badge variant="outline" className="text-muted-foreground">
@@ -853,7 +876,9 @@ function Row({ label, value, strong }: { label: string; value: string; strong?: 
   return (
     <div className="flex items-center justify-between gap-3 text-sm">
       <span className="min-w-0 text-muted-foreground">{label}</span>
-      <span className={strong ? "shrink-0 font-display font-bold text-primary" : "shrink-0 font-medium"}>
+      <span
+        className={strong ? "shrink-0 font-display font-bold text-primary" : "shrink-0 font-medium"}
+      >
         {value}
       </span>
     </div>

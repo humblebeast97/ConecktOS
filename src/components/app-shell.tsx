@@ -56,15 +56,29 @@ export function AppShell({
     : [];
   const notifications = [
     low.length
-      ? { icon: Package, text: `${low.length} item${low.length > 1 ? "s" : ""} low on stock`, to: "/admin" as const }
+      ? {
+          icon: Package,
+          text: `${low.length} item${low.length > 1 ? "s" : ""} low on stock`,
+          to: "/admin" as const,
+        }
       : null,
     pending.length
-      ? { icon: Receipt, text: `${pending.length} ticket${pending.length > 1 ? "s" : ""} awaiting payment`, to: "/reception" as const }
+      ? {
+          icon: Receipt,
+          text: `${pending.length} ticket${pending.length > 1 ? "s" : ""} awaiting payment`,
+          to: "/reception" as const,
+        }
       : null,
     offSite.length
-      ? { icon: MapPinOff, text: `${offSite.length} off-site clock-in${offSite.length > 1 ? "s" : ""}`, to: "/admin" as const }
+      ? {
+          icon: MapPinOff,
+          text: `${offSite.length} off-site clock-in${offSite.length > 1 ? "s" : ""}`,
+          to: "/admin" as const,
+        }
       : null,
-  ].filter((n): n is { icon: typeof Package; text: string; to: "/admin" | "/reception" } => n !== null);
+  ].filter(
+    (n): n is { icon: typeof Package; text: string; to: "/admin" | "/reception" } => n !== null,
+  );
 
   // Keep the browser tab title in sync with the active industry sub-brand.
   useEffect(() => {
@@ -112,7 +126,11 @@ export function AppShell({
                     </p>
                   ) : (
                     notifications.map((n, i) => (
-                      <DropdownMenuItem key={i} onSelect={() => navigate({ to: n.to })} className="gap-2">
+                      <DropdownMenuItem
+                        key={i}
+                        onSelect={() => navigate({ to: n.to })}
+                        className="gap-2"
+                      >
                         <n.icon className="size-4 shrink-0 text-muted-foreground" />
                         <span className="text-sm">{n.text}</span>
                       </DropdownMenuItem>
@@ -147,7 +165,10 @@ export function AppShell({
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {currentUser.role === "owner" || currentUser.role === "manager" ? (
-                  <DropdownMenuItem onSelect={() => navigate({ to: "/settings" })} className="gap-2">
+                  <DropdownMenuItem
+                    onSelect={() => navigate({ to: "/settings" })}
+                    className="gap-2"
+                  >
                     <Settings className="size-4" />
                     Business settings
                   </DropdownMenuItem>
@@ -169,9 +190,7 @@ export function AppShell({
         <div className="no-print mb-6 flex flex-wrap items-end justify-between gap-3">
           <div className="min-w-0">
             <h1 className="truncate text-2xl font-bold sm:text-3xl">{title}</h1>
-            {subtitle ? (
-              <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
-            ) : null}
+            {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
           </div>
           {actions}
         </div>
@@ -211,7 +230,9 @@ export function MetricCard({
         </span>
         <Icon className={`size-4 shrink-0 ${toneClass}`} />
       </div>
-      <p className={`mt-3 font-display text-2xl font-bold tracking-tight tabular-nums ${toneClass}`}>
+      <p
+        className={`mt-3 font-display text-2xl font-bold tracking-tight tabular-nums ${toneClass}`}
+      >
         {value}
       </p>
       {hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}

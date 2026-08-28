@@ -192,11 +192,7 @@ function SignUpPage() {
                 </ul>
               </div>
 
-              <Button
-                type="submit"
-                size="lg"
-                className="h-12 w-full text-base font-semibold"
-              >
+              <Button type="submit" size="lg" className="h-12 w-full text-base font-semibold">
                 <UserPlus className="size-4" />
                 Continue to business setup
               </Button>

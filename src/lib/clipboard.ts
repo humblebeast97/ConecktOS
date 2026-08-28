@@ -21,8 +21,7 @@ export async function copyText(text: string): Promise<boolean> {
   //    textarea inside the currently-active element's container when possible,
   //    keep it visible-but-tiny, and select via setSelectionRange.
   try {
-    const host =
-      (document.activeElement && document.activeElement.parentElement) || document.body;
+    const host = (document.activeElement && document.activeElement.parentElement) || document.body;
     const ta = document.createElement("textarea");
     ta.value = text;
     ta.readOnly = true;

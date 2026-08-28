@@ -15,7 +15,10 @@ function PrivacyPage() {
   return (
     <div className="relative min-h-dvh">
       <div id="main-content" role="main" className="mx-auto max-w-3xl px-5 py-12">
-        <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        >
           <ArrowLeft className="size-4" />
           Back to sign in
         </Link>
@@ -32,35 +35,73 @@ function PrivacyPage() {
 
           <Section title="Data we collect">
             <ul className="list-disc space-y-1.5 pl-5">
-              <li><span className="text-foreground">Account data</span> — name, email and role of each team member.</li>
-              <li><span className="text-foreground">Business records</span> — services, tickets, commissions, inventory and expenses you enter.</li>
-              <li><span className="text-foreground">Location data</span> — a staff member's device location is read only at the moment they choose to clock in, to verify attendance against your business's geofence. We do not track location continuously or in the background.</li>
-              <li><span className="text-foreground">Device data</span> — basic technical information needed to run the app.</li>
+              <li>
+                <span className="text-foreground">Account data</span> — name, email and role of each
+                team member.
+              </li>
+              <li>
+                <span className="text-foreground">Business records</span> — services, tickets,
+                commissions, inventory and expenses you enter.
+              </li>
+              <li>
+                <span className="text-foreground">Location data</span> — a staff member's device
+                location is read only at the moment they choose to clock in, to verify attendance
+                against your business's geofence. We do not track location continuously or in the
+                background.
+              </li>
+              <li>
+                <span className="text-foreground">Device data</span> — basic technical information
+                needed to run the app.
+              </li>
             </ul>
           </Section>
 
           <Section title="How we use it">
-            <p>To run the features you enable: attendance, commission splits, inventory, tipping and end-of-day reconciliation. We do not sell your data or use it for advertising.</p>
+            <p>
+              To run the features you enable: attendance, commission splits, inventory, tipping and
+              end-of-day reconciliation. We do not sell your data or use it for advertising.
+            </p>
           </Section>
 
           <Section title="Location consent">
-            <p>Location is only captured when a staff member taps "Clock in" and grants permission. Declining still lets them clock in — the record is simply marked unverified. You can revoke device location permission at any time in your browser or phone settings.</p>
+            <p>
+              Location is only captured when a staff member taps "Clock in" and grants permission.
+              Declining still lets them clock in — the record is simply marked unverified. You can
+              revoke device location permission at any time in your browser or phone settings.
+            </p>
           </Section>
 
           <Section title="Service providers">
-            <p>We use <span className="text-foreground">Supabase</span> for authentication and database hosting. Tips are made by <span className="text-foreground">direct bank transfer</span> between the customer and the staff member — ConecktOS only displays the staff member's bank details and never processes, routes or holds any funds.</p>
+            <p>
+              We use <span className="text-foreground">Supabase</span> for authentication and
+              database hosting. Tips are made by{" "}
+              <span className="text-foreground">direct bank transfer</span> between the customer and
+              the staff member — ConecktOS only displays the staff member's bank details and never
+              processes, routes or holds any funds.
+            </p>
           </Section>
 
           <Section title="Data isolation & retention">
-            <p>Each business's data is isolated from every other business. We retain records for as long as your account is active, and delete or anonymise them on request, subject to legal obligations.</p>
+            <p>
+              Each business's data is isolated from every other business. We retain records for as
+              long as your account is active, and delete or anonymise them on request, subject to
+              legal obligations.
+            </p>
           </Section>
 
           <Section title="Your rights">
-            <p>You may access, correct, export or delete your data, and object to certain processing. To exercise these rights, contact us at <span className="text-foreground">privacy@conecktos.app</span>.</p>
+            <p>
+              You may access, correct, export or delete your data, and object to certain processing.
+              To exercise these rights, contact us at{" "}
+              <span className="text-foreground">privacy@conecktos.app</span>.
+            </p>
           </Section>
 
           <Section title="Contact">
-            <p>Questions about this policy? Email <span className="text-foreground">privacy@conecktos.app</span>.</p>
+            <p>
+              Questions about this policy? Email{" "}
+              <span className="text-foreground">privacy@conecktos.app</span>.
+            </p>
           </Section>
         </div>
 

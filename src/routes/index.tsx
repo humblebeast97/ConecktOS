@@ -84,20 +84,23 @@ function LoginPage() {
       <div className="pointer-events-none absolute -top-40 left-1/2 size-[34rem] -translate-x-1/2 rounded-full bg-primary/12 blur-3xl" />
       <div className="pointer-events-none absolute bottom-0 right-0 size-[22rem] rounded-full bg-success/10 blur-3xl" />
 
-      <div id="main-content" role="main" className="relative mx-auto grid min-h-dvh max-w-6xl items-center gap-10 px-5 py-12 lg:grid-cols-2 lg:gap-16">
+      <div
+        id="main-content"
+        role="main"
+        className="relative mx-auto grid min-h-dvh max-w-6xl items-center gap-10 px-5 py-12 lg:grid-cols-2 lg:gap-16"
+      >
         <section>
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-muted-foreground">
             <Sparkles className="size-3.5 text-primary" />
             Built for Nigerian Businesses
           </span>
           <h1 className="mt-5 text-4xl font-extrabold leading-[1.05] sm:text-5xl">
-            Run your Business like a{" "}
-            <span className="text-gradient-gold">luxury operation.</span>
+            Run your Business like a <span className="text-gradient-gold">luxury operation.</span>
           </h1>
           <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
-            ConecktOS handles geofenced staff clock-ins, automatic commission splits,
-            consumables tracking, overheads and a fraud-proof end-of-day audit — on
-            any phone, tablet or desktop.
+            ConecktOS handles geofenced staff clock-ins, automatic commission splits, consumables
+            tracking, overheads and a fraud-proof end-of-day audit — on any phone, tablet or
+            desktop.
           </p>
           <dl className="mt-8 grid grid-cols-2 gap-3 sm:max-w-md">
             {[
@@ -220,13 +223,19 @@ function LoginPage() {
 
           <p className="mt-4 text-sm text-muted-foreground">
             New here?{" "}
-            <Link to="/signup" className="font-medium text-primary underline-offset-4 hover:underline">
+            <Link
+              to="/signup"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
               Create an owner account
             </Link>
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
             Staff or front desk?{" "}
-            <Link to="/join" className="font-medium text-primary underline-offset-4 hover:underline">
+            <Link
+              to="/join"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
               Sign up with your role
             </Link>
           </p>
@@ -236,7 +245,10 @@ function LoginPage() {
             One workspace for your whole team — owner, front desk and floor staff.
           </p>
           <p className="mt-4 border-t border-border pt-3 text-xs text-muted-foreground">
-            <Link to="/privacy" className="underline-offset-4 hover:text-foreground hover:underline">
+            <Link
+              to="/privacy"
+              className="underline-offset-4 hover:text-foreground hover:underline"
+            >
               Privacy
             </Link>
             <span className="mx-2">·</span>

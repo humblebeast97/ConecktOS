@@ -12,10 +12,7 @@ export const Route = createFileRoute("/tip")({
     biz: typeof search.biz === "string" ? search.biz : "",
   }),
   head: () => ({
-    meta: [
-      { title: "Send a tip · ConecktOS" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Send a tip · ConecktOS" }, { name: "robots", content: "noindex" }],
   }),
   component: TipPage,
 });
@@ -92,7 +89,8 @@ function TipPage() {
           <div className="card-lux rounded-3xl p-8 text-center">
             <h1 className="font-display text-xl font-bold">Tip link incomplete</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              This tip link is missing account details. Ask the staff member to share their QR again.
+              This tip link is missing account details. Ask the staff member to share their QR
+              again.
             </p>
           </div>
         )}

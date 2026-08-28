@@ -1,4 +1,10 @@
-import type { Expense, InventoryItem, Ticket, TicketInventoryUsage, TicketItem } from "./groompulse";
+import type {
+  Expense,
+  InventoryItem,
+  Ticket,
+  TicketInventoryUsage,
+  TicketItem,
+} from "./groompulse";
 
 const isSameDay = (iso: string, ref: Date) => {
   const d = new Date(iso);

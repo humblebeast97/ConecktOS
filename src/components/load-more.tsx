@@ -39,4 +39,3 @@ export function LoadMore({
   if (!showEnd || total <= shown) return null;
   return null; // total === shown and no reason to show a divider mid-flow
 }
-

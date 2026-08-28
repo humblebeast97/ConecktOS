@@ -33,8 +33,7 @@ export const Route = createFileRoute("/join")({
       { property: "og:title", content: "Team sign-up · ConecktOS" },
       {
         property: "og:description",
-        content:
-          "Staff and front-desk sign-up: create your login and go straight to your portal.",
+        content: "Staff and front-desk sign-up: create your login and go straight to your portal.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -115,8 +114,8 @@ function JoinPage() {
           Create your <span className="text-gradient-gold">team login.</span>
         </h1>
         <p className="mt-3 max-w-md text-sm text-muted-foreground">
-          Already onboarded by your owner or manager? Pick your role and set a password — you
-          will land straight in the right portal.
+          Already onboarded by your owner or manager? Pick your role and set a password — you will
+          land straight in the right portal.
         </p>
 
         <section className="card-lux mt-7 rounded-3xl p-6 sm:p-8">
@@ -164,7 +163,9 @@ function JoinPage() {
                   >
                     <Icon className="size-4" />
                   </span>
-                  <span className="block w-full truncate text-xs font-semibold">{roleLabel[r]}</span>
+                  <span className="block w-full truncate text-xs font-semibold">
+                    {roleLabel[r]}
+                  </span>
                 </button>
               );
             })}
@@ -314,11 +315,7 @@ function JoinPage() {
               </div>
             ) : null}
 
-            <Button
-              type="submit"
-              size="lg"
-              className="h-12 w-full text-base font-semibold"
-            >
+            <Button type="submit" size="lg" className="h-12 w-full text-base font-semibold">
               <UserPlus className="size-4" />
               Create account and open {isFrontDesk ? "front desk" : "my"} portal
               <ArrowRight className="size-4" />

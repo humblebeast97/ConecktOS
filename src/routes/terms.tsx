@@ -15,7 +15,10 @@ function TermsPage() {
   return (
     <div className="relative min-h-dvh">
       <div id="main-content" role="main" className="mx-auto max-w-3xl px-5 py-12">
-        <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        >
           <ArrowLeft className="size-4" />
           Back to sign in
         </Link>
@@ -25,33 +28,56 @@ function TermsPage() {
 
         <div className="mt-8 space-y-6 text-sm leading-relaxed text-muted-foreground">
           <p>
-            These terms govern your use of ConecktOS. By creating an account or using the service, you
-            agree to them. If you're using ConecktOS on behalf of a business, you confirm you're
+            These terms govern your use of ConecktOS. By creating an account or using the service,
+            you agree to them. If you're using ConecktOS on behalf of a business, you confirm you're
             authorised to accept these terms for it.
           </p>
 
           <Section title="Accounts">
-            <p>You're responsible for your account, your team's access, and keeping credentials secure. Owners are responsible for the roles and permissions they grant their staff.</p>
+            <p>
+              You're responsible for your account, your team's access, and keeping credentials
+              secure. Owners are responsible for the roles and permissions they grant their staff.
+            </p>
           </Section>
 
           <Section title="Acceptable use">
-            <p>Use ConecktOS lawfully. Don't attempt to breach security, access other businesses' data, or disrupt the service. Location and attendance features must be used with your staff's knowledge and consent.</p>
+            <p>
+              Use ConecktOS lawfully. Don't attempt to breach security, access other businesses'
+              data, or disrupt the service. Location and attendance features must be used with your
+              staff's knowledge and consent.
+            </p>
           </Section>
 
           <Section title="Payments & tips">
-            <p>Tips are made by direct bank transfer between the customer and the staff member. ConecktOS only displays the bank details you provide — it is not a party to the transaction, does not process or hold funds, and is not responsible for transfers. You're responsible for the accuracy of the commission rates and bank details you configure.</p>
+            <p>
+              Tips are made by direct bank transfer between the customer and the staff member.
+              ConecktOS only displays the bank details you provide — it is not a party to the
+              transaction, does not process or hold funds, and is not responsible for transfers.
+              You're responsible for the accuracy of the commission rates and bank details you
+              configure.
+            </p>
           </Section>
 
           <Section title="Your data">
-            <p>Your business data remains yours. We process it to provide the service as described in our Privacy Policy. You can export or request deletion at any time.</p>
+            <p>
+              Your business data remains yours. We process it to provide the service as described in
+              our Privacy Policy. You can export or request deletion at any time.
+            </p>
           </Section>
 
           <Section title="Availability">
-            <p>We work to keep ConecktOS available and reliable but provide it "as is" without warranties. We're not liable for indirect or consequential losses arising from use of the service, to the extent permitted by law.</p>
+            <p>
+              We work to keep ConecktOS available and reliable but provide it "as is" without
+              warranties. We're not liable for indirect or consequential losses arising from use of
+              the service, to the extent permitted by law.
+            </p>
           </Section>
 
           <Section title="Termination">
-            <p>You may stop using ConecktOS at any time. We may suspend accounts that breach these terms, with notice where practicable.</p>
+            <p>
+              You may stop using ConecktOS at any time. We may suspend accounts that breach these
+              terms, with notice where practicable.
+            </p>
           </Section>
 
           <Section title="Governing law">
@@ -59,7 +85,9 @@ function TermsPage() {
           </Section>
 
           <Section title="Contact">
-            <p>Questions? Email <span className="text-foreground">legal@conecktos.app</span>.</p>
+            <p>
+              Questions? Email <span className="text-foreground">legal@conecktos.app</span>.
+            </p>
           </Section>
         </div>
 

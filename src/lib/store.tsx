@@ -98,11 +98,7 @@ interface StoreValue {
     patch: Partial<Pick<InventoryItem, "item_name" | "quantity" | "unit" | "reorder_level">>,
   ) => void;
   removeInventoryItem: (inventoryId: string) => void;
-  addService: (input: {
-    name: string;
-    price: number;
-    duration_minutes: number;
-  }) => Service;
+  addService: (input: { name: string; price: number; duration_minutes: number }) => Service;
   updateService: (
     serviceId: string,
     patch: Partial<Pick<Service, "name" | "price" | "duration_minutes">>,
@@ -260,9 +256,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const markPaid = useCallback((ticketId: string, reference?: string) => {
     setTickets((prev) =>
       prev.map((t) =>
-        t.id === ticketId
-          ? { ...t, status: "paid", reference: reference ?? t.reference }
-          : t,
+        t.id === ticketId ? { ...t, status: "paid", reference: reference ?? t.reference } : t,
       ),
     );
   }, []);
@@ -293,9 +287,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const updateInventoryItem = useCallback<StoreValue["updateInventoryItem"]>(
     (inventoryId, patch) => {
-      setInventory((prev) =>
-        prev.map((i) => (i.id === inventoryId ? { ...i, ...patch } : i)),
-      );
+      setInventory((prev) => prev.map((i) => (i.id === inventoryId ? { ...i, ...patch } : i)));
     },
     [],
   );
@@ -303,7 +295,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const removeInventoryItem = useCallback<StoreValue["removeInventoryItem"]>((inventoryId) => {
     setInventory((prev) => prev.filter((i) => i.id !== inventoryId));
   }, []);
-
 
   const addService = useCallback<StoreValue["addService"]>((input) => {
     const service: Service = {
@@ -336,9 +327,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateProfile = useCallback<StoreValue["updateProfile"]>((profileId, patch) => {
-    setProfiles((prev) =>
-      prev.map((p) => (p.id === profileId ? { ...p, ...patch } : p)),
-    );
+    setProfiles((prev) => prev.map((p) => (p.id === profileId ? { ...p, ...patch } : p)));
   }, []);
 
   const removeProfile = useCallback<StoreValue["removeProfile"]>((profileId) => {

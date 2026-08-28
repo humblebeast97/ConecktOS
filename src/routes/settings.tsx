@@ -23,7 +23,8 @@ export const Route = createFileRoute("/settings")({
       { title: "Business settings · ConecktOS" },
       {
         name: "description",
-        content: "Configure your business profile: category, location, geofence, currency and hours.",
+        content:
+          "Configure your business profile: category, location, geofence, currency and hours.",
       },
     ],
   }),
@@ -100,7 +101,12 @@ function SettingsPage() {
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="s-name">Business name</Label>
-              <Input id="s-name" value={name} onChange={(e) => setName(e.target.value)} className="h-11 bg-surface" />
+              <Input
+                id="s-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="h-11 bg-surface"
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="s-cur">Currency</Label>
@@ -126,8 +132,18 @@ function SettingsPage() {
               <h2 className="text-lg font-semibold">Location &amp; hours</h2>
               <p className="text-sm text-muted-foreground">Used for geofenced clock-ins.</p>
             </div>
-            <Button variant="outline" size="sm" onClick={useMyLocation} disabled={locating} className="h-9">
-              {locating ? <Loader2 className="size-4 animate-spin" /> : <MapPin className="size-4" />}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={useMyLocation}
+              disabled={locating}
+              className="h-9"
+            >
+              {locating ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <MapPin className="size-4" />
+              )}
               Use my location
             </Button>
           </div>
@@ -149,16 +165,35 @@ function SettingsPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="s-radius">Geofence radius (metres)</Label>
-                <Input id="s-radius" inputMode="numeric" value={radius} onChange={(e) => setRadius(e.target.value)} placeholder="50" className="h-11 bg-surface" />
+                <Input
+                  id="s-radius"
+                  inputMode="numeric"
+                  value={radius}
+                  onChange={(e) => setRadius(e.target.value)}
+                  placeholder="50"
+                  className="h-11 bg-surface"
+                />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="s-open">Opens</Label>
-                  <Input id="s-open" type="time" value={open} onChange={(e) => setOpen(e.target.value)} className="h-11 bg-surface" />
+                  <Input
+                    id="s-open"
+                    type="time"
+                    value={open}
+                    onChange={(e) => setOpen(e.target.value)}
+                    className="h-11 bg-surface"
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="s-close">Closes</Label>
-                  <Input id="s-close" type="time" value={close} onChange={(e) => setClose(e.target.value)} className="h-11 bg-surface" />
+                  <Input
+                    id="s-close"
+                    type="time"
+                    value={close}
+                    onChange={(e) => setClose(e.target.value)}
+                    className="h-11 bg-surface"
+                  />
                 </div>
               </div>
             </div>

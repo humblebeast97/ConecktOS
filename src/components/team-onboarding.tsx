@@ -1,12 +1,5 @@
 import { useMemo, useState } from "react";
-import {
-  ArrowLeft,
-  ArrowRight,
-  CheckCircle2,
-  CircleDashed,
-  Trash2,
-  UserPlus,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, CircleDashed, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -182,7 +175,9 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
                               : "rounded-xl border border-border p-3 text-left transition-colors hover:border-primary/40"
                           }
                         >
-                          <span className="block text-sm font-semibold">{industryRoleLabel(r)}</span>
+                          <span className="block text-sm font-semibold">
+                            {industryRoleLabel(r)}
+                          </span>
                           <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">
                             {roleHint[r]}
                           </span>
@@ -209,13 +204,13 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
                     onValueChange={([v]) => setForm({ ...form, commission_rate: v })}
                   />
                   <p className="text-xs text-muted-foreground">
-                    On a {naira(5000)} service they earn {naira((5000 * form.commission_rate) / 100)}.
+                    On a {naira(5000)} service they earn{" "}
+                    {naira((5000 * form.commission_rate) / 100)}.
                   </p>
                 </div>
               ) : null}
             </div>
           ) : null}
-
         </div>
 
         <div className="mt-5 flex items-center gap-2">
@@ -302,9 +297,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
                   <Badge
                     variant="outline"
                     className={
-                      ready
-                        ? "border-success/40 text-success"
-                        : "border-warning/40 text-warning"
+                      ready ? "border-success/40 text-success" : "border-warning/40 text-warning"
                     }
                   >
                     {ready ? (

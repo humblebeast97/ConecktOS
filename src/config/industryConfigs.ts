@@ -31,4 +31,3 @@ export const appConfig: IndustryConfig = {
   showTipping: true,
   showInventory: true,
 };
-
