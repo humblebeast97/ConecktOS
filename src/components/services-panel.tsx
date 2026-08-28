@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ClipboardList, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Check, ClipboardList, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useServices } from "@/api";
+import { FieldError } from "@/components/field-error";
+import { useSubmit } from "@/lib/use-submit";
 import { naira, type Service } from "@/lib/groompulse";
 import { useIndustryConfig } from "@/config/industry-context";
 
@@ -24,22 +26,27 @@ function AddServiceDialog() {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("0");
   const [duration, setDuration] = useState("30");
+  const [submitted, setSubmitted] = useState(false);
+  const { isSubmitting, submit: guarded } = useSubmit();
+  const nameError =
+    submitted && !name.trim() ? `Give the ${config.serviceTitle.toLowerCase()} a name` : null;
 
   const submit = () => {
-    if (!name.trim()) {
-      toast.error(`Give the ${config.serviceTitle.toLowerCase()} a name`);
-      return;
-    }
-    addService({
-      name: name.trim(),
-      price: Math.max(0, Number(price) || 0),
-      duration_minutes: Math.max(0, Number(duration) || 0),
+    setSubmitted(true);
+    if (!name.trim()) return;
+    guarded(() => {
+      addService({
+        name: name.trim(),
+        price: Math.max(0, Number(price) || 0),
+        duration_minutes: Math.max(0, Number(duration) || 0),
+      });
+      toast.success(`${name.trim()} added to the menu`);
+      setName("");
+      setPrice("0");
+      setDuration("30");
+      setSubmitted(false);
+      setOpen(false);
     });
-    toast.success(`${name.trim()} added to the menu`);
-    setName("");
-    setPrice("0");
-    setDuration("30");
-    setOpen(false);
   };
 
   return (
@@ -59,21 +66,32 @@ function AddServiceDialog() {
         </DialogHeader>
         <div className="grid gap-3">
           <div className="space-y-1.5">
-            <Label htmlFor="svc-name">{config.serviceTitle} name</Label>
+            <Label htmlFor="svc-name">
+              {config.serviceTitle} name <span className="text-primary">*</span>
+            </Label>
             <Input
               id="svc-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Silk Press"
               className="h-11 bg-surface"
+              required
+              minLength={1}
+              maxLength={60}
+              aria-invalid={Boolean(nameError)}
+              aria-describedby="svc-name-error"
             />
+            <FieldError id="svc-name-error" message={nameError} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="svc-price">Price (₦)</Label>
               <Input
                 id="svc-price"
+                type="number"
                 inputMode="numeric"
+                min={0}
+                step={100}
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 className="h-11 bg-surface"
@@ -83,7 +101,11 @@ function AddServiceDialog() {
               <Label htmlFor="svc-mins">Duration (mins)</Label>
               <Input
                 id="svc-mins"
+                type="number"
                 inputMode="numeric"
+                min={0}
+                max={480}
+                step={5}
                 value={duration}
                 onChange={(e) => setDuration(e.target.value)}
                 className="h-11 bg-surface"
@@ -92,8 +114,9 @@ function AddServiceDialog() {
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={submit} className="w-full font-semibold">
-            Add to menu
+          <Button onClick={submit} disabled={isSubmitting} className="w-full font-semibold">
+            {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
+            {isSubmitting ? "Adding…" : "Add to menu"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -138,17 +161,27 @@ function ServiceRow({ service }: { service: Service }) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="h-10 bg-background text-sm"
+            required
+            minLength={1}
+            maxLength={60}
           />
           <Input
             value={price}
+            type="number"
             inputMode="numeric"
+            min={0}
+            step={100}
             onChange={(e) => setPrice(e.target.value)}
             className="h-10 bg-background text-sm"
             aria-label="Price"
           />
           <Input
             value={duration}
+            type="number"
             inputMode="numeric"
+            min={0}
+            max={480}
+            step={5}
             onChange={(e) => setDuration(e.target.value)}
             className="h-10 bg-background text-sm"
             aria-label="Duration in minutes"

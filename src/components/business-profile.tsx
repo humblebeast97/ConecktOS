@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSalon } from "@/api";
+import { FieldError } from "@/components/field-error";
+import { useSubmit } from "@/lib/use-submit";
 
 export function BusinessProfilePanel() {
   const { salon, updateSalon } = useSalon();
@@ -14,6 +16,9 @@ export function BusinessProfilePanel() {
   const [lat, setLat] = useState(salon.latitude?.toString() ?? "");
   const [lng, setLng] = useState(salon.longitude?.toString() ?? "");
   const [locating, setLocating] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const { isSubmitting, submit } = useSubmit();
+  const nameError = submitted && !name.trim() ? "Business name is required" : null;
 
   const useMyLocation = () => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
@@ -37,17 +42,18 @@ export function BusinessProfilePanel() {
   };
 
   const onSave = () => {
-    if (!name.trim()) {
-      toast.error("Business name is required");
-      return;
-    }
-    updateSalon({
-      name: name.trim(),
-      geofence_radius_meters: Number(radius) || 50,
-      ...(lat ? { latitude: Number(lat) } : {}),
-      ...(lng ? { longitude: Number(lng) } : {}),
+    setSubmitted(true);
+    if (!name.trim()) return;
+    submit(() => {
+      const clampedRadius = Math.min(500, Math.max(10, Number(radius) || 50));
+      updateSalon({
+        name: name.trim(),
+        geofence_radius_meters: clampedRadius,
+        ...(lat ? { latitude: Number(lat) } : {}),
+        ...(lng ? { longitude: Number(lng) } : {}),
+      });
+      toast.success("Business profile saved");
     });
-    toast.success("Business profile saved");
   };
 
   return (
@@ -73,7 +79,13 @@ export function BusinessProfilePanel() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Central Studio"
+          required
+          minLength={2}
+          maxLength={80}
+          aria-invalid={Boolean(nameError)}
+          aria-describedby="biz-name-error"
         />
+        <FieldError id="biz-name-error" message={nameError} />
       </div>
 
       <div className="space-y-2">
@@ -106,16 +118,20 @@ export function BusinessProfilePanel() {
         <Label htmlFor="biz-radius">Geofence radius (metres)</Label>
         <Input
           id="biz-radius"
+          type="number"
           inputMode="numeric"
+          min={10}
+          max={500}
+          step={5}
           value={radius}
           onChange={(e) => setRadius(e.target.value)}
           placeholder="50"
         />
       </div>
 
-      <Button onClick={onSave} className="h-11 w-full sm:w-auto">
-        <Save className="size-4" />
-        Save business profile
+      <Button onClick={onSave} disabled={isSubmitting} className="h-11 w-full sm:w-auto">
+        {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+        {isSubmitting ? "Saving…" : "Save business profile"}
       </Button>
     </section>
   );

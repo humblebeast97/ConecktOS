@@ -4,6 +4,8 @@ import { Building2, Save, MapPin, Loader2, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { RouteError } from "@/components/route-error";
+import { FieldError } from "@/components/field-error";
+import { useSubmit } from "@/lib/use-submit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,6 +49,9 @@ function SettingsPage() {
   const [open, setOpen] = useState(salon.open_time);
   const [close, setClose] = useState(salon.close_time);
   const [locating, setLocating] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const { isSubmitting, submit } = useSubmit();
+  const nameError = submitted && !name.trim() ? "Business name is required" : null;
 
   const useMyLocation = () => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
@@ -70,20 +75,21 @@ function SettingsPage() {
   };
 
   const save = () => {
-    if (!name.trim()) {
-      toast.error("Business name is required");
-      return;
-    }
-    updateSalon({
-      name: name.trim(),
-      currency,
-      geofence_radius_meters: Number(radius) || 50,
-      open_time: open,
-      close_time: close,
-      ...(lat ? { latitude: Number(lat) } : {}),
-      ...(lng ? { longitude: Number(lng) } : {}),
+    setSubmitted(true);
+    if (!name.trim()) return;
+    submit(() => {
+      const clampedRadius = Math.min(500, Math.max(10, Number(radius) || 50));
+      updateSalon({
+        name: name.trim(),
+        currency,
+        geofence_radius_meters: clampedRadius,
+        open_time: open,
+        close_time: close,
+        ...(lat ? { latitude: Number(lat) } : {}),
+        ...(lng ? { longitude: Number(lng) } : {}),
+      });
+      toast.success("Settings saved");
     });
-    toast.success("Settings saved");
   };
 
   return (
@@ -102,13 +108,21 @@ function SettingsPage() {
 
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="s-name">Business name</Label>
+              <Label htmlFor="s-name">
+                Business name <span className="text-primary">*</span>
+              </Label>
               <Input
                 id="s-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="h-11 bg-surface"
+                required
+                minLength={2}
+                maxLength={80}
+                aria-invalid={Boolean(nameError)}
+                aria-describedby="s-name-error"
               />
+              <FieldError id="s-name-error" message={nameError} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="s-cur">Currency</Label>
@@ -169,7 +183,11 @@ function SettingsPage() {
                 <Label htmlFor="s-radius">Geofence radius (metres)</Label>
                 <Input
                   id="s-radius"
+                  type="number"
                   inputMode="numeric"
+                  min={10}
+                  max={500}
+                  step={5}
                   value={radius}
                   onChange={(e) => setRadius(e.target.value)}
                   placeholder="50"
@@ -213,9 +231,13 @@ function SettingsPage() {
               Terms
             </Link>
           </p>
-          <Button onClick={save} className="h-11 font-semibold">
-            <Save className="size-4" />
-            Save settings
+          <Button onClick={save} disabled={isSubmitting} className="h-11 font-semibold">
+            {isSubmitting ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Save className="size-4" />
+            )}
+            {isSubmitting ? "Saving…" : "Save settings"}
           </Button>
         </div>
       </div>

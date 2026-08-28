@@ -7,6 +7,7 @@ import {
   ConciergeBell,
   Eye,
   EyeOff,
+  Loader2,
   UserRound,
   ShieldCheck,
   Sparkles,
@@ -14,6 +15,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { RouteError } from "@/components/route-error";
+import { FieldError } from "@/components/field-error";
+import { useSubmit } from "@/lib/use-submit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -79,28 +82,36 @@ function JoinPage() {
   const isFrontDesk = role === "receptionist" || role === "manager";
   const roleTitle = isFrontDesk ? roleLabel[role] : config.staffTitle;
 
+  const [submitted, setSubmitted] = useState(false);
+  const { isSubmitting, submit } = useSubmit();
+  const nameError = submitted && !fullName.trim() ? "Your full name is required" : null;
+  const passwordError =
+    submitted && !passwordStrong
+      ? "Password must mix upper and lower case, a number and a symbol (8+ chars)"
+      : null;
+  const accountNumberError =
+    submitted && !isFrontDesk && accountNumber.trim() && !/^\d{10}$/.test(accountNumber.trim())
+      ? "Account number must be exactly 10 digits"
+      : null;
+
   const createAccount = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName.trim()) {
-      toast.error("Your full name is required");
-      return;
-    }
-    if (!passwordStrong) {
-      toast.error("Password must mix upper and lower case, a number and a symbol (8+ chars)");
-      return;
-    }
-    const member = addStylist({
-      full_name: fullName.trim(),
-      role,
-      job_title: jobTitle.trim() || null,
-      commission_rate: isFrontDesk ? 0 : 0.5,
-      bank_name: isFrontDesk ? null : bankName.trim() || null,
-      account_number: isFrontDesk ? null : accountNumber.trim() || null,
-      account_name: isFrontDesk ? null : accountName.trim() || fullName.trim(),
+    setSubmitted(true);
+    if (!fullName.trim() || !passwordStrong || accountNumberError) return;
+    submit(() => {
+      const member = addStylist({
+        full_name: fullName.trim(),
+        role,
+        job_title: jobTitle.trim() || null,
+        commission_rate: isFrontDesk ? 0 : 0.5,
+        bank_name: isFrontDesk ? null : bankName.trim() || null,
+        account_number: isFrontDesk ? null : accountNumber.trim() || null,
+        account_name: isFrontDesk ? null : accountName.trim() || fullName.trim(),
+      });
+      toast.success(`Welcome aboard — opening your ${roleTitle} portal.`);
+      signIn(member.id);
+      navigate({ to: portalFor(role) });
     });
-    toast.success(`Welcome aboard — opening your ${roleTitle} portal.`);
-    signIn(member.id);
-    navigate({ to: portalFor(role) });
   };
 
   return (
@@ -187,7 +198,12 @@ function JoinPage() {
                 placeholder="e.g. Chidi Nwosu"
                 className="h-11 bg-surface"
                 required
+                minLength={2}
+                maxLength={80}
+                aria-invalid={Boolean(nameError)}
+                aria-describedby="jn-name-error"
               />
+              <FieldError id="jn-name-error" message={nameError} />
             </div>
             {!isFrontDesk ? (
               <div className="space-y-1.5">
@@ -238,8 +254,11 @@ function JoinPage() {
                   placeholder="8+ chars with a number & symbol"
                   className="h-11 bg-surface pr-11"
                   autoComplete="new-password"
-                  aria-describedby="jn-password-rules"
+                  aria-describedby="jn-password-rules jn-password-error"
+                  aria-invalid={Boolean(passwordError)}
                   required
+                  minLength={8}
+                  maxLength={128}
                 />
                 <button
                   type="button"
@@ -268,6 +287,7 @@ function JoinPage() {
                   </li>
                 ))}
               </ul>
+              <FieldError id="jn-password-error" message={passwordError} />
             </div>
 
             {!isFrontDesk ? (
@@ -294,11 +314,18 @@ function JoinPage() {
                     <Input
                       id="jn-acct"
                       inputMode="numeric"
+                      pattern="\d{10}"
+                      maxLength={10}
                       value={accountNumber}
-                      onChange={(e) => setAccountNumber(e.target.value)}
+                      onChange={(e) =>
+                        setAccountNumber(e.target.value.replace(/\D/g, "").slice(0, 10))
+                      }
                       placeholder="10-digit NUBAN"
                       className="h-11 bg-surface"
+                      aria-invalid={Boolean(accountNumberError)}
+                      aria-describedby="jn-acct-error"
                     />
+                    <FieldError id="jn-acct-error" message={accountNumberError} />
                   </div>
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label htmlFor="jn-acctname">Account name</Label>
@@ -318,10 +345,21 @@ function JoinPage() {
               </div>
             ) : null}
 
-            <Button type="submit" size="lg" className="h-12 w-full text-base font-semibold">
-              <UserPlus className="size-4" />
-              Create account and open {isFrontDesk ? "front desk" : "my"} portal
-              <ArrowRight className="size-4" />
+            <Button
+              type="submit"
+              size="lg"
+              disabled={isSubmitting}
+              className="h-12 w-full text-base font-semibold"
+            >
+              {isSubmitting ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <UserPlus className="size-4" />
+              )}
+              {isSubmitting
+                ? "Creating…"
+                : `Create account and open ${isFrontDesk ? "front desk" : "my"} portal`}
+              {isSubmitting ? null : <ArrowRight className="size-4" />}
             </Button>
           </form>
 

@@ -1,10 +1,20 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, CheckCircle2, CircleDashed, Trash2, UserPlus } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  CircleDashed,
+  Loader2,
+  Trash2,
+  UserPlus,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FieldError } from "@/components/field-error";
+import { useSubmit } from "@/lib/use-submit";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStaff, useTickets } from "@/api";
@@ -48,10 +58,13 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
   const isFloor = earnsCommission(form.role);
   const nameValid = form.full_name.trim().length >= 3;
   const lastStep = 1;
+  const [nameTouched, setNameTouched] = useState(false);
+  const { isSubmitting, submit: guarded } = useSubmit();
+  const nameError = nameTouched && !nameValid ? "Full name must be at least 3 characters" : null;
 
   const next = () => {
     if (step === 0 && !nameValid) {
-      toast.error("Enter the team member's full name");
+      setNameTouched(true);
       return;
     }
     if (step >= lastStep) {
@@ -62,24 +75,27 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
   };
 
   const submit = () => {
-    const name = form.full_name.trim();
-    addStylist({
-      full_name: name,
-      role: form.role,
-      job_title: form.job_title.trim() || null,
-      commission_rate: isFloor ? form.commission_rate / 100 : 0,
-      // Payout details are entered by the staff member during their own sign-up.
-      bank_name: null,
-      account_number: null,
-      account_name: name,
+    guarded(() => {
+      const name = form.full_name.trim();
+      addStylist({
+        full_name: name,
+        role: form.role,
+        job_title: form.job_title.trim() || null,
+        commission_rate: isFloor ? form.commission_rate / 100 : 0,
+        // Payout details are entered by the staff member during their own sign-up.
+        bank_name: null,
+        account_number: null,
+        account_name: name,
+      });
+      toast.success(`${name} onboarded`, {
+        description: isFloor
+          ? `${industryRoleLabel(form.role)} · ${form.commission_rate}% commission`
+          : `${industryRoleLabel(form.role)} access granted`,
+      });
+      setForm(emptyForm);
+      setStep(0);
+      setNameTouched(false);
     });
-    toast.success(`${name} onboarded`, {
-      description: isFloor
-        ? `${industryRoleLabel(form.role)} · ${form.commission_rate}% commission`
-        : `${industryRoleLabel(form.role)} access granted`,
-    });
-    setForm(emptyForm);
-    setStep(0);
   };
 
   return (
@@ -125,18 +141,27 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
           {step === 0 ? (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="full_name">Full name</Label>
+                <Label htmlFor="full_name">
+                  Full name <span className="text-primary">*</span>
+                </Label>
                 <Input
                   id="full_name"
                   value={form.full_name}
                   placeholder="e.g. Chidinma Nwosu"
                   onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+                  onBlur={() => setNameTouched(true)}
                   className="h-11"
                   autoComplete="off"
+                  required
+                  minLength={3}
+                  maxLength={80}
+                  aria-invalid={Boolean(nameError)}
+                  aria-describedby="full_name-error"
                 />
                 <p className="text-xs text-muted-foreground">
                   As it should appear on tickets and tip QR codes.
                 </p>
+                <FieldError id="full_name-error" message={nameError} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="job_title">Job title</Label>
@@ -147,6 +172,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
                   onChange={(e) => setForm({ ...form, job_title: e.target.value })}
                   className="h-11"
                   autoComplete="off"
+                  maxLength={60}
                 />
                 <p className="text-xs text-muted-foreground">
                   Anything you like — this is just their title.
@@ -227,12 +253,24 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
               Back
             </Button>
           ) : null}
-          <Button type="submit" size="lg" className="h-12 flex-1 font-semibold">
+          <Button
+            type="submit"
+            size="lg"
+            disabled={isSubmitting}
+            className="h-12 flex-1 font-semibold"
+          >
             {step >= lastStep ? (
-              <>
-                <UserPlus className="size-5" />
-                Add to team
-              </>
+              isSubmitting ? (
+                <>
+                  <Loader2 className="size-5 animate-spin" />
+                  Adding…
+                </>
+              ) : (
+                <>
+                  <UserPlus className="size-5" />
+                  Add to team
+                </>
+              )
             ) : (
               <>
                 Continue

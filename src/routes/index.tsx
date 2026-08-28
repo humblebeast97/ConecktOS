@@ -9,8 +9,10 @@ import {
   ShieldCheck,
   Eye,
   EyeOff,
+  Loader2,
 } from "lucide-react";
 import { RouteError } from "@/components/route-error";
+import { useSubmit } from "@/lib/use-submit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -79,6 +81,7 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { signIn } = useAuth();
+  const { isSubmitting, submit } = useSubmit();
 
   const active = roles.find((r) => r.role === role)!;
 
@@ -177,8 +180,10 @@ function LoginPage() {
             className="mt-6 space-y-4"
             onSubmit={(e) => {
               e.preventDefault();
-              signIn(defaultUserForRole[role]);
-              navigate({ to: active.to });
+              submit(() => {
+                signIn(defaultUserForRole[role]);
+                navigate({ to: active.to });
+              });
             }}
           >
             <div className="space-y-1.5">
@@ -218,9 +223,18 @@ function LoginPage() {
                 </button>
               </div>
             </div>
-            <Button type="submit" size="lg" className="h-12 w-full text-base font-semibold">
-              <Fingerprint className="size-4" />
-              Enter {active.label}
+            <Button
+              type="submit"
+              size="lg"
+              disabled={isSubmitting}
+              className="h-12 w-full text-base font-semibold"
+            >
+              {isSubmitting ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Fingerprint className="size-4" />
+              )}
+              {isSubmitting ? "Signing in…" : `Enter ${active.label}`}
             </Button>
           </form>
 

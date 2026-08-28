@@ -1,8 +1,19 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowRight, Check, Circle, Eye, EyeOff, ShieldCheck, UserPlus } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  Circle,
+  Eye,
+  EyeOff,
+  Loader2,
+  ShieldCheck,
+  UserPlus,
+} from "lucide-react";
 import { toast } from "sonner";
 import { RouteError } from "@/components/route-error";
+import { FieldError } from "@/components/field-error";
+import { useSubmit } from "@/lib/use-submit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,18 +63,23 @@ function SignUpPage() {
   ];
   const passwordStrong = rules.every((r) => r.ok);
 
+  const [submitted, setSubmitted] = useState(false);
+  const { isSubmitting: isCreating, submit: submitCreate } = useSubmit();
+  const { isSubmitting: isEntering, submit: submitEnter } = useSubmit();
+  const nameError = submitted && !fullName.trim() ? "Your full name is required" : null;
+  const passwordError =
+    submitted && !passwordStrong
+      ? "Password must mix upper and lower case, a number and a symbol (8+ chars)"
+      : null;
+
   const createAccount = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName.trim()) {
-      toast.error("Your full name is required");
-      return;
-    }
-    if (!passwordStrong) {
-      toast.error("Password must mix upper and lower case, a number and a symbol (8+ chars)");
-      return;
-    }
-    toast.success("Account created — now set up your business.");
-    setStep(2);
+    setSubmitted(true);
+    if (!fullName.trim() || !passwordStrong) return;
+    submitCreate(() => {
+      toast.success("Account created — now set up your business.");
+      setStep(2);
+    });
   };
 
   return (
@@ -134,7 +150,12 @@ function SignUpPage() {
                   placeholder="e.g. Adaeze Okonkwo"
                   className="h-11 bg-surface"
                   required
+                  aria-invalid={Boolean(nameError)}
+                  aria-describedby="su-name-error"
+                  minLength={2}
+                  maxLength={80}
                 />
+                <FieldError id="su-name-error" message={nameError} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="su-email">
@@ -163,8 +184,11 @@ function SignUpPage() {
                     placeholder="8+ chars with a number & symbol"
                     className="h-11 bg-surface pr-11"
                     autoComplete="new-password"
-                    aria-describedby="su-password-rules"
+                    aria-describedby="su-password-rules su-password-error"
+                    aria-invalid={Boolean(passwordError)}
                     required
+                    minLength={8}
+                    maxLength={128}
                   />
                   <button
                     type="button"
@@ -193,11 +217,21 @@ function SignUpPage() {
                     </li>
                   ))}
                 </ul>
+                <FieldError id="su-password-error" message={passwordError} />
               </div>
 
-              <Button type="submit" size="lg" className="h-12 w-full text-base font-semibold">
-                <UserPlus className="size-4" />
-                Continue to business setup
+              <Button
+                type="submit"
+                size="lg"
+                disabled={isCreating}
+                className="h-12 w-full text-base font-semibold"
+              >
+                {isCreating ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <UserPlus className="size-4" />
+                )}
+                {isCreating ? "Creating…" : "Continue to business setup"}
               </Button>
             </form>
 
@@ -218,15 +252,22 @@ function SignUpPage() {
             <BusinessProfilePanel />
             <Button
               size="lg"
+              disabled={isEntering}
               className="h-12 w-full text-base font-semibold"
-              onClick={() => {
-                signIn(defaultUserForRole.owner);
-                navigate({ to: "/admin" });
-                toast.success("You're all set — welcome to ConecktOS");
-              }}
+              onClick={() =>
+                submitEnter(() => {
+                  signIn(defaultUserForRole.owner);
+                  navigate({ to: "/admin" });
+                  toast.success("You're all set — welcome to ConecktOS");
+                })
+              }
             >
-              Go to Owner Dashboard
-              <ArrowRight className="size-4" />
+              {isEntering ? "Signing you in…" : "Go to Owner Dashboard"}
+              {isEntering ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <ArrowRight className="size-4" />
+              )}
             </Button>
           </div>
         )}

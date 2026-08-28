@@ -1,12 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { BadgeCheck, CircleDollarSign, Printer, Receipt, Users } from "lucide-react";
+import { BadgeCheck, CircleDollarSign, Loader2, Printer, Receipt, Users } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, MetricCard } from "@/components/app-shell";
 import { TeamOnboarding } from "@/components/team-onboarding";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { TicketBuilder } from "@/components/ticket-builder";
 import { RouteError } from "@/components/route-error";
+import { Label } from "@/components/ui/label";
+import { useSubmit } from "@/lib/use-submit";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -132,6 +134,7 @@ function ReceptionPage() {
                       </div>
                     </div>
                     <MatchRow
+                      id={`match-${t.id}`}
                       onMatch={(ref) => {
                         markPaid(t.id, ref);
                         toast.success(`Ticket for ${t.client_name} marked paid`);
@@ -298,18 +301,32 @@ function ReceiptDialog({ ticket }: { ticket: Ticket }) {
   );
 }
 
-function MatchRow({ onMatch }: { onMatch: (ref: string) => void }) {
+function MatchRow({ onMatch, id }: { onMatch: (ref: string) => void; id: string }) {
   const [ref, setRef] = useState("");
+  const { isSubmitting, submit } = useSubmit();
   return (
     <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
-      <Input
-        value={ref}
-        onChange={(e) => setRef(e.target.value)}
-        placeholder="POS / transfer ref"
-        className="h-10 bg-background text-xs"
-      />
-      <Button size="sm" className="h-10" onClick={() => onMatch(ref || "MANUAL")}>
-        Match
+      <div className="min-w-0">
+        <Label htmlFor={id} className="sr-only">
+          Payment reference
+        </Label>
+        <Input
+          id={id}
+          value={ref}
+          onChange={(e) => setRef(e.target.value)}
+          placeholder="POS / transfer ref"
+          className="h-10 bg-background text-xs"
+          maxLength={40}
+        />
+      </div>
+      <Button
+        size="sm"
+        className="h-10"
+        disabled={isSubmitting}
+        onClick={() => submit(() => onMatch(ref.trim() || "MANUAL"))}
+      >
+        {isSubmitting ? <Loader2 className="size-3 animate-spin" /> : null}
+        {isSubmitting ? "Matching…" : "Match"}
       </Button>
     </div>
   );

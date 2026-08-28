@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Package, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Check, Loader2, Package, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useInventory } from "@/api";
+import { FieldError } from "@/components/field-error";
+import { useSubmit } from "@/lib/use-submit";
 import { lowStock } from "@/lib/reports";
 import type { InventoryItem } from "@/lib/groompulse";
 import { useIndustryConfig } from "@/config/industry-context";
@@ -26,24 +28,28 @@ function AddItemDialog() {
   const [unit, setUnit] = useState("bottles");
   const [qty, setQty] = useState("0");
   const [reorder, setReorder] = useState("0");
+  const [submitted, setSubmitted] = useState(false);
+  const { isSubmitting, submit: guarded } = useSubmit();
+  const nameError = submitted && !name.trim() ? "Give the item a name" : null;
 
   const submit = () => {
-    if (!name.trim()) {
-      toast.error("Give the item a name");
-      return;
-    }
-    addInventoryItem({
-      item_name: name.trim(),
-      quantity: Math.max(0, Number(qty) || 0),
-      unit: unit.trim() || "units",
-      reorder_level: Math.max(0, Number(reorder) || 0),
+    setSubmitted(true);
+    if (!name.trim()) return;
+    guarded(() => {
+      addInventoryItem({
+        item_name: name.trim(),
+        quantity: Math.max(0, Number(qty) || 0),
+        unit: unit.trim() || "units",
+        reorder_level: Math.max(0, Number(reorder) || 0),
+      });
+      toast.success(`${name.trim()} added to inventory`);
+      setName("");
+      setQty("0");
+      setReorder("0");
+      setUnit("bottles");
+      setSubmitted(false);
+      setOpen(false);
     });
-    toast.success(`${name.trim()} added to inventory`);
-    setName("");
-    setQty("0");
-    setReorder("0");
-    setUnit("bottles");
-    setOpen(false);
   };
 
   return (
@@ -63,13 +69,21 @@ function AddItemDialog() {
         </DialogHeader>
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="inv-name">Item name</Label>
+            <Label htmlFor="inv-name">
+              Item name <span className="text-primary">*</span>
+            </Label>
             <Input
               id="inv-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Edge Control Gel"
+              required
+              minLength={1}
+              maxLength={60}
+              aria-invalid={Boolean(nameError)}
+              aria-describedby="inv-name-error"
             />
+            <FieldError id="inv-name-error" message={nameError} />
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="grid gap-2">
@@ -78,6 +92,7 @@ function AddItemDialog() {
                 id="inv-qty"
                 type="number"
                 min={0}
+                step={1}
                 value={qty}
                 onChange={(e) => setQty(e.target.value)}
               />
@@ -89,6 +104,7 @@ function AddItemDialog() {
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
                 placeholder="bottles"
+                maxLength={20}
               />
             </div>
             <div className="grid gap-2">
@@ -97,6 +113,7 @@ function AddItemDialog() {
                 id="inv-reorder"
                 type="number"
                 min={0}
+                step={1}
                 value={reorder}
                 onChange={(e) => setReorder(e.target.value)}
               />
@@ -104,7 +121,10 @@ function AddItemDialog() {
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={submit}>Save item</Button>
+          <Button onClick={submit} disabled={isSubmitting}>
+            {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
+            {isSubmitting ? "Saving…" : "Save item"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

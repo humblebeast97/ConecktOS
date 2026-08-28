@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCircle2, Package, Plus, Search, Trash2, UserPlus } from "lucide-react";
+import { CheckCircle2, Loader2, Package, Plus, Search, Trash2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,7 @@ import { usePaginated } from "@/lib/paginate";
 import { useInventory, useServices, useStaff } from "@/api";
 import type { DraftUsage } from "@/lib/store";
 import { useTicketDraft } from "@/lib/use-ticket-draft";
+import { useSubmit } from "@/lib/use-submit";
 import { useIndustryConfig } from "@/config/industry-context";
 import { naira, paymentLabel, timeOf, type PaymentMethod } from "@/lib/groompulse";
 
@@ -38,6 +39,7 @@ export function TicketBuilder() {
   const { staff } = useStaff();
   const { inventory } = useInventory();
   const draft = useTicketDraft();
+  const { isSubmitting, submit: guarded } = useSubmit();
 
   const q = draft.lookup.trim().toLowerCase();
   const allMatches = q
@@ -306,12 +308,26 @@ export function TicketBuilder() {
             ))}
           </div>
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
-            <Button variant="outline" className="h-12" onClick={() => draft.submit("pending")}>
-              Open ticket
+            <Button
+              variant="outline"
+              className="h-12"
+              disabled={isSubmitting}
+              onClick={() => guarded(() => draft.submit("pending"))}
+            >
+              {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
+              {isSubmitting ? "Opening…" : "Open ticket"}
             </Button>
-            <Button className="h-12 font-semibold" onClick={() => draft.submit("paid")}>
-              <CheckCircle2 className="size-4" />
-              Bill and mark paid
+            <Button
+              className="h-12 font-semibold"
+              disabled={isSubmitting}
+              onClick={() => guarded(() => draft.submit("paid"))}
+            >
+              {isSubmitting ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="size-4" />
+              )}
+              {isSubmitting ? "Billing…" : "Bill and mark paid"}
             </Button>
           </div>
         </div>
