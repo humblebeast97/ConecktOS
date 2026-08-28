@@ -8,11 +8,12 @@ import {
   Package,
   Receipt,
   MapPinOff,
+  Repeat,
 } from "lucide-react";
-import { useEffect, type ReactNode } from "react";
-import { useAttendance, useAuth, useInventory, useTickets } from "@/api";
+import { useEffect, useMemo, type ReactNode } from "react";
+import { useAttendance, useAuth, useInventory, useStaff, useTickets } from "@/api";
 import { useIndustryConfig } from "@/config/industry-context";
-import { personTitle } from "@/lib/groompulse";
+import { personTitle, roleLabel, type Role } from "@/lib/groompulse";
 import { lowStock } from "@/lib/reports";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { OfflineBanner } from "@/components/offline-banner";
@@ -44,7 +45,8 @@ export function AppShell({
   children: ReactNode;
   actions?: ReactNode;
 }) {
-  const { currentUser } = useAuth();
+  const { currentUser, signIn } = useAuth();
+  const { profiles } = useStaff();
   const { inventory } = useInventory();
   const { tickets } = useTickets();
   const { attendance } = useAttendance();
@@ -88,6 +90,24 @@ export function AppShell({
   useEffect(() => {
     document.title = `${title} · ${config.appName}`;
   }, [title, config.appName]);
+
+  // Demo-only role switcher: one representative user per role, so testers /
+  // stakeholders can jump between portals without touching code. When Phase 1
+  // ships real auth this whole block becomes dev-only or is removed.
+  const portalFor: Record<Role, "/admin" | "/reception" | "/staff"> = {
+    owner: "/admin",
+    manager: "/reception",
+    receptionist: "/reception",
+    staff: "/staff",
+  };
+  const rolesForSwitcher: Role[] = ["owner", "manager", "receptionist", "staff"];
+  const roleShortcuts = useMemo(
+    () =>
+      rolesForSwitcher
+        .map((r) => ({ role: r, user: profiles.find((p) => p.role === r) }))
+        .filter((s): s is { role: Role; user: (typeof profiles)[number] } => Boolean(s.user)),
+    [profiles],
+  );
 
   return (
     <div className="min-h-dvh bg-background pb-10">
@@ -178,6 +198,36 @@ export function AppShell({
                     Business settings
                   </DropdownMenuItem>
                 ) : null}
+                {roleShortcuts.length > 1 ? (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      <Repeat className="size-3" />
+                      Switch role (demo)
+                    </DropdownMenuLabel>
+                    {roleShortcuts.map(({ role, user }) => {
+                      const active = user.id === currentUser.id;
+                      return (
+                        <DropdownMenuItem
+                          key={role}
+                          disabled={active}
+                          onSelect={() => {
+                            signIn(user.id);
+                            navigate({ to: portalFor[role] });
+                          }}
+                          className="flex flex-col items-start gap-0"
+                        >
+                          <span className="text-sm font-medium">{roleLabel[role]}</span>
+                          <span className="text-[11px] text-muted-foreground">
+                            {user.full_name}
+                            {active ? " · current" : ""}
+                          </span>
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </>
+                ) : null}
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onSelect={() => navigate({ to: "/" })}
                   className="gap-2 text-destructive focus:text-destructive"
