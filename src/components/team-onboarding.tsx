@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   CircleDashed,
   Loader2,
+  Search,
   Trash2,
   UserPlus,
 } from "lucide-react";
@@ -57,11 +58,21 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
     ? (profiles.find((p) => p.id === pendingRemoveId) ?? null)
     : null;
 
+  const [rosterQuery, setRosterQuery] = useState("");
   const roster = useMemo(() => {
-    if (filter === "floor") return profiles.filter((p) => earnsCommission(p.role));
-    if (filter === "desk") return profiles.filter((p) => !earnsCommission(p.role));
-    return profiles;
-  }, [profiles, filter]);
+    const q = rosterQuery.trim().toLowerCase();
+    const roleFiltered =
+      filter === "floor"
+        ? profiles.filter((p) => earnsCommission(p.role))
+        : filter === "desk"
+          ? profiles.filter((p) => !earnsCommission(p.role))
+          : profiles;
+    if (!q) return roleFiltered;
+    return roleFiltered.filter(
+      (p) =>
+        p.full_name.toLowerCase().includes(q) || (p.job_title?.toLowerCase().includes(q) ?? false),
+    );
+  }, [profiles, filter, rosterQuery]);
 
   const isFloor = earnsCommission(form.role);
   const nameValid = form.full_name.trim().length >= 3;
@@ -354,6 +365,16 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
               </TabsTrigger>
             </TabsList>
           </Tabs>
+        </div>
+        <div className="relative mt-3">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={rosterQuery}
+            onChange={(e) => setRosterQuery(e.target.value)}
+            placeholder="Search name or job title"
+            aria-label="Search team roster"
+            className="h-10 bg-surface pl-9 text-sm"
+          />
         </div>
 
         {roster.length === 0 ? (

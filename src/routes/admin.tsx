@@ -15,6 +15,7 @@ import {
   Plus,
   RotateCcw,
   Printer,
+  Search,
   Rocket,
   TrendingUp,
   Users,
@@ -161,13 +162,24 @@ function AdminPage() {
     });
   }, [staff, attendance, ticketItems, attSort]);
 
+  const [expenseQuery, setExpenseQuery] = useState("");
+  const [expenseCategory, setExpenseCategory] = useState<"all" | ExpenseCategory>("all");
+  const filteredExpenses = useMemo(() => {
+    const q = expenseQuery.trim().toLowerCase();
+    return expenses.filter((e) => {
+      if (expenseCategory !== "all" && e.category !== expenseCategory) return false;
+      if (!q) return true;
+      const haystack = `${expenseLabel[e.category]} ${e.notes ?? ""}`.toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [expenses, expenseQuery, expenseCategory]);
   const {
     items: expensesPage,
     hasMore: hasMoreExpenses,
     loadMore: loadMoreExpenses,
     shown: shownExpenses,
     total: totalExpenses,
-  } = usePaginated(expenses, 10);
+  } = usePaginated(filteredExpenses, 10);
 
   return (
     <AppShell
@@ -450,6 +462,42 @@ function AdminPage() {
                 <h2 className="text-lg font-bold">Expense log</h2>
                 <Flame className="size-4 text-muted-foreground" />
               </div>
+              <div className="grid gap-2 px-5 pb-3 sm:grid-cols-[minmax(0,1fr)_10rem]">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={expenseQuery}
+                    onChange={(e) => setExpenseQuery(e.target.value)}
+                    placeholder="Search notes or category"
+                    aria-label="Search expenses"
+                    className="h-10 bg-surface pl-9 text-sm"
+                  />
+                </div>
+                <Select
+                  value={expenseCategory}
+                  onValueChange={(v) => setExpenseCategory(v as "all" | ExpenseCategory)}
+                >
+                  <SelectTrigger
+                    className="h-10 bg-surface text-sm"
+                    aria-label="Filter by category"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All categories</SelectItem>
+                    {(Object.keys(expenseLabel) as ExpenseCategory[]).map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {expenseLabel[c]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {expenses.length > 0 && totalExpenses === 0 ? (
+                <p className="px-5 pb-3 text-xs text-muted-foreground">
+                  No expenses match this filter.
+                </p>
+              ) : null}
               {/* Desktop / tablet: full table */}
               <div className="hidden overflow-x-auto md:block">
                 <Table>
