@@ -966,10 +966,17 @@ function Row({ label, value, strong }: { label: string; value: string; strong?: 
 }
 
 function PrintRow({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
+  // Inline styles so nothing in the utility cascade can hide either cell.
+  const cell: React.CSSProperties = {
+    padding: "4px 8px 4px 0",
+    color: "#000",
+    fontWeight: strong ? 700 : 400,
+    verticalAlign: "top",
+  };
   return (
-    <tr className={strong ? "font-bold" : ""}>
-      <td className="py-1 pr-4">{label}</td>
-      <td className="py-1 text-right font-mono tabular-nums">{value}</td>
+    <tr>
+      <td style={cell}>{label}</td>
+      <td style={{ ...cell, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{value}</td>
     </tr>
   );
 }

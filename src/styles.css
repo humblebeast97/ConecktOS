@@ -171,16 +171,18 @@
   color: transparent;
 }
 
-@utility no-print {
-  @media print {
+.print-only {
+  display: none !important;
+}
+@media print {
+  .no-print {
     display: none !important;
   }
-}
-
-@utility print-only {
-  display: none !important;
-  @media print {
+  .print-only {
     display: block !important;
+  }
+  table.print-only {
+    display: table !important;
   }
 }
 
@@ -193,6 +195,14 @@
   @page {
     size: A4;
     margin: 14mm;
+  }
+
+  :root,
+  html,
+  body {
+    color-scheme: light !important;
+    background: #fff !important;
+    color: #000 !important;
   }
 
   body:has(.print-sheet) {
