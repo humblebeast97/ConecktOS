@@ -1,19 +1,30 @@
 {
-  "name": "ConecktOS — Service Business Operating System",
+  "name": "ConecktOS. Service Business Operating System",
   "short_name": "ConecktOS",
   "description": "Operating system for service businesses: staff clock-ins, commission splits, inventory and daily audits.",
   "start_url": "/",
+  "id": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "orientation": "portrait-primary",
   "background_color": "#181b23",
   "theme_color": "#20242e",
+  "lang": "en-NG",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "finance"],
   "icons": [
     {
       "src": "/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/icons/icon-512.png",
@@ -27,5 +38,29 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Owner dashboard",
+      "short_name": "Owner",
+      "description": "Revenue, commissions, close-day audit.",
+      "url": "/admin",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Front desk",
+      "short_name": "Reception",
+      "description": "Bill tickets, match POS and bank alerts.",
+      "url": "/reception",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Staff portal",
+      "short_name": "Staff",
+      "description": "GPS clock-in and today's commission.",
+      "url": "/staff",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "prefer_related_applications": false
 }

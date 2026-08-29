@@ -88,16 +88,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "ConecktOS runs service businesses: geofenced clock-ins, commission splits, inventory and daily audits.",
       },
-      { name: "theme-color", content: "#20242e" },
+      // theme-color per scheme so the browser chrome / iOS status bar match.
+      { name: "theme-color", content: "#f5f5f4", media: "(prefers-color-scheme: light)" },
+      { name: "theme-color", content: "#20242e", media: "(prefers-color-scheme: dark)" },
+      { name: "color-scheme", content: "light dark" },
+      // Stop iOS from turning every 4-digit-looking string into a call link.
+      { name: "format-detection", content: "telephone=no,email=no,address=no" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-title", content: "ConecktOS" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "mobile-web-app-capable", content: "yes" },
       { property: "og:site_name", content: "ConecktOS" },
       { property: "og:type", content: "website" },
+      ...(SITE_URL ? [{ property: "og:url", content: SITE_URL } as const] : []),
       { property: "og:image", content: OG_IMAGE },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
+      { property: "og:image:alt", content: "ConecktOS. Service Business Operating System." },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: OG_IMAGE },
+      { name: "twitter:image:alt", content: "ConecktOS. Service Business Operating System." },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
