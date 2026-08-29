@@ -814,7 +814,7 @@ function CloseDayDialog() {
           />
         </div>
 
-        <div className="print-sheet print:hidden rounded-2xl border border-border bg-gradient-surface p-5">
+        <div className="print-sheet no-print rounded-2xl border border-border bg-gradient-surface p-5">
           <p className="font-display text-sm font-bold">{salon.name}</p>
           <p className="text-xs text-muted-foreground">
             {isTodaySelected ? "Daily audit" : "Day audit"} ·{" "}
@@ -864,7 +864,7 @@ function CloseDayDialog() {
         </div>
 
         {/* Print-only: clean figures table. Guarantees labels + values render. */}
-        <div className="print-sheet hidden print:block">
+        <div className="print-sheet print-only">
           <h1 className="mb-1 text-lg font-bold">{salon.name}</h1>
           <p className="mb-4 text-xs">
             {isTodaySelected ? "Daily audit" : "Day audit"} ·{" "}

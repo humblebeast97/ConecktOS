@@ -177,6 +177,13 @@
   }
 }
 
+@utility print-only {
+  display: none !important;
+  @media print {
+    display: block !important;
+  }
+}
+
 /*
  * End-of-day audit. Print / save-as-PDF as a clean document.
  * Scoped with :has(.print-sheet) so ordinary printing is unaffected: the rules
