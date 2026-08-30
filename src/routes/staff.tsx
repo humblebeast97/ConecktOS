@@ -331,10 +331,9 @@ function StaffPortal() {
   );
 }
 
-const POSTER_MSG_MAX = 140;
+const POSTER_MSG_MAX = 80;
 const posterMsgKey = (userId: string) => `conecktos-tip-poster-msg:${userId}`;
-const defaultPosterMessage = (firstName: string) =>
-  `Scan to tip ${firstName} by bank transfer.`;
+const defaultPosterMessage = (firstName: string) => `Tip ${firstName}`;
 
 /** Per-staff poster message, persisted to localStorage. Blank saves as blank
  * so the print falls back to the default automatically. */
@@ -372,15 +371,14 @@ function printTipCard({
   const first = me.full_name.split(" ")[0];
   const escape = (s: string) =>
     s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
-  const line = message.trim() || defaultPosterMessage(first);
+  const headline = message.trim() || defaultPosterMessage(first);
   printHTML(
-    `Tip ${first} · ${salon.name}`,
+    `${headline} · ${salon.name}`,
     `
       <div style="text-align:center;padding-top:12mm">
         <p style="font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:#666;margin:0 0 24px">${escape(salon.name)}</p>
         <div style="display:inline-block;padding:12px;background:#fff;border:1px solid #ccc;border-radius:8px">${qr}</div>
-        <h1 style="margin-top:24px;font-size:22px">Tip ${escape(first)}</h1>
-        <p class="subtitle" style="white-space:pre-line">${escape(line)}</p>
+        <h1 style="margin-top:24px;font-size:24px;white-space:pre-line;letter-spacing:-0.01em">${escape(headline)}</h1>
         <p class="footnote" style="margin-top:28px">${escape(tipUrl)}</p>
       </div>
     `,
@@ -497,7 +495,7 @@ function TipQrDialog() {
                   htmlFor="poster-msg"
                   className="text-xs font-semibold text-muted-foreground"
                 >
-                  Your message on the printed poster
+                  Poster headline (default: Tip {first})
                 </label>
                 <span
                   className={`text-[11px] tabular-nums ${posterOver ? "text-destructive" : "text-muted-foreground"}`}
