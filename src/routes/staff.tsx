@@ -379,6 +379,7 @@ function printTipCard({
         <p style="font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:#666;margin:0 0 24px">${escape(salon.name)}</p>
         <div style="display:inline-block;padding:12px;background:#fff;border:1px solid #ccc;border-radius:8px">${qr}</div>
         <h1 style="margin-top:24px;font-size:24px;white-space:pre-line;letter-spacing:-0.01em">${escape(headline)}</h1>
+        <p class="subtitle" style="margin-top:8px">Scan QR code to tip ${escape(first)}</p>
         <p class="footnote" style="margin-top:28px">${escape(tipUrl)}</p>
       </div>
     `,
