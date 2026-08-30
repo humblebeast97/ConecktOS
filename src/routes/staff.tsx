@@ -28,9 +28,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useAttendance, useAuth, useSalon, useServices, useStaff, useTickets } from "@/api";
-import { haversineMeters, naira, timeOf } from "@/lib/groompulse";
+import { haversineMeters, naira, timeOf, type Profile, type Salon } from "@/lib/groompulse";
 import { copyText } from "@/lib/clipboard";
 import { staffDailyCommission } from "@/lib/reports";
+import { printHTML } from "@/lib/print-sheet";
 import { useIndustryConfig } from "@/config/industry-context";
 
 // The QR library only renders inside the tip dialog. Load it on demand so it
@@ -330,6 +331,36 @@ function StaffPortal() {
   );
 }
 
+function printTipCard({
+  salon,
+  me,
+  tipUrl,
+}: {
+  salon: Salon;
+  me: Profile;
+  tipUrl: string;
+}): void {
+  const svg = document.querySelector<SVGElement>('[role="dialog"] svg[viewBox]');
+  const qr = svg
+    ? svg.outerHTML.replace(/<svg /, '<svg width="240" height="240" ')
+    : "";
+  const first = me.full_name.split(" ")[0];
+  const escape = (s: string) =>
+    s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+  printHTML(
+    `Tip ${first} · ${salon.name}`,
+    `
+      <div style="text-align:center;padding-top:12mm">
+        <p style="font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:#666;margin:0 0 24px">${escape(salon.name)}</p>
+        <div style="display:inline-block;padding:12px;background:#fff;border:1px solid #ccc;border-radius:8px">${qr}</div>
+        <h1 style="margin-top:24px;font-size:22px">Tip ${escape(first)}</h1>
+        <p class="subtitle">Scan to tip ${escape(first)} by bank transfer.</p>
+        <p class="footnote" style="margin-top:28px">${escape(tipUrl)}</p>
+      </div>
+    `,
+  );
+}
+
 function TipQrDialog() {
   const { currentUser } = useAuth();
   const { staff } = useStaff();
@@ -370,7 +401,7 @@ function TipQrDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-sm">
-        <DialogHeader className="no-print">
+        <DialogHeader>
           <DialogTitle>Tip {me.full_name.split(" ")[0]}</DialogTitle>
           <DialogDescription>
             {hasBank
@@ -391,16 +422,7 @@ function TipQrDialog() {
                 </Suspense>
               </div>
 
-              {/* Print-only: a clean tip poster (details live on the scanned page). */}
-              <div className="mt-5 hidden print:block">
-                <p className="font-display text-lg font-bold">Tip {me.full_name.split(" ")[0]}</p>
-                <p className="mx-auto mt-1 max-w-[16rem] text-sm text-muted-foreground">
-                  Scan to tip {me.full_name.split(" ")[0]} by bank transfer.
-                </p>
-              </div>
-
-              {/* On-screen details (not printed. The scanned page shows these). */}
-              <div className="print:hidden">
+              <div>
                 <p className="mt-4 font-display text-lg font-bold">{me.full_name}</p>
                 <div className="mt-2 text-sm">
                   <p className="text-muted-foreground">{me.bank_name}</p>
@@ -441,8 +463,7 @@ function TipQrDialog() {
 
             <Button
               variant="outline"
-              className="no-print"
-              onClick={() => typeof window !== "undefined" && window.print()}
+              onClick={() => printTipCard({ salon, me, tipUrl })}
             >
               <Printer className="size-4" />
               Print mirror card

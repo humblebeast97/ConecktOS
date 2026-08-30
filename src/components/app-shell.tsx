@@ -112,7 +112,7 @@ export function AppShell({
   return (
     <div className="min-h-dvh bg-background pb-10">
       <OfflineBanner />
-      <header className="no-print sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur-xl">
         <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-6">
           <Link to="/" className="flex min-w-0 items-center gap-2.5">
             <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-gold text-gold-foreground shadow-gold">
@@ -242,7 +242,7 @@ export function AppShell({
       </header>
 
       <main id="main-content" className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-        <div className="no-print mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div className="min-w-0">
             <h1 className="truncate text-2xl font-bold sm:text-3xl">{title}</h1>
             {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}

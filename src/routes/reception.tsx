@@ -40,8 +40,18 @@ import {
 import { useAttendance, useAuth, useSalon, useServices, useStaff, useTickets } from "@/api";
 import { currentGreeting } from "@/lib/greeting";
 import { useRoleGuard } from "@/lib/access";
-import { naira, paymentLabel, timeOf, type Ticket } from "@/lib/groompulse";
+import {
+  naira,
+  paymentLabel,
+  timeOf,
+  type Profile,
+  type Salon,
+  type Service,
+  type Ticket,
+  type TicketItem,
+} from "@/lib/groompulse";
 import { isToday } from "@/lib/reports";
+import { printHTML } from "@/lib/print-sheet";
 import { useIndustryConfig } from "@/config/industry-context";
 
 export const Route = createFileRoute("/reception")({
@@ -362,12 +372,12 @@ function ReceiptDialog({ ticket }: { ticket: Ticket }) {
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-sm">
-        <DialogHeader className="no-print">
+        <DialogHeader>
           <DialogTitle>Receipt</DialogTitle>
           <DialogDescription>Print or save this ticket as a receipt.</DialogDescription>
         </DialogHeader>
 
-        <div className="print-sheet rounded-2xl border border-border bg-gradient-surface p-5">
+        <div className="rounded-2xl border border-border bg-gradient-surface p-5">
           <p className="font-display text-base font-bold">{salon.name}</p>
           <p className="text-xs text-muted-foreground">
             Receipt ·{" "}
@@ -431,8 +441,12 @@ function ReceiptDialog({ ticket }: { ticket: Ticket }) {
 
         <Button
           variant="outline"
-          className="no-print"
-          onClick={() => typeof window !== "undefined" && window.print()}
+          onClick={() =>
+            printHTML(
+              `${salon.name} · Receipt`,
+              renderReceiptHTML({ salon, ticket, items, services, staff }),
+            )
+          }
         >
           <Printer className="size-4" />
           Print / save as PDF
@@ -440,6 +454,56 @@ function ReceiptDialog({ ticket }: { ticket: Ticket }) {
       </DialogContent>
     </Dialog>
   );
+}
+
+function renderReceiptHTML({
+  salon,
+  ticket,
+  items,
+  services,
+  staff,
+}: {
+  salon: Salon;
+  ticket: Ticket;
+  items: TicketItem[];
+  services: Service[];
+  staff: Profile[];
+}): string {
+  const when = new Date(ticket.created_at).toLocaleString("en-NG", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+  const escape = (s: string) =>
+    s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+  const lines = items
+    .map((it) => {
+      const svc = services.find((s) => s.id === it.service_id);
+      const who = staff.find((s) => s.id === it.staff_id);
+      return `<tr>
+        <td class="label">
+          <div>${escape(svc?.name ?? "Service removed")}</div>
+          <div style="font-size:11px;color:#666">${escape(who?.full_name ?? "Team member removed")}</div>
+        </td>
+        <td class="value">${naira(it.service_price)}</td>
+      </tr>`;
+    })
+    .join("");
+  return `
+    <h1>${escape(salon.name)}</h1>
+    <p class="subtitle">Receipt · ${escape(when)}</p>
+    <table>
+      <tbody>
+        <tr><th colspan="2">Client</th></tr>
+        <tr><td class="label">Name</td><td class="value">${escape(ticket.client_name || "Walk-in")}</td></tr>
+        ${ticket.client_phone ? `<tr><td class="label">Phone</td><td class="value">${escape(ticket.client_phone)}</td></tr>` : ""}
+        <tr><th colspan="2">Items</th></tr>
+        ${lines}
+        <tr><th colspan="2">${escape(paymentLabel[ticket.payment_method])} · ${ticket.status === "paid" ? "Paid" : "Pending"}</th></tr>
+        <tr class="strong"><td class="label">Total</td><td class="value">${naira(ticket.total_amount)}</td></tr>
+      </tbody>
+    </table>
+    <p class="footnote" style="text-align:center">Thank you for your patronage.</p>
+  `;
 }
 
 function MatchRow({ onMatch, id }: { onMatch: (ref: string) => void; id: string }) {

@@ -83,6 +83,7 @@ import { SortButton } from "@/components/sort-button";
 import { GeofenceBadge } from "@/components/geofence-badge";
 import { PayrollReminderCard } from "@/components/payroll-reminder-card";
 import { currentGreeting } from "@/lib/greeting";
+import { printHTML } from "@/lib/print-sheet";
 import { RouteError } from "@/components/route-error";
 import { useIndustryConfig } from "@/config/industry-context";
 
@@ -202,7 +203,7 @@ function AdminPage() {
         ) : null
       }
     >
-      <div className="no-print mb-5 flex w-fit items-center gap-1 rounded-full border border-border bg-surface p-1">
+      <div className="mb-5 flex w-fit items-center gap-1 rounded-full border border-border bg-surface p-1">
         {[
           { key: "overview" as const, label: "Overview", icon: LayoutDashboard },
           { key: "team" as const, label: "Team", icon: Users },
@@ -795,14 +796,14 @@ function CloseDayDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto">
-        <DialogHeader className="no-print">
+        <DialogHeader>
           <DialogTitle>End-of-day audit</DialogTitle>
           <DialogDescription>
             Reconcile revenue, commissions, overheads and stock discrepancies.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="no-print space-y-1.5">
+        <div className="space-y-1.5">
           <Label htmlFor="audit-date">Audit date</Label>
           <Input
             id="audit-date"
@@ -814,7 +815,7 @@ function CloseDayDialog() {
           />
         </div>
 
-        <div className="print-sheet no-print rounded-2xl border border-border bg-gradient-surface p-5">
+        <div className="rounded-2xl border border-border bg-gradient-surface p-5">
           <p className="font-display text-sm font-bold">{salon.name}</p>
           <p className="text-xs text-muted-foreground">
             {isTodaySelected ? "Daily audit" : "Day audit"} ·{" "}
@@ -863,59 +864,14 @@ function CloseDayDialog() {
           </Section>
         </div>
 
-        {/* Print-only: clean figures table. Guarantees labels + values render. */}
-        <div className="print-sheet print-only">
-          <h1 className="mb-1 text-lg font-bold">{salon.name}</h1>
-          <p className="mb-4 text-xs">
-            {isTodaySelected ? "Daily audit" : "Day audit"} ·{" "}
-            {auditDate.toLocaleDateString("en-NG", { dateStyle: "full" })}
-          </p>
-          <table className="w-full border-collapse text-sm">
-            <tbody>
-              <tr>
-                <td
-                  colSpan={2}
-                  className="border-t border-b border-black/40 py-1 text-xs font-semibold uppercase tracking-wider"
-                >
-                  Gross revenue
-                </td>
-              </tr>
-              <PrintRow label="POS" value={naira(audit.byMethod.pos)} />
-              <PrintRow
-                label={paymentLabel.bank_transfer}
-                value={naira(audit.byMethod.bank_transfer)}
-              />
-              <PrintRow label="Cash" value={naira(audit.byMethod.cash)} />
-              <PrintRow label="Total collected" value={naira(audit.gross)} strong />
-              <PrintRow
-                label="Unsettled tickets"
-                value={`${audit.pendingCount} · ${naira(audit.pendingAmount)}`}
-              />
-
-              <tr>
-                <td
-                  colSpan={2}
-                  className="border-t border-b border-black/40 pt-4 py-1 text-xs font-semibold uppercase tracking-wider"
-                >
-                  Payouts & overheads
-                </td>
-              </tr>
-              <PrintRow label="Staff commissions payable" value={naira(audit.commissionsPayable)} />
-              <PrintRow label="Generator / fuel" value={naira(audit.fuelExpense)} />
-              <PrintRow label="All expenses" value={naira(audit.totalExpenses)} />
-              <PrintRow
-                label="Generator overhead per billed service"
-                value={naira(audit.overheadPerService)}
-              />
-              <PrintRow label="Net position" value={naira(audit.netPosition)} strong />
-            </tbody>
-          </table>
-        </div>
-
         <Button
           variant="outline"
-          className="no-print"
-          onClick={() => typeof window !== "undefined" && window.print()}
+          onClick={() =>
+            printHTML(
+              `${salon.name} · ${isTodaySelected ? "Daily audit" : "Day audit"}`,
+              renderAuditHTML({ salon, audit, auditDate, isTodaySelected }),
+            )
+          }
         >
           <Printer className="size-4" />
           Print / save as PDF
@@ -965,18 +921,49 @@ function Row({ label, value, strong }: { label: string; value: string; strong?: 
   );
 }
 
-function PrintRow({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
-  // Inline styles so nothing in the utility cascade can hide either cell.
-  const cell: React.CSSProperties = {
-    padding: "4px 8px 4px 0",
-    color: "#000",
-    fontWeight: strong ? 700 : 400,
-    verticalAlign: "top",
-  };
-  return (
-    <tr>
-      <td style={cell}>{label}</td>
-      <td style={{ ...cell, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{value}</td>
-    </tr>
-  );
+function renderAuditHTML({
+  salon,
+  audit,
+  auditDate,
+  isTodaySelected,
+}: {
+  salon: { name: string };
+  audit: ReturnType<typeof buildAudit>;
+  auditDate: Date;
+  isTodaySelected: boolean;
+}): string {
+  const row = (label: string, value: string, strong = false) =>
+    `<tr${strong ? ' class="strong"' : ""}><td class="label">${label}</td><td class="value">${value}</td></tr>`;
+  const section = (title: string) =>
+    `<tr><th colspan="2">${title}</th></tr>`;
+  const discrepancies = audit.discrepancies.length
+    ? audit.discrepancies
+        .map(
+          (d) =>
+            `<p class="footnote">⚠ ${d.quantity} ${d.unit} of ${d.item} consumed with no billed service ticket.</p>`,
+        )
+        .join("")
+    : `<p class="footnote">No stock movement without a matching billed ticket.</p>`;
+  return `
+    <h1>${salon.name}</h1>
+    <p class="subtitle">${isTodaySelected ? "Daily audit" : "Day audit"} · ${auditDate.toLocaleDateString("en-NG", { dateStyle: "full" })}</p>
+    <table>
+      <tbody>
+        ${section("Gross revenue")}
+        ${row("POS", naira(audit.byMethod.pos))}
+        ${row(paymentLabel.bank_transfer, naira(audit.byMethod.bank_transfer))}
+        ${row("Cash", naira(audit.byMethod.cash))}
+        ${row("Total collected", naira(audit.gross), true)}
+        ${row("Unsettled tickets", `${audit.pendingCount} · ${naira(audit.pendingAmount)}`)}
+        ${section("Payouts & overheads")}
+        ${row("Staff commissions payable", naira(audit.commissionsPayable))}
+        ${row("Generator / fuel", naira(audit.fuelExpense))}
+        ${row("All expenses", naira(audit.totalExpenses))}
+        ${row("Generator overhead per billed service", naira(audit.overheadPerService))}
+        ${row("Net position", naira(audit.netPosition), true)}
+        ${section("Anti-fraud checks")}
+      </tbody>
+    </table>
+    ${discrepancies}
+  `;
 }
