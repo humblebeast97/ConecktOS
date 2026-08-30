@@ -778,14 +778,32 @@ function CloseDayDialog() {
   const { tickets, ticketItems } = useTickets();
   const { inventory, usage } = useInventory();
   const { expenses } = useExpenses();
-  const [dateStr, setDateStr] = useState(() => toDateInput(new Date()));
-  const auditDate = useMemo(() => new Date(`${dateStr}T00:00:00`), [dateStr]);
+  const today = toDateInput(new Date());
+  const [fromStr, setFromStr] = useState(today);
+  const [toStr, setToStr] = useState(today);
+  // Auto-swap when the user picks a To that predates From so the range stays valid.
+  const [fromDate, toDate] = useMemo(() => {
+    const a = new Date(`${fromStr}T00:00:00`);
+    const b = new Date(`${toStr}T00:00:00`);
+    return a <= b ? [a, b] : [b, a];
+  }, [fromStr, toStr]);
+
   const audit = useMemo(
-    () => buildAudit({ tickets, ticketItems, usage, inventory, expenses }, auditDate),
-    [tickets, ticketItems, usage, inventory, expenses, auditDate],
+    () =>
+      buildAudit(
+        { tickets, ticketItems, usage, inventory, expenses },
+        { from: fromDate, to: toDate },
+      ),
+    [tickets, ticketItems, usage, inventory, expenses, fromDate, toDate],
   );
-  const isTodaySelected = toDateInput(new Date()) === dateStr;
+  const isSingleDay = fromStr === toStr;
+  const isToday = isSingleDay && fromStr === today;
+  const rangeDays =
+    Math.round((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const overCap = rangeDays > 366;
   const noActivity = audit.gross === 0 && audit.pendingCount === 0 && audit.totalExpenses === 0;
+
+  const heading = isToday ? "Daily audit" : isSingleDay ? "Day audit" : "Period audit";
 
   return (
     <Dialog>
@@ -797,79 +815,118 @@ function CloseDayDialog() {
       </DialogTrigger>
       <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>End-of-day audit</DialogTitle>
+          <DialogTitle>End of period audit</DialogTitle>
           <DialogDescription>
-            Reconcile revenue, commissions, overheads and stock discrepancies.
+            Reconcile revenue, commissions, overheads and stock across any period up to a year.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="audit-date">Audit date</Label>
-          <Input
-            id="audit-date"
-            type="date"
-            value={dateStr}
-            max={toDateInput(new Date())}
-            onChange={(e) => setDateStr(e.target.value || toDateInput(new Date()))}
-            className="h-11 bg-surface"
-          />
-        </div>
-
         <div className="rounded-2xl border border-border bg-gradient-surface p-5">
-          <p className="font-display text-sm font-bold">{salon.name}</p>
-          <p className="text-xs text-muted-foreground">
-            {isTodaySelected ? "Daily audit" : "Day audit"} ·{" "}
-            {auditDate.toLocaleDateString("en-NG", { dateStyle: "full" })}
-          </p>
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="font-display text-sm font-bold">{salon.name}</p>
+            <p className="text-[11px] tabular-nums text-muted-foreground">
+              {formatRange(fromDate, toDate)}
+            </p>
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-3">
+            <SummaryMetric label="Gross" value={naira(audit.gross)} tone="gold" />
+            <SummaryMetric
+              label="Payouts"
+              value={naira(audit.commissionsPayable + audit.totalExpenses)}
+            />
+            <SummaryMetric label="Net" value={naira(audit.netPosition)} tone="good" />
+          </div>
           {noActivity ? (
-            <p className="mt-2 rounded-lg bg-surface px-3 py-1.5 text-xs text-muted-foreground">
-              No recorded activity on this date.
+            <p className="mt-3 rounded-lg bg-surface px-3 py-1.5 text-xs text-muted-foreground">
+              No recorded activity in this period.
             </p>
           ) : null}
-
-          <Section title="Gross revenue">
-            <Row label="POS" value={naira(audit.byMethod.pos)} />
-            <Row label={paymentLabel.bank_transfer} value={naira(audit.byMethod.bank_transfer)} />
-            <Row label="Cash" value={naira(audit.byMethod.cash)} />
-            <Row label="Total collected" value={naira(audit.gross)} strong />
-            <Row
-              label="Unsettled tickets"
-              value={`${audit.pendingCount} · ${naira(audit.pendingAmount)}`}
-            />
-          </Section>
-
-          <Section title="Payouts & overheads">
-            <Row label="Staff commissions payable" value={naira(audit.commissionsPayable)} />
-            <Row label="Generator / fuel" value={naira(audit.fuelExpense)} />
-            <Row label="All expenses" value={naira(audit.totalExpenses)} />
-            <Row
-              label="Generator overhead per billed service"
-              value={naira(audit.overheadPerService)}
-            />
-            <Row label="Net position" value={naira(audit.netPosition)} strong />
-          </Section>
-
-          <Section title="Anti-fraud checks">
-            {audit.discrepancies.length === 0 ? (
-              <p className="text-xs text-success">
-                No stock movement without a matching billed ticket.
-              </p>
-            ) : (
-              audit.discrepancies.map((d, i) => (
-                <p key={i} className="text-xs text-destructive">
-                  ⚠ {d.quantity} {d.unit} of {d.item} consumed with no billed service ticket.
-                </p>
-              ))
-            )}
-          </Section>
         </div>
+
+        <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="audit-from">From</Label>
+            <Input
+              id="audit-from"
+              type="date"
+              value={fromStr}
+              max={today}
+              onChange={(e) => setFromStr(e.target.value || today)}
+              className="h-11 bg-surface"
+            />
+          </div>
+          <div className="mb-5 h-px w-3 bg-border" />
+          <div className="space-y-1.5">
+            <Label htmlFor="audit-to">To</Label>
+            <Input
+              id="audit-to"
+              type="date"
+              value={toStr}
+              max={today}
+              onChange={(e) => setToStr(e.target.value || today)}
+              className="h-11 bg-surface"
+            />
+          </div>
+        </div>
+        <div className="flex justify-between text-[11px] text-muted-foreground">
+          <span className="tabular-nums">
+            {rangeDays} {rangeDays === 1 ? "day" : "days"}
+          </span>
+          {overCap ? <span className="text-primary">Max range: 12 months</span> : null}
+        </div>
+
+        <details className="rounded-lg border border-border bg-surface px-3 py-2 text-xs">
+          <summary className="cursor-pointer select-none text-muted-foreground">
+            View full breakdown
+          </summary>
+          <div className="mt-2 space-y-3">
+            <Section title="Gross revenue">
+              <Row label="POS" value={naira(audit.byMethod.pos)} />
+              <Row
+                label={paymentLabel.bank_transfer}
+                value={naira(audit.byMethod.bank_transfer)}
+              />
+              <Row label="Cash" value={naira(audit.byMethod.cash)} />
+              <Row label="Total collected" value={naira(audit.gross)} strong />
+              <Row
+                label="Unsettled tickets"
+                value={`${audit.pendingCount} · ${naira(audit.pendingAmount)}`}
+              />
+            </Section>
+
+            <Section title="Payouts & overheads">
+              <Row label="Staff commissions payable" value={naira(audit.commissionsPayable)} />
+              <Row label="Generator / fuel" value={naira(audit.fuelExpense)} />
+              <Row label="All expenses" value={naira(audit.totalExpenses)} />
+              <Row
+                label="Generator overhead per billed service"
+                value={naira(audit.overheadPerService)}
+              />
+              <Row label="Net position" value={naira(audit.netPosition)} strong />
+            </Section>
+
+            <Section title="Anti-fraud checks">
+              {audit.discrepancies.length === 0 ? (
+                <p className="text-xs text-success">
+                  No stock movement without a matching billed ticket.
+                </p>
+              ) : (
+                audit.discrepancies.map((d, i) => (
+                  <p key={i} className="text-xs text-destructive">
+                    ⚠ {d.quantity} {d.unit} of {d.item} consumed with no billed service ticket.
+                  </p>
+                ))
+              )}
+            </Section>
+          </div>
+        </details>
 
         <Button
           variant="outline"
           onClick={() =>
             printHTML(
-              `${salon.name} · ${isTodaySelected ? "Daily audit" : "Day audit"}`,
-              renderAuditHTML({ salon, audit, auditDate, isTodaySelected }),
+              `${salon.name} · ${heading}`,
+              renderAuditHTML({ salon, audit, heading }),
             )
           }
         >
@@ -921,21 +978,50 @@ function Row({ label, value, strong }: { label: string; value: string; strong?: 
   );
 }
 
+function SummaryMetric({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: "gold" | "good";
+}) {
+  const color =
+    tone === "gold" ? "text-primary" : tone === "good" ? "text-success" : "text-foreground";
+  return (
+    <div>
+      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
+      <p className={`mt-1 font-display text-base font-bold tabular-nums ${color}`}>{value}</p>
+    </div>
+  );
+}
+
+function formatRange(from: Date, to: Date): string {
+  const same = from.toDateString() === to.toDateString();
+  const opts: Intl.DateTimeFormatOptions = { day: "2-digit", month: "short", year: "numeric" };
+  if (same) return from.toLocaleDateString("en-NG", opts);
+  const sameYear = from.getFullYear() === to.getFullYear();
+  const fromFmt: Intl.DateTimeFormatOptions = sameYear
+    ? { day: "2-digit", month: "short" }
+    : opts;
+  return `${from.toLocaleDateString("en-NG", fromFmt)} to ${to.toLocaleDateString("en-NG", opts)}`;
+}
+
 function renderAuditHTML({
   salon,
   audit,
-  auditDate,
-  isTodaySelected,
+  heading,
 }: {
   salon: { name: string };
   audit: ReturnType<typeof buildAudit>;
-  auditDate: Date;
-  isTodaySelected: boolean;
+  heading: string;
 }): string {
   const row = (label: string, value: string, strong = false) =>
     `<tr${strong ? ' class="strong"' : ""}><td class="label">${label}</td><td class="value">${value}</td></tr>`;
-  const section = (title: string) =>
-    `<tr><th colspan="2">${title}</th></tr>`;
+  const section = (title: string) => `<tr><th colspan="2">${title}</th></tr>`;
   const discrepancies = audit.discrepancies.length
     ? audit.discrepancies
         .map(
@@ -944,26 +1030,75 @@ function renderAuditHTML({
         )
         .join("")
     : `<p class="footnote">No stock movement without a matching billed ticket.</p>`;
-  return `
-    <h1>${salon.name}</h1>
-    <p class="subtitle">${isTodaySelected ? "Daily audit" : "Day audit"} · ${auditDate.toLocaleDateString("en-NG", { dateStyle: "full" })}</p>
-    <table>
-      <tbody>
-        ${section("Gross revenue")}
-        ${row("POS", naira(audit.byMethod.pos))}
-        ${row(paymentLabel.bank_transfer, naira(audit.byMethod.bank_transfer))}
-        ${row("Cash", naira(audit.byMethod.cash))}
-        ${row("Total collected", naira(audit.gross), true)}
-        ${row("Unsettled tickets", `${audit.pendingCount} · ${naira(audit.pendingAmount)}`)}
-        ${section("Payouts & overheads")}
-        ${row("Staff commissions payable", naira(audit.commissionsPayable))}
-        ${row("Generator / fuel", naira(audit.fuelExpense))}
-        ${row("All expenses", naira(audit.totalExpenses))}
-        ${row("Generator overhead per billed service", naira(audit.overheadPerService))}
-        ${row("Net position", naira(audit.netPosition), true)}
-        ${section("Anti-fraud checks")}
-      </tbody>
-    </table>
-    ${discrepancies}
+
+  const rangeLabel = formatRange(audit.from, audit.to);
+  const rangeDays =
+    Math.round((audit.to.getTime() - audit.from.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const totalPages = audit.monthly.length ? 2 : 1;
+
+  const page1 = `
+    <section class="page">
+      <h1>${salon.name}</h1>
+      <p class="subtitle">${heading} · ${rangeLabel}${totalPages === 1 ? "" : ` · ${rangeDays} days`}</p>
+      <table>
+        <tbody>
+          ${section("Gross revenue")}
+          ${row("POS", naira(audit.byMethod.pos))}
+          ${row(paymentLabel.bank_transfer, naira(audit.byMethod.bank_transfer))}
+          ${row("Cash", naira(audit.byMethod.cash))}
+          ${row("Total collected", naira(audit.gross), true)}
+          ${row("Unsettled tickets", `${audit.pendingCount} · ${naira(audit.pendingAmount)}`)}
+          ${section("Payouts & overheads")}
+          ${row("Staff commissions payable", naira(audit.commissionsPayable))}
+          ${row("Generator / fuel", naira(audit.fuelExpense))}
+          ${row("All expenses", naira(audit.totalExpenses))}
+          ${row("Generator overhead per billed service", naira(audit.overheadPerService))}
+          ${row("Net position", naira(audit.netPosition), true)}
+          ${section("Anti-fraud checks")}
+        </tbody>
+      </table>
+      ${discrepancies}
+      <p class="pagemark">Page 1 of ${totalPages}</p>
+    </section>
   `;
+
+  const page2 = audit.monthly.length
+    ? `
+    <section class="page break">
+      <h1>${salon.name}</h1>
+      <p class="subtitle">Monthly breakdown · ${rangeLabel}</p>
+      <table class="months">
+        <thead>
+          <tr>
+            <th class="l">Month</th>
+            <th class="v">Gross</th>
+            <th class="v">Payouts</th>
+            <th class="v">Net</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${audit.monthly
+            .map(
+              (m) => `<tr>
+              <td class="l">${m.label}</td>
+              <td class="v">${naira(m.gross)}</td>
+              <td class="v">${naira(m.payouts)}</td>
+              <td class="v">${naira(m.net)}</td>
+            </tr>`,
+            )
+            .join("")}
+          <tr class="total">
+            <td class="l">Total</td>
+            <td class="v">${naira(audit.gross)}</td>
+            <td class="v">${naira(audit.commissionsPayable + audit.totalExpenses)}</td>
+            <td class="v">${naira(audit.netPosition)}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="pagemark">Page 2 of ${totalPages}</p>
+    </section>
+  `
+    : "";
+
+  return page1 + page2;
 }

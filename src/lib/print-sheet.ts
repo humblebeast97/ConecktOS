@@ -40,6 +40,15 @@ export function printHTML(title: string, bodyHTML: string): void {
   td.value { width: 30%; text-align: right; font-variant-numeric: tabular-nums; }
   tr.strong td { font-weight: 700; }
   .footnote { margin-top: 20px; font-size: 11px; color: #444; }
+  section.page { break-after: page; page-break-after: always; }
+  section.page:last-of-type { break-after: auto; page-break-after: auto; }
+  section.page.break { break-before: page; page-break-before: always; }
+  .pagemark { margin-top: 20px; font-size: 10px; color: #888; text-align: right; letter-spacing: 0.05em; }
+  table.months th, table.months td { padding: 7px 6px; border-bottom: 1px solid #ccc; font-size: 12px; }
+  table.months th { text-transform: uppercase; letter-spacing: 0.1em; font-size: 10px; color: #666; border-top: 1px solid #999; border-bottom: 1px solid #999; }
+  table.months th.l, table.months td.l { text-align: left; width: 34%; }
+  table.months th.v, table.months td.v { text-align: right; font-variant-numeric: tabular-nums; width: 22%; }
+  table.months tr.total td { font-weight: 700; border-top: 1px solid #999; border-bottom: 0; padding-top: 9px; }
 </style>
 </head>
 <body>${bodyHTML}</body></html>`);

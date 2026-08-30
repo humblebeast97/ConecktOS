@@ -6,18 +6,42 @@ import type {
   TicketItem,
 } from "./groompulse";
 
-const isSameDay = (iso: string, ref: Date) => {
-  const d = new Date(iso);
-  return (
-    d.getDate() === ref.getDate() &&
-    d.getMonth() === ref.getMonth() &&
-    d.getFullYear() === ref.getFullYear()
-  );
+const startOfDay = (d: Date) => {
+  const c = new Date(d);
+  c.setHours(0, 0, 0, 0);
+  return c;
+};
+const endOfDay = (d: Date) => {
+  const c = new Date(d);
+  c.setHours(23, 59, 59, 999);
+  return c;
+};
+const inRange = (iso: string, from: Date, to: Date) => {
+  const t = new Date(iso).getTime();
+  return t >= from.getTime() && t <= to.getTime();
 };
 
-const isToday = (iso: string) => isSameDay(iso, new Date());
+const isToday = (iso: string) => {
+  const now = new Date();
+  return inRange(iso, startOfDay(now), endOfDay(now));
+};
+
+export interface AuditRange {
+  from: Date;
+  to: Date;
+}
+
+export interface MonthlyBreakdownRow {
+  key: string; // YYYY-MM
+  label: string; // e.g. "March 2026"
+  gross: number;
+  payouts: number;
+  net: number;
+}
 
 export interface AuditReport {
+  from: Date;
+  to: Date;
   gross: number;
   byMethod: { pos: number; bank_transfer: number; cash: number };
   pendingAmount: number;
@@ -30,8 +54,13 @@ export interface AuditReport {
   overheadPerService: number;
   netPosition: number;
   discrepancies: { item: string; quantity: number; unit: string }[];
+  monthly: MonthlyBreakdownRow[];
 }
 
+/**
+ * Roll ticket + expense data into an audit for a date range (inclusive).
+ * Defaults to today when only a single date or nothing is supplied.
+ */
 export function buildAudit(
   args: {
     tickets: Ticket[];
@@ -40,12 +69,19 @@ export function buildAudit(
     inventory: InventoryItem[];
     expenses: Expense[];
   },
-  /** The day to audit. Defaults to today. */
-  date: Date = new Date(),
+  range?: Date | AuditRange,
 ): AuditReport {
-  const todays = args.tickets.filter((t) => isSameDay(t.created_at, date));
-  const paid = todays.filter((t) => t.status === "paid");
-  const pending = todays.filter((t) => t.status === "pending");
+  const now = new Date();
+  const from = startOfDay(
+    range instanceof Date ? range : range?.from ?? now,
+  );
+  const to = endOfDay(
+    range instanceof Date ? range : range?.to ?? range?.from ?? now,
+  );
+
+  const inWindow = args.tickets.filter((t) => inRange(t.created_at, from, to));
+  const paid = inWindow.filter((t) => t.status === "paid");
+  const pending = inWindow.filter((t) => t.status === "pending");
   const paidIds = new Set(paid.map((t) => t.id));
 
   const byMethod = { pos: 0, bank_transfer: 0, cash: 0 };
@@ -57,12 +93,12 @@ export function buildAudit(
   const items = args.ticketItems.filter((i) => paidIds.has(i.ticket_id));
   const commissionsPayable = items.reduce((s, i) => s + i.staff_commission_amount, 0);
 
-  const todaysExpenses = args.expenses.filter((e) => isSameDay(e.logged_at, date));
-  const fuelExpense = todaysExpenses
+  const rangeExpenses = args.expenses.filter((e) => inRange(e.logged_at, from, to));
+  const fuelExpense = rangeExpenses
     .filter((e) => e.category === "generator_fuel")
     .reduce((s, e) => s + e.amount, 0);
-  const totalExpenses = todaysExpenses.reduce((s, e) => s + e.amount, 0);
-  const generatorHours = todaysExpenses.reduce((s, e) => s + (e.generator_hours_run ?? 0), 0);
+  const totalExpenses = rangeExpenses.reduce((s, e) => s + e.amount, 0);
+  const generatorHours = rangeExpenses.reduce((s, e) => s + (e.generator_hours_run ?? 0), 0);
 
   const billedServices = items.length;
 
@@ -77,7 +113,17 @@ export function buildAudit(
       };
     });
 
+  const monthly = buildMonthlyBreakdown({
+    paid,
+    items,
+    expenses: rangeExpenses,
+    from,
+    to,
+  });
+
   return {
+    from,
+    to,
     gross,
     byMethod,
     pendingAmount: pending.reduce((s, t) => s + t.total_amount, 0),
@@ -90,7 +136,69 @@ export function buildAudit(
     overheadPerService: billedServices ? Math.round(fuelExpense / billedServices) : 0,
     netPosition: gross - commissionsPayable - totalExpenses,
     discrepancies,
+    monthly,
   };
+}
+
+function monthKey(iso: string) {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function buildMonthlyBreakdown({
+  paid,
+  items,
+  expenses,
+  from,
+  to,
+}: {
+  paid: Ticket[];
+  items: TicketItem[];
+  expenses: Expense[];
+  from: Date;
+  to: Date;
+}): MonthlyBreakdownRow[] {
+  if (from.getFullYear() === to.getFullYear() && from.getMonth() === to.getMonth()) {
+    return [];
+  }
+  const buckets = new Map<string, { gross: number; commissions: number; expenses: number }>();
+  // Seed a bucket for every calendar month the range touches so empty months
+  // still appear in the breakdown (readers care that a zero month happened).
+  const cursor = new Date(from.getFullYear(), from.getMonth(), 1);
+  const stop = new Date(to.getFullYear(), to.getMonth(), 1);
+  while (cursor <= stop) {
+    const k = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`;
+    buckets.set(k, { gross: 0, commissions: 0, expenses: 0 });
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+  const seed = (k: string) => {
+    if (!buckets.has(k)) buckets.set(k, { gross: 0, commissions: 0, expenses: 0 });
+    return buckets.get(k)!;
+  };
+  const ticketMonth = new Map<string, string>();
+  paid.forEach((t) => {
+    const k = monthKey(t.created_at);
+    ticketMonth.set(t.id, k);
+    seed(k).gross += t.total_amount;
+  });
+  items.forEach((i) => {
+    const k = ticketMonth.get(i.ticket_id);
+    if (k) seed(k).commissions += i.staff_commission_amount;
+  });
+  expenses.forEach((e) => {
+    seed(monthKey(e.logged_at)).expenses += e.amount;
+  });
+  return [...buckets.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, v]) => {
+      const [y, m] = key.split("-").map(Number);
+      const label = new Date(y, m - 1, 1).toLocaleDateString("en-NG", {
+        month: "long",
+        year: "numeric",
+      });
+      const payouts = v.commissions + v.expenses;
+      return { key, label, gross: v.gross, payouts, net: v.gross - payouts };
+    });
 }
 
 export function staffDailyCommission(
