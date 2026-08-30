@@ -1,14 +1,23 @@
 /*
- * Opens a fresh popup window with a self-contained print document and triggers
- * the browser's print dialog on it. Bypasses the fragile `:has(.print-sheet)`
- * scoping that breaks on mobile Chrome (dialog wrappers clamp print viewport
- * width and table columns collapse to zero).
+ * Renders a standalone print document into a hidden iframe on the current page
+ * and calls print() on the iframe's window. Iframes bypass popup blockers and
+ * side-step the mobile-Chrome bug where a `:has(.print-sheet)`-scoped page
+ * print collapses table columns because the dialog wrapper clamps the viewport.
  */
 export function printHTML(title: string, bodyHTML: string): void {
-  const win = window.open("", "_blank", "noopener,noreferrer,width=900,height=1200");
-  if (!win) return;
-  win.document.open();
-  win.document.write(`<!doctype html>
+  if (typeof window === "undefined") return;
+  const iframe = document.createElement("iframe");
+  iframe.setAttribute("aria-hidden", "true");
+  iframe.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentDocument;
+  if (!doc) {
+    iframe.remove();
+    return;
+  }
+  doc.open();
+  doc.write(`<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -33,15 +42,32 @@ export function printHTML(title: string, bodyHTML: string): void {
   .footnote { margin-top: 20px; font-size: 11px; color: #444; }
 </style>
 </head>
-<body>${bodyHTML}
-<script>
-  window.addEventListener("load", () => {
-    setTimeout(() => { window.focus(); window.print(); }, 100);
-  });
-  window.addEventListener("afterprint", () => window.close());
-</script>
-</body></html>`);
-  win.document.close();
+<body>${bodyHTML}</body></html>`);
+  doc.close();
+
+  const win = iframe.contentWindow;
+  if (!win) {
+    iframe.remove();
+    return;
+  }
+  const cleanup = () => {
+    // Delay so the browser's print pipeline has finished with the frame.
+    setTimeout(() => iframe.remove(), 500);
+  };
+  win.addEventListener("afterprint", cleanup);
+  // Wait for images/fonts before firing the print dialog.
+  const trigger = () => {
+    try {
+      win.focus();
+      win.print();
+    } catch {
+      cleanup();
+    }
+  };
+  if (doc.readyState === "complete") setTimeout(trigger, 50);
+  else win.addEventListener("load", () => setTimeout(trigger, 50));
+  // Fallback cleanup in case afterprint never fires (some mobile browsers).
+  setTimeout(cleanup, 15000);
 }
 
 function escapeHTML(s: string): string {
