@@ -120,7 +120,15 @@ export interface Expense {
   generator_hours_run: number | null;
   notes: string;
   logged_at: string;
+  logged_by: string | null;
+  voided_at: string | null;
+  voided_by: string | null;
+  void_reason: string | null;
 }
+
+/** Void window: an expense can be voided by whoever logged it, or by an owner,
+ * within this many milliseconds of being logged. After that it is locked. */
+export const EXPENSE_VOID_WINDOW_MS = 5 * 60 * 1000;
 
 export const SALON_ID = "salon-001";
 

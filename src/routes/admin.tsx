@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   BadgeCheck,
@@ -11,6 +11,7 @@ import {
   FileDown,
   Fuel,
   LayoutDashboard,
+  Lock,
   Percent,
   Plus,
   RotateCcw,
@@ -18,6 +19,7 @@ import {
   Search,
   Rocket,
   TrendingUp,
+  Undo2,
   Users,
   Wallet,
 } from "lucide-react";
@@ -56,6 +58,7 @@ import {
 import {
   useAdminOps,
   useAttendance,
+  useAuth,
   useExpenses,
   useInventory,
   useSalon,
@@ -68,10 +71,12 @@ import {
   compensationLabel,
   compensationType,
   earnsCommission,
+  EXPENSE_VOID_WINDOW_MS,
   expenseLabel,
   naira,
   paymentLabel,
   timeOf,
+  type Expense,
   type ExpenseCategory,
   type PaymentMethod,
 } from "@/lib/groompulse";
@@ -122,7 +127,8 @@ function AdminPage() {
   const { inventory, usage } = useInventory();
   const { tickets, ticketItems } = useTickets();
   const { attendance } = useAttendance();
-  const { expenses, addExpense } = useExpenses();
+  const { expenses, addExpense, voidExpense } = useExpenses();
+  const { currentUser } = useAuth();
 
   const audit = useMemo(
     () => buildAudit({ tickets, ticketItems, usage, inventory, expenses }),
@@ -499,59 +505,34 @@ function AdminPage() {
                   No expenses match this filter.
                 </p>
               ) : null}
-              {/* Desktop / tablet: full table */}
-              <div className="hidden overflow-x-auto md:block">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-border hover:bg-transparent">
-                      <TableHead>Category</TableHead>
-                      <TableHead>Notes</TableHead>
-                      <TableHead>Gen. hrs</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {expensesPage.map((e) => (
-                      <TableRow key={e.id} className="border-border">
-                        <TableCell className="font-medium">{expenseLabel[e.category]}</TableCell>
-                        <TableCell className="max-w-40 truncate text-muted-foreground">
-                          {e.notes || "-"}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {e.generator_hours_run ?? "-"}
-                        </TableCell>
-                        <TableCell className="text-right font-semibold tabular-nums">
-                          {naira(e.amount)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Mobile: stacked cards */}
-              <ul className="divide-y divide-border md:hidden">
-                {totalExpenses === 0 ? (
-                  <li className="px-5 py-4 text-sm text-muted-foreground">
-                    No expenses logged yet.
-                  </li>
-                ) : (
-                  expensesPage.map((e) => (
-                    <li key={e.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold">{expenseLabel[e.category]}</p>
-                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                          {e.notes || "No notes"}
-                          {e.generator_hours_run != null ? ` · ${e.generator_hours_run}h run` : ""}
-                        </p>
-                      </div>
-                      <span className="shrink-0 text-sm font-semibold tabular-nums">
-                        {naira(e.amount)}
-                      </span>
-                    </li>
-                  ))
-                )}
-              </ul>
+              {totalExpenses === 0 ? (
+                <p className="px-5 py-4 text-sm text-muted-foreground">
+                  No expenses logged yet.
+                </p>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {expensesPage.map((e) => (
+                    <ExpenseRow
+                      key={e.id}
+                      expense={e}
+                      canVoid={
+                        currentUser.role === "owner" || e.logged_by === currentUser.id
+                      }
+                      voiderName={
+                        e.voided_by
+                          ? profiles.find((p) => p.id === e.voided_by)?.full_name ?? "Someone"
+                          : null
+                      }
+                      onVoid={(reason) => {
+                        voidExpense(e.id, reason);
+                        toast.success("Expense voided", {
+                          description: `${expenseLabel[e.category]} · ${naira(e.amount)}`,
+                        });
+                      }}
+                    />
+                  ))}
+                </ul>
+              )}
 
               {totalExpenses > 0 ? (
                 <div className="px-5 pb-4">
@@ -962,6 +943,134 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <p className="text-xs font-semibold uppercase tracking-wider text-primary">{title}</p>
       <div className="mt-2 space-y-1.5">{children}</div>
     </div>
+  );
+}
+
+/** Tick every N ms so time-sensitive UI (countdown chips) stays fresh. */
+function useNow(intervalMs: number): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), intervalMs);
+    return () => window.clearInterval(id);
+  }, [intervalMs]);
+  return now;
+}
+
+function ExpenseRow({
+  expense,
+  canVoid,
+  voiderName,
+  onVoid,
+}: {
+  expense: Expense;
+  canVoid: boolean;
+  voiderName: string | null;
+  onVoid: (reason: string) => void;
+}) {
+  const now = useNow(1000);
+  const isVoided = Boolean(expense.voided_at);
+  const loggedAt = new Date(expense.logged_at).getTime();
+  const remaining = Math.max(0, loggedAt + EXPENSE_VOID_WINDOW_MS - now);
+  const withinWindow = remaining > 0;
+  const [confirming, setConfirming] = useState(false);
+  const [reason, setReason] = useState("");
+
+  const timer = withinWindow
+    ? `${Math.floor(remaining / 60000)}:${String(Math.floor((remaining % 60000) / 1000)).padStart(2, "0")}`
+    : null;
+
+  return (
+    <li
+      className={`px-5 py-3.5 ${isVoided ? "bg-destructive/[0.04]" : ""}`}
+      aria-label={isVoided ? "Voided expense" : undefined}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p
+            className={`text-sm font-semibold ${isVoided ? "text-muted-foreground line-through decoration-destructive/60" : ""}`}
+          >
+            {expenseLabel[expense.category]}
+          </p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+            {expense.notes || "No notes"}
+            {expense.generator_hours_run != null ? ` · ${expense.generator_hours_run}h run` : ""}
+          </p>
+          {isVoided ? (
+            <p className="mt-1 text-xs text-destructive">
+              Voided by {voiderName ?? "Someone"}
+              {expense.void_reason ? ` · ${expense.void_reason}` : ""}
+            </p>
+          ) : null}
+        </div>
+        <div className="flex flex-col items-end gap-1.5">
+          <span
+            className={`shrink-0 text-sm font-semibold tabular-nums ${isVoided ? "text-muted-foreground line-through decoration-destructive/60" : ""}`}
+          >
+            {naira(expense.amount)}
+          </span>
+          {isVoided ? (
+            <span className="rounded-full bg-destructive/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-destructive">
+              Voided
+            </span>
+          ) : canVoid && withinWindow ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 gap-1.5 rounded-full border-border px-3 text-xs text-muted-foreground hover:border-destructive/60 hover:text-destructive"
+              onClick={() => setConfirming(true)}
+            >
+              <Undo2 className="size-3" />
+              Void
+              <span className="tabular-nums text-[10px] text-muted-foreground/80">{timer}</span>
+            </Button>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              <Lock className="size-2.5" />
+              Locked
+            </span>
+          )}
+        </div>
+      </div>
+
+      {confirming ? (
+        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto_auto] gap-2">
+          <Input
+            autoFocus
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Reason (optional, e.g. typo)"
+            className="h-9 bg-surface text-xs"
+            maxLength={80}
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="h-9 text-xs"
+            onClick={() => {
+              setConfirming(false);
+              setReason("");
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="destructive"
+            className="h-9 text-xs"
+            onClick={() => {
+              onVoid(reason);
+              setConfirming(false);
+              setReason("");
+            }}
+          >
+            Confirm void
+          </Button>
+        </div>
+      ) : null}
+    </li>
   );
 }
 

@@ -61,8 +61,8 @@ export function useAttendance() {
 }
 
 export function useExpenses() {
-  const { expenses, addExpense } = useStore();
-  return { expenses, addExpense };
+  const { expenses, addExpense, voidExpense } = useStore();
+  return { expenses, addExpense, voidExpense };
 }
 
 export function useAdminOps() {

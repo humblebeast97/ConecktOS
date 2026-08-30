@@ -86,6 +86,7 @@ interface StoreValue {
     generator_hours_run: number | null;
     notes: string;
   }) => void;
+  voidExpense: (expenseId: string, reason?: string) => void;
   addInventoryStock: (inventoryId: string, delta: number) => void;
   addInventoryItem: (input: {
     item_name: string;
@@ -141,7 +142,7 @@ interface StoreValue {
 const StoreContext = createContext<StoreValue | null>(null);
 
 /** localStorage key for the persisted demo state. Bump the suffix to reset all clients. */
-const STORE_KEY = "conecktos-store-v9";
+const STORE_KEY = "conecktos-store-v10";
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [salon, setSalon] = useState<Salon>(seedSalon);
@@ -266,17 +267,42 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
-  const addExpense = useCallback<StoreValue["addExpense"]>((input) => {
-    setExpenses((prev) => [
-      {
-        id: uid("exp"),
-        salon_id: SALON_ID,
-        logged_at: new Date().toISOString(),
-        ...input,
-      },
-      ...prev,
-    ]);
-  }, []);
+  const addExpense = useCallback<StoreValue["addExpense"]>(
+    (input) => {
+      setExpenses((prev) => [
+        {
+          id: uid("exp"),
+          salon_id: SALON_ID,
+          logged_at: new Date().toISOString(),
+          logged_by: currentUserId,
+          voided_at: null,
+          voided_by: null,
+          void_reason: null,
+          ...input,
+        },
+        ...prev,
+      ]);
+    },
+    [currentUserId],
+  );
+
+  const voidExpense = useCallback<StoreValue["voidExpense"]>(
+    (expenseId, reason) => {
+      setExpenses((prev) =>
+        prev.map((e) =>
+          e.id === expenseId
+            ? {
+                ...e,
+                voided_at: new Date().toISOString(),
+                voided_by: currentUserId,
+                void_reason: reason?.trim() || null,
+              }
+            : e,
+        ),
+      );
+    },
+    [currentUserId],
+  );
 
   const addInventoryStock = useCallback((inventoryId: string, delta: number) => {
     setInventory((prev) =>
@@ -440,6 +466,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     createTicket,
     markPaid,
     addExpense,
+    voidExpense,
     addInventoryStock,
     addInventoryItem,
     updateInventoryItem,

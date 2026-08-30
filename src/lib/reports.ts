@@ -93,7 +93,11 @@ export function buildAudit(
   const items = args.ticketItems.filter((i) => paidIds.has(i.ticket_id));
   const commissionsPayable = items.reduce((s, i) => s + i.staff_commission_amount, 0);
 
-  const rangeExpenses = args.expenses.filter((e) => inRange(e.logged_at, from, to));
+  // Voided expenses stay in the log for the audit trail, but never count
+  // toward totals, generator overhead, or net position.
+  const rangeExpenses = args.expenses.filter(
+    (e) => !e.voided_at && inRange(e.logged_at, from, to),
+  );
   const fuelExpense = rangeExpenses
     .filter((e) => e.category === "generator_fuel")
     .reduce((s, e) => s + e.amount, 0);
