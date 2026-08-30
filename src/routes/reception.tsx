@@ -123,7 +123,6 @@ function ReceptionPage() {
       <OnboardingChecklist
         title="Front desk setup"
         steps={[
-          { label: "Confirm today's roster is on duty", done: onDuty.length > 0, to: "/reception" },
           { label: "Bill your first ticket", done: tickets.length > 0, to: "/reception" },
           {
             label: "Match a paid ticket",
