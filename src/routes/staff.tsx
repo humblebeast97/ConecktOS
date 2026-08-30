@@ -307,7 +307,7 @@ function StaffPortal() {
       </section>
 
       <Dialog open={consentOpen} onOpenChange={setConsentOpen}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-h-[85vh] max-w-sm overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Use your location to clock in?</DialogTitle>
             <DialogDescription>
@@ -430,7 +430,7 @@ function TipQrDialog() {
           Show My Tip QR
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="max-h-[85vh] max-w-sm overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Tip {me.full_name.split(" ")[0]}</DialogTitle>
           <DialogDescription>

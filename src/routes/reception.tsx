@@ -371,7 +371,7 @@ function ReceiptDialog({ ticket }: { ticket: Ticket }) {
           <Receipt className="size-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="max-h-[85vh] max-w-sm overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Receipt</DialogTitle>
           <DialogDescription>Print or save this ticket as a receipt.</DialogDescription>
