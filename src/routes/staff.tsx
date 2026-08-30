@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { lazy, Suspense, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import {
   Banknote,
   Clock,
@@ -331,14 +331,39 @@ function StaffPortal() {
   );
 }
 
+const POSTER_MSG_MAX = 140;
+const posterMsgKey = (userId: string) => `conecktos-tip-poster-msg:${userId}`;
+const defaultPosterMessage = (firstName: string) =>
+  `Scan to tip ${firstName} by bank transfer.`;
+
+/** Per-staff poster message, persisted to localStorage. Blank saves as blank
+ * so the print falls back to the default automatically. */
+function usePosterMessage(userId: string, fallback: string) {
+  const [msg, setMsg] = useState(fallback);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = window.localStorage.getItem(posterMsgKey(userId));
+    setMsg(saved ?? fallback);
+  }, [userId, fallback]);
+  const save = (next: string) => {
+    setMsg(next);
+    if (typeof window === "undefined") return;
+    if (next.trim()) window.localStorage.setItem(posterMsgKey(userId), next);
+    else window.localStorage.removeItem(posterMsgKey(userId));
+  };
+  return [msg, save] as const;
+}
+
 function printTipCard({
   salon,
   me,
   tipUrl,
+  message,
 }: {
   salon: Salon;
   me: Profile;
   tipUrl: string;
+  message: string;
 }): void {
   const svg = document.querySelector<SVGElement>('[role="dialog"] svg[viewBox]');
   const qr = svg
@@ -347,6 +372,7 @@ function printTipCard({
   const first = me.full_name.split(" ")[0];
   const escape = (s: string) =>
     s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+  const line = message.trim() || defaultPosterMessage(first);
   printHTML(
     `Tip ${first} · ${salon.name}`,
     `
@@ -354,7 +380,7 @@ function printTipCard({
         <p style="font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:#666;margin:0 0 24px">${escape(salon.name)}</p>
         <div style="display:inline-block;padding:12px;background:#fff;border:1px solid #ccc;border-radius:8px">${qr}</div>
         <h1 style="margin-top:24px;font-size:22px">Tip ${escape(first)}</h1>
-        <p class="subtitle">Scan to tip ${escape(first)} by bank transfer.</p>
+        <p class="subtitle" style="white-space:pre-line">${escape(line)}</p>
         <p class="footnote" style="margin-top:28px">${escape(tipUrl)}</p>
       </div>
     `,
@@ -368,6 +394,10 @@ function TipQrDialog() {
   const me = currentUser.role === "staff" ? currentUser : staff[0];
   const hasBank = Boolean(me.account_number);
   const accountName = me.account_name ?? me.full_name;
+  const first = me.full_name.split(" ")[0];
+  const [posterMsg, setPosterMsg] = usePosterMessage(me.id, defaultPosterMessage(first));
+  const posterLen = posterMsg.length;
+  const posterOver = posterLen > POSTER_MSG_MAX;
   // Encode a link to the public tip page (details in the URL so it works on any
   // device without a backend). Swap to /tip/{id} once real data exists.
   const tipUrl =
@@ -461,12 +491,48 @@ function TipQrDialog() {
               </div>
             </div>
 
+            <div className="space-y-1.5">
+              <div className="flex items-baseline justify-between">
+                <label
+                  htmlFor="poster-msg"
+                  className="text-xs font-semibold text-muted-foreground"
+                >
+                  Your message on the printed poster
+                </label>
+                <span
+                  className={`text-[11px] tabular-nums ${posterOver ? "text-destructive" : "text-muted-foreground"}`}
+                >
+                  {posterLen} / {POSTER_MSG_MAX}
+                </span>
+              </div>
+              <textarea
+                id="poster-msg"
+                value={posterMsg}
+                onChange={(e) => setPosterMsg(e.target.value.slice(0, POSTER_MSG_MAX))}
+                rows={3}
+                placeholder={defaultPosterMessage(first)}
+                className="w-full resize-y rounded-lg border border-input bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+              />
+              {posterMsg !== defaultPosterMessage(first) ? (
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setPosterMsg(defaultPosterMessage(first))}
+                    className="text-[11px] font-medium text-primary hover:underline"
+                  >
+                    Reset to default
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
             <Button
               variant="outline"
-              onClick={() => printTipCard({ salon, me, tipUrl })}
+              disabled={posterOver}
+              onClick={() => printTipCard({ salon, me, tipUrl, message: posterMsg })}
             >
               <Printer className="size-4" />
-              Print mirror card
+              Print poster
             </Button>
           </>
         ) : (
