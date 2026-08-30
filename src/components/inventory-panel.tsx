@@ -140,16 +140,32 @@ function AddItemDialog() {
   );
 }
 
+const RESTOCK_PRESETS = [1, 5, 10, 25] as const;
+const RESTOCK_MAX = 9999;
+
 function ItemRow({ item }: { item: InventoryItem }) {
   const { addInventoryStock, updateInventoryItem, removeInventoryItem } = useInventory();
   const [editing, setEditing] = useState(false);
   const [confirmingRemove, setConfirmingRemove] = useState(false);
+  const [restocking, setRestocking] = useState(false);
+  const [restockQty, setRestockQty] = useState("5");
+  const parsedRestock = Math.floor(Number(restockQty));
+  const validRestock =
+    Number.isFinite(parsedRestock) && parsedRestock > 0 && parsedRestock <= RESTOCK_MAX;
   const [draft, setDraft] = useState({
     item_name: item.item_name,
     quantity: String(item.quantity),
     unit: item.unit,
     reorder_level: String(item.reorder_level),
   });
+
+  const commitRestock = () => {
+    if (!validRestock) return;
+    addInventoryStock(item.id, parsedRestock);
+    toast.success(`Restocked ${item.item_name} (+${parsedRestock} ${item.unit})`);
+    setRestocking(false);
+    setRestockQty("5");
+  };
 
   const isLow = item.quantity <= item.reorder_level;
   const pct = Math.min(
@@ -264,12 +280,14 @@ function ItemRow({ item }: { item: InventoryItem }) {
         <Progress value={pct} className="h-1.5" />
         <Button
           size="sm"
-          variant="ghost"
-          className="h-7 shrink-0 px-2 text-xs text-muted-foreground"
-          onClick={() => {
-            addInventoryStock(item.id, 5);
-            toast.success(`Restocked ${item.item_name} (+5 ${item.unit})`);
-          }}
+          variant={restocking ? "default" : "ghost"}
+          className={
+            restocking
+              ? "h-7 shrink-0 px-2 text-xs"
+              : "h-7 shrink-0 px-2 text-xs text-muted-foreground"
+          }
+          aria-expanded={restocking}
+          onClick={() => setRestocking((v) => !v)}
         >
           <Plus className="size-3" />
           Restock
@@ -292,6 +310,72 @@ function ItemRow({ item }: { item: InventoryItem }) {
           <Pencil className="size-3" />
         </Button>
       </div>
+      {restocking ? (
+        <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-border bg-surface/60 p-2">
+          <div className="flex items-center gap-1 rounded-full border border-border bg-surface p-0.5">
+            {RESTOCK_PRESETS.map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setRestockQty(String(n))}
+                className={
+                  parsedRestock === n
+                    ? "rounded-full bg-primary/15 px-2.5 py-1 text-xs font-semibold tabular-nums text-primary"
+                    : "rounded-full px-2.5 py-1 text-xs font-medium tabular-nums text-muted-foreground hover:text-foreground"
+                }
+              >
+                +{n}
+              </button>
+            ))}
+          </div>
+          <div className="flex min-w-[110px] flex-1 items-center rounded-lg border border-border bg-surface pr-2 focus-within:border-primary">
+            <Input
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={RESTOCK_MAX}
+              value={restockQty}
+              onChange={(e) => setRestockQty(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  commitRestock();
+                } else if (e.key === "Escape") {
+                  setRestocking(false);
+                  setRestockQty("5");
+                }
+              }}
+              aria-label={`Quantity to add for ${item.item_name}`}
+              autoFocus
+              className="h-8 border-0 bg-transparent px-2 text-right text-xs tabular-nums focus-visible:ring-0"
+            />
+            <span className="whitespace-nowrap text-[11px] text-muted-foreground">
+              {item.unit}
+            </span>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="h-8 px-2 text-xs text-muted-foreground"
+            onClick={() => {
+              setRestocking(false);
+              setRestockQty("5");
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            className="h-8 px-3 text-xs"
+            disabled={!validRestock}
+            onClick={commitRestock}
+          >
+            Add {validRestock ? parsedRestock : ""}
+          </Button>
+        </div>
+      ) : null}
     </li>
   );
 }
