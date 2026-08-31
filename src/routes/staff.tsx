@@ -115,7 +115,7 @@ function StaffPortal() {
       } else {
         // Outside the business's geofence. Block the clock-in.
         toast.error("You're too far to clock in", {
-          description: `You're ${Math.round(distance)}m from ${salon.name}. Get within ${salon.geofence_radius_meters}m and try again.`,
+          description: `You're ${Math.round(distance)}m from ${salon.address_label ?? salon.name}. Get within ${salon.geofence_radius_meters}m and try again.`,
         });
       }
     };
@@ -182,8 +182,8 @@ function StaffPortal() {
               <>
                 <h2 className="text-lg font-bold">Ready to start your shift?</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Clock in with GPS. Matched against {salon.name} within{" "}
-                  {salon.geofence_radius_meters}m.
+                  Clock in with GPS. You need to be within {salon.geofence_radius_meters}m of{" "}
+                  {salon.address_label ?? salon.name}.
                 </p>
               </>
             )}

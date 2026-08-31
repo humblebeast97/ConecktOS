@@ -22,6 +22,9 @@ export interface Salon {
   business_type: BusinessType;
   latitude: number;
   longitude: number;
+  /** Human-readable address for this location. Coordinates stay the source of
+   * truth for geofencing; this is what people see in the UI. */
+  address_label: string | null;
   geofence_radius_meters: number;
   currency: string;
   open_time: string;
@@ -292,7 +295,8 @@ export const seedSalon: Salon = {
   business_type: "beauty",
   latitude: 6.4318,
   longitude: 3.4271,
-  geofence_radius_meters: 50,
+  address_label: "Marina, Lagos Island, Lagos",
+  geofence_radius_meters: 100,
   currency: "NGN",
   open_time: "08:00",
   close_time: "20:00",

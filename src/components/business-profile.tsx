@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Building2, Save, MapPin, Loader2 } from "lucide-react";
+import { Building2, Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,50 +7,45 @@ import { Label } from "@/components/ui/label";
 import { useSalon } from "@/api";
 import { FieldError } from "@/components/field-error";
 import { useSubmit } from "@/lib/use-submit";
+import { LocationPicker, type LocationValue } from "@/components/location-picker";
+
+const RADIUS_MIN = 25;
+const RADIUS_MAX = 500;
+const RADIUS_STEPS = [25, 50, 100, 250, 500] as const;
 
 export function BusinessProfilePanel() {
   const { salon, updateSalon } = useSalon();
 
   const [name, setName] = useState(salon.name);
-  const [radius, setRadius] = useState(String(salon.geofence_radius_meters));
-  const [lat, setLat] = useState(salon.latitude?.toString() ?? "");
-  const [lng, setLng] = useState(salon.longitude?.toString() ?? "");
-  const [locating, setLocating] = useState(false);
+  const [radius, setRadius] = useState<number>(salon.geofence_radius_meters);
+  const [location, setLocation] = useState<LocationValue | null>(
+    salon.latitude && salon.longitude
+      ? {
+          latitude: salon.latitude,
+          longitude: salon.longitude,
+          address_label: salon.address_label ?? "Location set",
+        }
+      : null,
+  );
   const [submitted, setSubmitted] = useState(false);
   const { isSubmitting, submit } = useSubmit();
   const nameError = submitted && !name.trim() ? "Business name is required" : null;
-
-  const useMyLocation = () => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      toast.error("Location isn't available on this device");
-      return;
-    }
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLat(pos.coords.latitude.toFixed(5));
-        setLng(pos.coords.longitude.toFixed(5));
-        setLocating(false);
-        toast.success("Business location captured");
-      },
-      () => {
-        setLocating(false);
-        toast.error("Couldn't get your location. Allow location access and try again");
-      },
-      { enableHighAccuracy: true, timeout: 8000 },
-    );
-  };
 
   const onSave = () => {
     setSubmitted(true);
     if (!name.trim()) return;
     submit(() => {
-      const clampedRadius = Math.min(500, Math.max(10, Number(radius) || 50));
+      const clampedRadius = Math.min(RADIUS_MAX, Math.max(RADIUS_MIN, radius));
       updateSalon({
         name: name.trim(),
         geofence_radius_meters: clampedRadius,
-        ...(lat ? { latitude: Number(lat) } : {}),
-        ...(lng ? { longitude: Number(lng) } : {}),
+        ...(location
+          ? {
+              latitude: location.latitude,
+              longitude: location.longitude,
+              address_label: location.address_label,
+            }
+          : {}),
       });
       toast.success("Business profile saved");
     });
@@ -58,7 +53,7 @@ export function BusinessProfilePanel() {
 
   return (
     <form
-      className="card-lux p-5 sm:p-6 space-y-5"
+      className="card-lux space-y-5 p-5 sm:p-6"
       onSubmit={(e) => {
         e.preventDefault();
         onSave();
@@ -71,7 +66,7 @@ export function BusinessProfilePanel() {
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Business setup</h2>
           <p className="text-sm text-muted-foreground">
-            Name your business and set its location for geofenced clock-ins.
+            Name your business and pick where you operate so clock-ins can be geofenced.
           </p>
         </div>
       </div>
@@ -96,48 +91,47 @@ export function BusinessProfilePanel() {
 
       <div className="space-y-2">
         <Label>Business location</Label>
-        <div className="rounded-xl border border-border bg-surface px-4 py-3 text-sm">
-          {lat && lng ? (
-            <span className="flex items-center gap-2 text-success">
-              <MapPin className="size-4 shrink-0" />
-              Location set · {Number(lat).toFixed(4)}, {Number(lng).toFixed(4)}
-            </span>
-          ) : (
-            <span className="text-muted-foreground">
-              Stand at your business and tap “Use my location”.
-            </span>
-          )}
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={useMyLocation}
-          disabled={locating}
-          className="h-11 w-full sm:w-auto"
-        >
-          {locating ? <Loader2 className="size-4 animate-spin" /> : <MapPin className="size-4" />}
-          Use my location
-        </Button>
+        <LocationPicker value={location} radiusMeters={radius} onChange={setLocation} />
       </div>
 
-      <div className="space-y-2 sm:max-w-xs">
-        <Label htmlFor="biz-radius">Geofence radius (metres)</Label>
-        <Input
+      <div className="space-y-2">
+        <div className="flex items-baseline justify-between">
+          <Label htmlFor="biz-radius">Geofence radius</Label>
+          <span className="font-display text-sm font-semibold tabular-nums text-primary">
+            {radius} m
+          </span>
+        </div>
+        <input
           id="biz-radius"
-          type="number"
-          inputMode="numeric"
-          min={10}
-          max={500}
+          type="range"
+          min={RADIUS_MIN}
+          max={RADIUS_MAX}
           step={5}
           value={radius}
-          onChange={(e) => setRadius(e.target.value)}
-          placeholder="50"
+          onChange={(e) => setRadius(Number(e.target.value))}
+          className="w-full accent-primary"
         />
+        <div className="flex justify-between text-[10px] tabular-nums text-muted-foreground">
+          {RADIUS_STEPS.map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => setRadius(n)}
+              className={
+                radius === n
+                  ? "font-semibold text-primary"
+                  : "hover:text-foreground"
+              }
+            >
+              {n} m
+            </button>
+          ))}
+        </div>
       </div>
 
       <Button type="submit" disabled={isSubmitting} className="h-11 w-full sm:w-auto">
         {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-        {isSubmitting ? "Saving…" : "Save business profile"}
+        {isSubmitting ? "Saving..." : "Save business profile"}
       </Button>
     </form>
   );
