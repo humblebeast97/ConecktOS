@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Building2, Save, MapPin, Loader2, FileText } from "lucide-react";
+import { Building2, Save, MapPin, Loader2, FileText, Sun, Moon, Monitor } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { RouteError } from "@/components/route-error";
@@ -19,6 +19,7 @@ import {
 import { useSalon } from "@/api";
 import { useRoleGuard } from "@/lib/access";
 import { currencyOptions, type PayrollReminderDays } from "@/lib/groompulse";
+import { useTheme, type ThemeMode } from "@/lib/theme";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -232,6 +233,16 @@ function SettingsPage() {
 
         <section className="card-lux rounded-2xl p-5 sm:p-6">
           <div>
+            <h2 className="text-lg font-semibold">Appearance</h2>
+            <p className="text-sm text-muted-foreground">
+              Match the app to your device or pick a side. Applied instantly, saved to this browser.
+            </p>
+          </div>
+          <ThemePicker />
+        </section>
+
+        <section className="card-lux rounded-2xl p-5 sm:p-6">
+          <div>
             <h2 className="text-lg font-semibold">Payroll reminder</h2>
             <p className="text-sm text-muted-foreground">
               When to show the "Payroll due" card on the Owner dashboard. Overdue paydays are always
@@ -294,5 +305,49 @@ function SettingsPage() {
         </div>
       </form>
     </AppShell>
+  );
+}
+
+function ThemePicker() {
+  const { mode, setMode, effective } = useTheme();
+  const options: { value: ThemeMode; label: string; icon: typeof Sun }[] = [
+    { value: "light", label: "Light", icon: Sun },
+    { value: "dark", label: "Dark", icon: Moon },
+    { value: "system", label: "System", icon: Monitor },
+  ];
+  return (
+    <div className="mt-4">
+      <div
+        role="radiogroup"
+        aria-label="Theme"
+        className="inline-flex rounded-full border border-border bg-muted p-1"
+      >
+        {options.map((o) => {
+          const Icon = o.icon;
+          const active = mode === o.value;
+          return (
+            <button
+              key={o.value}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => setMode(o.value)}
+              className={
+                active
+                  ? "flex cursor-pointer items-center gap-1.5 rounded-full bg-card px-4 py-1.5 text-xs font-semibold text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  : "flex cursor-pointer items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              }
+            >
+              <Icon className="size-3.5" />
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        Currently showing <span className="font-medium text-foreground">{effective}</span> mode
+        {mode === "system" ? " (following your device)" : ""}.
+      </p>
+    </div>
   );
 }
