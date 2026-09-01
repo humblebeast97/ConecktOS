@@ -223,7 +223,7 @@ function AdminPage() {
               aria-pressed={active}
               className={
                 active
-                  ? "flex cursor-pointer items-center gap-1.5 rounded-full bg-gradient-gold px-4 py-1.5 text-xs font-semibold text-gold-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  ? "flex cursor-pointer items-center gap-1.5 rounded-full bg-gradient-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   : "flex cursor-pointer items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               }
             >
@@ -289,7 +289,7 @@ function AdminPage() {
                     <p className="mt-1 font-display text-lg font-bold tabular-nums">{naira(val)}</p>
                     <div className="mt-2 h-2 overflow-hidden rounded-full bg-background">
                       <div
-                        className="h-full rounded-full bg-gradient-gold transition-[width] duration-500 ease-out"
+                        className="h-full rounded-full bg-gradient-primary transition-[width] duration-500 ease-out"
                         style={{ width: `${pct}%` }}
                       />
                     </div>

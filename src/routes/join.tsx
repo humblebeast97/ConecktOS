@@ -127,7 +127,7 @@ function JoinPage() {
           Team sign-up
         </span>
         <h1 className="mt-4 text-3xl font-extrabold leading-tight sm:text-4xl">
-          Create your <span className="text-gradient-gold">team login.</span>
+          Create your <span className="text-gradient-primary">team login.</span>
         </h1>
         <p className="mt-3 max-w-md text-sm text-muted-foreground">
           Already onboarded by your owner or manager? Pick your role and set a password. You will
@@ -173,7 +173,7 @@ function JoinPage() {
                   <span
                     className={
                       selected
-                        ? "grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-gold text-gold-foreground"
+                        ? "grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-primary text-primary-foreground"
                         : "grid size-9 shrink-0 place-items-center rounded-xl bg-accent text-muted-foreground"
                     }
                   >

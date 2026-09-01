@@ -115,7 +115,7 @@ export function AppShell({
       <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur-xl">
         <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-6">
           <Link to="/" className="flex min-w-0 items-center gap-2.5">
-            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-gold text-gold-foreground shadow-gold">
+            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-primary">
               <Sparkles className="size-4.5" />
             </span>
             <span className="min-w-0">
@@ -167,7 +167,7 @@ export function AppShell({
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-2 rounded-full border border-border bg-surface py-1 pl-1 pr-2 outline-none transition-colors hover:border-primary/40 focus-visible:ring-1 focus-visible:ring-ring">
                 <Avatar className="size-7">
-                  <AvatarFallback className="bg-gradient-gold text-[11px] font-semibold text-gold-foreground">
+                  <AvatarFallback className="bg-gradient-primary text-[11px] font-semibold text-primary-foreground">
                     {initialsOf(currentUser.full_name)}
                   </AvatarFallback>
                 </Avatar>

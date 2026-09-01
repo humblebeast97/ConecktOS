@@ -34,7 +34,7 @@ function TipPage() {
       <div className="w-full max-w-sm">
         {a ? (
           <div className="card-lux rounded-3xl border border-primary/30 p-6 text-center">
-            <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-gradient-gold text-gold-foreground shadow-gold">
+            <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-gradient-primary text-primary-foreground shadow-primary">
               <HeartHandshake className="size-6" />
             </div>
             {biz ? (

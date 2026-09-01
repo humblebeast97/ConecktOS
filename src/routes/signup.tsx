@@ -95,7 +95,7 @@ function SignUpPage() {
                 <span
                   className={
                     step >= n
-                      ? "grid size-7 shrink-0 place-items-center rounded-full bg-gradient-gold text-xs font-semibold text-gold-foreground"
+                      ? "grid size-7 shrink-0 place-items-center rounded-full bg-gradient-primary text-xs font-semibold text-primary-foreground"
                       : "grid size-7 shrink-0 place-items-center rounded-full border border-border text-xs font-medium text-muted-foreground"
                   }
                 >
@@ -122,11 +122,11 @@ function SignUpPage() {
         <h1 className="mt-5 text-3xl font-extrabold leading-tight sm:text-4xl">
           {step === 1 ? (
             <>
-              Create your <span className="text-gradient-gold">owner account.</span>
+              Create your <span className="text-gradient-primary">owner account.</span>
             </>
           ) : (
             <>
-              Set up your <span className="text-gradient-gold">business.</span>
+              Set up your <span className="text-gradient-primary">business.</span>
             </>
           )}
         </h1>

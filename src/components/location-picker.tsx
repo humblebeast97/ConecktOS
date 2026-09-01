@@ -254,18 +254,18 @@ function MapPreview({
         L.control.attribution({ prefix: false }).addAttribution("© OpenStreetMap").addTo(map);
         const marker = L.circleMarker(center, {
           radius: 6,
-          color: "#d8b658",
+          color: "#7B5CFF",
           weight: 3,
-          fillColor: "#d8b658",
+          fillColor: "#7B5CFF",
           fillOpacity: 1,
         }).addTo(map);
         const circle = L.circle(center, {
           radius: radiusMeters,
-          color: "#d8b658",
+          color: "#7B5CFF",
           weight: 1.5,
           dashArray: "4 4",
-          fillColor: "#d8b658",
-          fillOpacity: 0.12,
+          fillColor: "#7B5CFF",
+          fillOpacity: 0.10,
         }).addTo(map);
         state.current = { map, marker: marker as unknown as import("leaflet").Marker, circle };
       } else {

@@ -150,7 +150,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
                 onClick={() => (i <= step || nameValid ? setStep(i) : null)}
                 className={
                   active
-                    ? "flex flex-1 items-center gap-2 rounded-full bg-gradient-gold px-3 py-1.5 text-xs font-semibold text-gold-foreground"
+                    ? "flex flex-1 items-center gap-2 rounded-full bg-gradient-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
                     : "flex flex-1 items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
                 }
               >
@@ -403,7 +403,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
             const ready = !floor || Boolean(p.account_number);
             return (
               <li key={p.id} className="flex flex-wrap items-center gap-3 py-4">
-                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-gradient-gold font-display text-sm font-bold text-gold-foreground">
+                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-gradient-primary font-display text-sm font-bold text-primary-foreground">
                   {p.full_name
                     .split(" ")
                     .map((n) => n[0])

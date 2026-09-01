@@ -261,7 +261,7 @@ function SettingsPage() {
                   onClick={() => setPayrollReminder(opt.value)}
                   className={
                     active
-                      ? "cursor-pointer rounded-full bg-gradient-gold px-4 py-1.5 text-xs font-semibold text-gold-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      ? "cursor-pointer rounded-full bg-gradient-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       : "cursor-pointer rounded-full border border-border bg-surface px-4 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   }
                 >

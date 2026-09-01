@@ -1,6 +1,6 @@
 // ConecktOS service worker — makes the app installable and adds a resilient
 // offline experience. Conservative by design: never caches API/auth traffic.
-const VERSION = "conecktos-v2";
+const VERSION = "conecktos-v3";
 const STATIC_CACHE = `${VERSION}-static`;
 const RUNTIME_CACHE = `${VERSION}-runtime`;
 

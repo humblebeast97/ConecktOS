@@ -435,7 +435,7 @@ function ConsumablesPanel({
                 onClick={() => onModeSwitch(m)}
                 className={
                   active
-                    ? "cursor-pointer rounded-full bg-gradient-gold px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-gold-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    ? "cursor-pointer rounded-full bg-gradient-primary px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     : "cursor-pointer rounded-full px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 }
               >
