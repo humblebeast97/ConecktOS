@@ -1,0 +1,18 @@
+#:schema node_modules/wrangler/config-schema.json
+# Points Wrangler at the TanStack Start / Nitro build output. Run
+# `npm run build` first, then `npx wrangler deploy` reads this file and
+# ships `.output/server/index.mjs` alongside static assets from `.output/public`.
+
+name = "conecktos"
+main = ".output/server/index.mjs"
+compatibility_date = "2026-08-06"
+compatibility_flags = ["nodejs_compat"]
+no_bundle = true
+
+[assets]
+binding = "ASSETS"
+directory = ".output/public"
+
+[[rules]]
+type = "ESModule"
+globs = ["**/*.mjs", "**/*.js"]
