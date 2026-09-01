@@ -128,9 +128,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
-// Apply the saved theme before first paint so dark-mode users don't flash a
-// light frame. Small enough to inline; skipped on SSR by the try/catch.
-const THEME_BOOT = `(function(){try{var t=localStorage.getItem('conecktos-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();`;
+// Apply the theme before first paint. Default is light: new visitors get
+// light without touching localStorage. Explicit "dark" sticks. Explicit
+// "system" clears the attribute so prefers-color-scheme takes over.
+const THEME_BOOT = `(function(){try{var t=localStorage.getItem('conecktos-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}else if(t!=='system'){document.documentElement.setAttribute('data-theme','light');}}catch(e){document.documentElement.setAttribute('data-theme','light');}})();`;
 
 function RootShell({ children }: { children: ReactNode }) {
   return (

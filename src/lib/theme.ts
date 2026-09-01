@@ -17,11 +17,13 @@ export function applyTheme(mode: ThemeMode) {
   else root.setAttribute("data-theme", mode);
 }
 
-/** Reads the persisted preference. Returns "system" if none / invalid. */
+/** Reads the persisted preference. Defaults to "light" when nothing is saved
+ * so new visitors land on the light palette; users who want system-following
+ * explicitly opt into it. */
 export function readSavedTheme(): ThemeMode {
-  if (typeof window === "undefined") return "system";
+  if (typeof window === "undefined") return "light";
   const raw = window.localStorage.getItem(STORAGE_KEY);
-  return (VALID as string[]).includes(raw ?? "") ? (raw as ThemeMode) : "system";
+  return (VALID as string[]).includes(raw ?? "") ? (raw as ThemeMode) : "light";
 }
 
 /**
