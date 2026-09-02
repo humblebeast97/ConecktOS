@@ -298,15 +298,18 @@ function AdminPage() {
                     icon: Wallet,
                   },
                   {
-                    key: "pending",
-                    label: "Pending",
-                    value: naira(audit.pendingAmount),
-                    hint: "awaiting payment",
+                    key: "gross",
+                    label: "Gross revenue",
+                    value: naira(audit.gross),
+                    hint:
+                      audit.pendingAmount > 0
+                        ? `${naira(audit.pendingAmount)} pending`
+                        : "collected today",
                     icon: TrendingUp,
                   },
                   {
                     key: "net",
-                    label: "Net position",
+                    label: "Net profit",
                     value: naira(audit.netPosition),
                     hint: audit.netPosition >= 0 ? "on track" : "in the red",
                     icon: Banknote,
