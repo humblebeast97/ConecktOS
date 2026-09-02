@@ -11,6 +11,7 @@ import {
   FileDown,
   Fuel,
   LayoutDashboard,
+  Home,
   Lock,
   Percent,
   Plus,
@@ -18,6 +19,7 @@ import {
   Printer,
   Search,
   Rocket,
+  Settings2,
   TrendingUp,
   Undo2,
   Users,
@@ -25,6 +27,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, MetricCard } from "@/components/app-shell";
+import { BottomNav, BottomNavSpacer, type BottomNavItem } from "@/components/bottom-nav";
 import { TeamOnboarding } from "@/components/team-onboarding";
 import { InventoryPanel } from "@/components/inventory-panel";
 import { ServicesPanel } from "@/components/services-panel";
@@ -92,9 +95,12 @@ import { printHTML } from "@/lib/print-sheet";
 import { RouteError } from "@/components/route-error";
 import { useIndustryConfig } from "@/config/industry-context";
 
+type AdminTab = "overview" | "team" | "reports";
+const ADMIN_TABS: readonly AdminTab[] = ["overview", "team", "reports"] as const;
+
 export const Route = createFileRoute("/admin")({
-  validateSearch: (search: Record<string, unknown>): { tab?: "overview" | "team" } => ({
-    tab: search.tab === "team" ? "team" : search.tab === "overview" ? "overview" : undefined,
+  validateSearch: (search: Record<string, unknown>): { tab?: AdminTab } => ({
+    tab: ADMIN_TABS.includes(search.tab as AdminTab) ? (search.tab as AdminTab) : undefined,
   }),
   head: () => ({
     meta: [
@@ -122,6 +128,14 @@ function AdminPage() {
   const config = useIndustryConfig();
   const { tab = "overview" } = Route.useSearch();
   const navigate = useNavigate();
+  const [closeDayOpen, setCloseDayOpen] = useState(false);
+  const goToTab = (t: AdminTab) => navigate({ to: "/admin", search: { tab: t } });
+  const navItems: BottomNavItem[] = [
+    { key: "overview", label: "Home", icon: Home, onClick: () => goToTab("overview") },
+    { key: "team", label: "Team", icon: Users, onClick: () => goToTab("team") },
+    { key: "reports", label: "Reports", icon: FileDown, onClick: () => goToTab("reports") },
+    { key: "settings", label: "Settings", icon: Settings2, onClick: () => navigate({ to: "/settings" }) },
+  ];
   const { salon } = useSalon();
   const { staff, profiles } = useStaff();
   const { inventory, usage } = useInventory();
@@ -200,40 +214,9 @@ function AdminPage() {
               month: "long",
             })
       }
-      actions={
-        tab === "overview" ? (
-          <>
-            <ResetAllDialog />
-            <CloseDayDialog />
-          </>
-        ) : null
-      }
+      actions={tab === "overview" ? <ResetAllDialog /> : null}
     >
-      <div className="mb-5 flex w-fit items-center gap-1 rounded-full border border-border bg-surface p-1">
-        {[
-          { key: "overview" as const, label: "Overview", icon: LayoutDashboard },
-          { key: "team" as const, label: "Team", icon: Users },
-        ].map((t) => {
-          const active = tab === t.key;
-          return (
-            <button
-              key={t.key}
-              type="button"
-              onClick={() => navigate({ to: "/admin", search: { tab: t.key } })}
-              aria-pressed={active}
-              className={
-                active
-                  ? "flex cursor-pointer items-center gap-1.5 rounded-full bg-gradient-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  : "flex cursor-pointer items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              }
-            >
-              <t.icon className="size-3.5" />
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
-
+      <BottomNavSpacer>
       {tab === "team" ? <TeamTab /> : null}
       {tab === "overview" ? <OwnerOnboarding /> : null}
       {tab === "overview" ? <PayrollReminderCard /> : null}
@@ -460,8 +443,12 @@ function AdminPage() {
               <ServicesPanel />
             </div>
           </div>
+        </>
+      ) : null}
 
-          <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+      {tab === "reports" ? (
+        <>
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
             <ExpenseForm onSubmit={addExpense} />
 
             <section className="card-lux overflow-hidden rounded-2xl">
@@ -548,6 +535,19 @@ function AdminPage() {
           </div>
         </>
       ) : null}
+      </BottomNavSpacer>
+
+      <CloseDayDialog open={closeDayOpen} onOpenChange={setCloseDayOpen} trigger={false} />
+      <BottomNav
+        items={navItems}
+        activeKey={tab}
+        fab={{
+          label: "Close day",
+          icon: FileDown,
+          tone: "lime",
+          onClick: () => setCloseDayOpen(true),
+        }}
+      />
     </AppShell>
   );
 }
@@ -754,7 +754,17 @@ function ExpenseForm({
 const toDateInput = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
-function CloseDayDialog() {
+function CloseDayDialog({
+  open,
+  onOpenChange,
+  trigger = true,
+}: {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Set to false to render the dialog without its built-in trigger button
+   * (used when an external control opens it, e.g. the bottom-nav FAB). */
+  trigger?: boolean;
+} = {}) {
   const { salon } = useSalon();
   const { tickets, ticketItems } = useTickets();
   const { inventory, usage } = useInventory();
@@ -787,13 +797,15 @@ function CloseDayDialog() {
   const heading = isToday ? "Daily audit" : isSingleDay ? "Day audit" : "Period audit";
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button className="h-11 font-semibold">
-          <FileDown className="size-4" />
-          Close Day & Audit
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {trigger !== false ? (
+        <DialogTrigger asChild>
+          <Button className="h-11 font-semibold">
+            <FileDown className="size-4" />
+            Close Day & Audit
+          </Button>
+        </DialogTrigger>
+      ) : null}
       <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto">
         <DialogHeader>
           <DialogTitle>End of period audit</DialogTitle>

@@ -1,14 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
   BadgeCheck,
   CircleDollarSign,
   Loader2,
+  Plus,
   Printer,
   Receipt,
   Search,
   Users,
 } from "lucide-react";
+import { BottomNav, BottomNavSpacer, type BottomNavItem } from "@/components/bottom-nav";
 import { toast } from "sonner";
 import { AppShell, EmptyState, MetricCard } from "@/components/app-shell";
 import { TeamOnboarding } from "@/components/team-onboarding";
@@ -54,7 +56,15 @@ import { isToday } from "@/lib/reports";
 import { printHTML } from "@/lib/print-sheet";
 import { useIndustryConfig } from "@/config/industry-context";
 
+type ReceptionView = "tickets" | "history";
+const RECEPTION_VIEWS: readonly ReceptionView[] = ["tickets", "history"] as const;
+
 export const Route = createFileRoute("/reception")({
+  validateSearch: (search: Record<string, unknown>): { view?: ReceptionView } => ({
+    view: RECEPTION_VIEWS.includes(search.view as ReceptionView)
+      ? (search.view as ReceptionView)
+      : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Front Desk · ConecktOS" },
@@ -114,12 +124,31 @@ function ReceptionPage() {
   } = usePaginated(filteredHistory, 8);
 
   const firstName = currentUser.full_name.split(" ")[0];
+  const { view = "tickets" } = Route.useSearch();
+  const navigate = useNavigate();
+  const goToView = (v: ReceptionView) =>
+    navigate({ to: "/reception", search: { view: v } });
+  const navItems: BottomNavItem[] = [
+    { key: "tickets", label: "Tickets", icon: Receipt, onClick: () => goToView("tickets") },
+    { key: "history", label: "History", icon: Search, onClick: () => goToView("history") },
+  ];
+
+  const scrollToBuilder = () => {
+    if (view !== "tickets") goToView("tickets");
+    setTimeout(() => {
+      const el = document.getElementById("ticket-builder");
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  };
 
   return (
     <AppShell
       title={`${currentGreeting()}, ${firstName}`}
       subtitle={`${todays.length} tickets today · ${onDuty.length} ${config.staffPlural.toLowerCase()} on duty`}
     >
+      <BottomNavSpacer>
+      {view === "tickets" ? (
+      <>
       <OnboardingChecklist
         title="Front desk setup"
         steps={[
@@ -157,7 +186,9 @@ function ReceptionPage() {
       </div>
 
       <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
-        <TicketBuilder />
+        <div id="ticket-builder" className="scroll-mt-20">
+          <TicketBuilder />
+        </div>
 
         <div className="space-y-5">
           <section className="card-lux rounded-2xl p-5">
@@ -249,7 +280,21 @@ function ReceptionPage() {
         </div>
       </div>
 
-      <section className="mt-6 card-lux overflow-hidden rounded-2xl">
+      <section className="mt-6">
+        <div className="mb-4">
+          <h2 className="text-xl font-bold">Front desk HR</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Walk-in hires: onboard a {config.staffTitle.toLowerCase()} or desk role without leaving
+            reception.
+          </p>
+        </div>
+        <TeamOnboarding compact />
+      </section>
+      </>
+      ) : null}
+
+      {view === "history" ? (
+      <section className="card-lux overflow-hidden rounded-2xl">
         <div className="flex items-center justify-between gap-3 p-5 pb-3">
           <div>
             <h2 className="text-lg font-bold">Ticket history</h2>
@@ -336,17 +381,19 @@ function ReceptionPage() {
           </>
         )}
       </section>
+      ) : null}
+      </BottomNavSpacer>
 
-      <section className="mt-6">
-        <div className="mb-4">
-          <h2 className="text-xl font-bold">Front desk HR</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Walk-in hires: onboard a {config.staffTitle.toLowerCase()} or desk role without leaving
-            reception.
-          </p>
-        </div>
-        <TeamOnboarding compact />
-      </section>
+      <BottomNav
+        items={navItems}
+        activeKey={view}
+        fab={{
+          label: "New ticket",
+          icon: Plus,
+          tone: "primary",
+          onClick: scrollToBuilder,
+        }}
+      />
     </AppShell>
   );
 }

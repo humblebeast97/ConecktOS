@@ -4,14 +4,17 @@ import {
   Banknote,
   Clock,
   Copy,
+  Home,
   LogOut,
   MapPin,
   Printer,
   QrCode,
   TrendingUp,
+  User,
   Loader2,
   ShieldAlert,
 } from "lucide-react";
+import { BottomNav, BottomNavSpacer, type BottomNavItem } from "@/components/bottom-nav";
 import { toast } from "sonner";
 import { AppShell, MetricCard } from "@/components/app-shell";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
@@ -38,7 +41,13 @@ import { useIndustryConfig } from "@/config/industry-context";
 // stays out of the staff route's initial bundle.
 const QRCode = lazy(() => import("react-qr-code"));
 
+type StaffView = "today" | "profile";
+const STAFF_VIEWS: readonly StaffView[] = ["today", "profile"] as const;
+
 export const Route = createFileRoute("/staff")({
+  validateSearch: (search: Record<string, unknown>): { view?: StaffView } => ({
+    view: STAFF_VIEWS.includes(search.view as StaffView) ? (search.view as StaffView) : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Staff Portal · ConecktOS" },
@@ -66,6 +75,14 @@ function StaffPortal() {
   const { tickets, ticketItems } = useTickets();
   const { services } = useServices();
   const { clockIn, clockOut, openAttendanceFor } = useAttendance();
+  const { view = "today" } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const [tipQrOpen, setTipQrOpen] = useState(false);
+  const navItems: BottomNavItem[] = [
+    { key: "today", label: "Today", icon: Home, onClick: () => navigate({ search: { view: "today" } }) },
+    { key: "tips", label: "Tip QR", icon: QrCode, onClick: () => setTipQrOpen(true) },
+    { key: "profile", label: "Profile", icon: User, onClick: () => navigate({ search: { view: "profile" } }) },
+  ];
 
   // Owners/receptionists previewing this portal see the first staff member's view.
   const me = currentUser.role === "staff" ? currentUser : staff[0];
@@ -135,8 +152,10 @@ function StaffPortal() {
     <AppShell
       title={`Hey, ${me.full_name.split(" ")[0]}`}
       subtitle={`${salon.name} · commission rate ${Math.round(me.commission_rate * 100)}%`}
-      actions={config.showTipping ? <TipQrDialog /> : null}
     >
+      <BottomNavSpacer>
+      {view === "today" ? (
+      <>
       <OnboardingChecklist
         title="Your setup"
         steps={[
@@ -305,6 +324,52 @@ function StaffPortal() {
           )}
         </ul>
       </section>
+      </>
+      ) : null}
+
+      {view === "profile" ? (
+        <section className="card-lux space-y-5 rounded-2xl p-6">
+          <div className="flex items-center gap-4">
+            <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-primary font-display text-lg font-bold text-primary-foreground">
+              {me.full_name
+                .split(/\s+/)
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((w) => w[0]?.toUpperCase() ?? "")
+                .join("")}
+            </span>
+            <div className="min-w-0">
+              <p className="font-display text-lg font-bold">{me.full_name}</p>
+              <p className="text-sm text-muted-foreground">
+                {salon.name} · commission {Math.round(me.commission_rate * 100)}%
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-3 border-t border-border pt-4 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Bank</span>
+              <span className="font-medium">{me.bank_name ?? "Not set"}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Account number</span>
+              <span className="font-display tabular-nums font-semibold">
+                {me.account_number ?? "Not set"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Account name</span>
+              <span className="font-medium">{me.account_name ?? me.full_name}</span>
+            </div>
+          </div>
+
+          {!me.account_number ? (
+            <p className="rounded-xl border border-warning/40 bg-warning/10 p-3 text-xs text-warning">
+              Ask your manager to add your bank details from the team roster so clients can tip you.
+            </p>
+          ) : null}
+        </section>
+      ) : null}
 
       <Dialog open={consentOpen} onOpenChange={setConsentOpen}>
         <DialogContent className="max-h-[85vh] max-w-sm overflow-y-auto">
@@ -327,6 +392,12 @@ function StaffPortal() {
           </div>
         </DialogContent>
       </Dialog>
+      </BottomNavSpacer>
+
+      {config.showTipping ? (
+        <TipQrDialog open={tipQrOpen} onOpenChange={setTipQrOpen} trigger={false} />
+      ) : null}
+      <BottomNav items={navItems} activeKey={view === "profile" ? "profile" : "today"} />
     </AppShell>
   );
 }
@@ -386,7 +457,15 @@ function printTipCard({
   );
 }
 
-function TipQrDialog() {
+function TipQrDialog({
+  open,
+  onOpenChange,
+  trigger = true,
+}: {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  trigger?: boolean;
+} = {}) {
   const { currentUser } = useAuth();
   const { staff } = useStaff();
   const { salon } = useSalon();
@@ -422,13 +501,15 @@ function TipQrDialog() {
   };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="secondary" className="h-11">
-          <QrCode className="size-4" />
-          Show My Tip QR
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {trigger !== false ? (
+        <DialogTrigger asChild>
+          <Button variant="secondary" className="h-11">
+            <QrCode className="size-4" />
+            Show My Tip QR
+          </Button>
+        </DialogTrigger>
+      ) : null}
       <DialogContent className="max-h-[85vh] max-w-sm overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Tip {me.full_name.split(" ")[0]}</DialogTitle>
