@@ -21,12 +21,16 @@ interface Props {
 }
 
 /**
- * Sticky bottom navigation. Active tab wears an ink pill. Optional center FAB
- * for the portal's primary action (owner: Close day; front desk: New ticket).
- * Wrap the page in `<BottomNavSpacer>` so the last card is not hidden behind
- * the bar.
+ * Sticky bottom navigation for the three role portals. Ink pill wraps the
+ * active tab. Optional center FAB floats above the bar for the portal's
+ * primary action (owner: Close day; front desk: New ticket).
+ *
+ * When rendered, wrap the surrounding page in `pb-28` so the last content
+ * card doesn't sit under the bar. Uses `env(safe-area-inset-bottom)` to keep
+ * clear of the iOS home indicator.
  */
 export function BottomNav({ items, activeKey, fab }: Props) {
+  // If a FAB is present, split items into left and right halves around it.
   const half = Math.ceil(items.length / 2);
   const left = fab ? items.slice(0, half) : items;
   const right = fab ? items.slice(half) : [];
@@ -37,7 +41,7 @@ export function BottomNav({ items, activeKey, fab }: Props) {
       className="fixed inset-x-0 bottom-0 z-40 pb-[env(safe-area-inset-bottom)]"
     >
       <div className="mx-auto max-w-md px-3 pb-3">
-        <div className="glass relative flex items-center justify-around gap-1 rounded-3xl p-2">
+        <div className="relative flex items-center justify-around gap-1 rounded-3xl border border-border bg-card p-2 shadow-lg shadow-black/5">
           {left.map((item) => (
             <NavButton key={item.key} item={item} active={item.key === activeKey} />
           ))}
@@ -78,21 +82,22 @@ function Fab({
 }: NonNullable<Props["fab"]>) {
   const styles =
     tone === "lime"
-      ? "bg-lime text-lime-foreground"
-      : "bg-primary text-primary-foreground";
+      ? "bg-lime text-lime-foreground shadow-lime-500/40"
+      : "bg-primary text-primary-foreground shadow-primary/40";
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={label}
-      className={`-my-4 grid size-12 shrink-0 place-items-center rounded-full shadow-lg shadow-primary/30 ${styles}`}
+      className={`-my-4 grid size-12 shrink-0 place-items-center rounded-full shadow-lg ${styles}`}
     >
       <Icon className="size-5" strokeWidth={2} />
     </button>
   );
 }
 
-/** Bottom padding so the last card is not obscured by the fixed nav bar. */
+/** Convenience wrapper: any layout that renders a BottomNav should also wrap
+ * its main content in `<BottomNavSpacer>` so the last card isn't hidden. */
 export function BottomNavSpacer({ children }: { children: ReactNode }) {
   return <div className="pb-28">{children}</div>;
 }

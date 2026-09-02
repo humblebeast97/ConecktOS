@@ -37,7 +37,7 @@ export function MetricScroller({ items }: { items: MetricTile[] }) {
         return (
           <div
             key={item.key}
-            className="glass min-w-[9.5rem] shrink-0 snap-start rounded-2xl p-3.5"
+            className="min-w-[9.5rem] shrink-0 snap-start rounded-2xl border border-border bg-card p-3.5"
           >
             <div className="flex items-center justify-between">
               <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
