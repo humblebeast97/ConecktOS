@@ -15,6 +15,9 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { BottomNav, BottomNavSpacer, type BottomNavItem } from "@/components/bottom-nav";
+import { HeroCard } from "@/components/hero-card";
+import { MetricScroller } from "@/components/metric-scroller";
+import { SetupRibbon } from "@/components/setup-ribbon";
 import { toast } from "sonner";
 import { AppShell, MetricCard } from "@/components/app-shell";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
@@ -149,128 +152,101 @@ function StaffPortal() {
   };
 
   return (
-    <AppShell
-      title={`Hey, ${me.full_name.split(" ")[0]}`}
-      subtitle={`${salon.name} · commission rate ${Math.round(me.commission_rate * 100)}%`}
-    >
+    <AppShell>
       <BottomNavSpacer>
       {view === "today" ? (
       <>
-      <OnboardingChecklist
-        title="Your setup"
-        steps={[
-          { label: "Add your payout account", done: Boolean(me.account_number), to: "/staff" },
-          { label: "Clock in for the first time", done: Boolean(open), to: "/staff" },
-        ]}
-      />
-      {/* Clock-in hero. The staff member's primary action, status-tinted. */}
-      <section
-        className={
+      <StaffOnboarding hasBank={Boolean(me.account_number)} hasClockedIn={Boolean(open)} />
+      <HeroCard
+        eyebrow={
           open
-            ? open.is_within_geofence
-              ? "rounded-2xl border border-success/30 bg-success/10 p-5"
-              : "rounded-2xl border border-destructive/30 bg-destructive/10 p-5"
-            : "card-lux rounded-2xl p-5"
+            ? `On duty since ${timeOf(open.clock_in_time)}${open.is_within_geofence ? "" : " · off-site"}`
+            : "Not clocked in yet"
         }
-      >
-        <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-          <div className="min-w-0">
-            {open ? (
-              <>
-                <p
-                  className={
-                    open.is_within_geofence
-                      ? "inline-flex items-center gap-2 text-sm font-semibold text-success"
-                      : "inline-flex items-center gap-2 text-sm font-semibold text-destructive"
-                  }
-                >
-                  {open.is_within_geofence ? (
-                    <MapPin className="size-4" />
-                  ) : (
-                    <ShieldAlert className="size-4" />
-                  )}
-                  {open.is_within_geofence
-                    ? "Clocked in · within geofence"
-                    : "Clocked in · outside geofence"}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Since {timeOf(open.clock_in_time)}
-                </p>
-              </>
-            ) : (
-              <>
-                <h2 className="text-lg font-bold">Ready to start your shift?</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Clock in with GPS. You need to be within {salon.geofence_radius_meters}m of{" "}
-                  {salon.address_label ?? salon.name}.
-                </p>
-              </>
-            )}
-          </div>
-          {open ? (
+        amount={naira(daily.earned)}
+        badge={new Date().toLocaleDateString("en-NG", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+        })}
+        caption={
+          daily.items.length > 0
+            ? `${daily.items.length} ${config.serviceTitle.toLowerCase()} jobs completed today`
+            : "Clock in to start your shift"
+        }
+        metrics={[
+          { label: "Revenue", value: naira(daily.revenue) },
+          { label: "Commission", value: `${Math.round(me.commission_rate * 100)}%`, tone: "lime" },
+        ]}
+        action={
+          open ? (
             <Button
-              size="lg"
-              variant="outline"
-              className="h-14 w-full text-base sm:w-52"
+              size="sm"
+              className="h-9 rounded-full bg-lime px-4 text-xs font-bold text-lime-foreground hover:bg-lime/90"
               onClick={() => {
                 clockOut(me.id);
                 toast.success("Clocked out. Have a great evening!");
               }}
             >
-              <LogOut className="size-5" />
-              Clock Out
+              <LogOut className="size-3.5" />
+              Clock out
             </Button>
           ) : (
             <Button
-              size="lg"
-              className="h-14 w-full text-base font-semibold sm:w-52"
+              size="sm"
+              className="h-9 rounded-full bg-lime px-4 text-xs font-bold text-lime-foreground hover:bg-lime/90"
               disabled={locating}
               onClick={startClockIn}
             >
               {locating ? (
-                <Loader2 className="size-5 animate-spin" />
+                <Loader2 className="size-3.5 animate-spin" />
               ) : (
-                <MapPin className="size-5" />
+                <MapPin className="size-3.5" />
               )}
-              {locating ? "Locating…" : "Clock In"}
+              {locating ? "Locating..." : "Clock in"}
             </Button>
-          )}
-        </div>
-      </section>
-
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          label="Earned today"
-          value={naira(daily.earned)}
-          hint={`${daily.items.length} ${config.serviceTitle.toLowerCase()} jobs completed`}
-          icon={Banknote}
-          tone="gold"
-        />
-        <MetricCard
-          label="Revenue generated"
-          value={naira(daily.revenue)}
-          hint="Billed to clients"
-          icon={TrendingUp}
-        />
-        <MetricCard
-          label="Shift status"
-          value={open ? "On duty" : "Off duty"}
-          hint={open ? `Since ${timeOf(open.clock_in_time)}` : "Not clocked in yet"}
-          icon={Clock}
-          tone={open ? "success" : "default"}
-        />
-        <MetricCard
-          label="Geofence"
-          value={
-            open
-              ? open.is_within_geofence
-                ? "Verified"
-                : "Flagged"
-              : `${salon.geofence_radius_meters}m`
-          }
-          hint={open?.is_within_geofence === false ? "Outside business radius" : "Within radius"}
-          icon={MapPin}
-          tone={open && !open.is_within_geofence ? "danger" : "default"}
+          )
+        }
+      />
+      <div className="mt-4">
+        <MetricScroller
+          items={[
+            {
+              key: "shift",
+              label: "Shift",
+              value: open ? "On duty" : "Off duty",
+              hint: open ? `since ${timeOf(open.clock_in_time)}` : "not clocked in",
+              icon: Clock,
+              tone: open ? "success" : "default",
+            },
+            {
+              key: "revenue",
+              label: "Revenue today",
+              value: naira(daily.revenue),
+              hint: "billed to clients",
+              icon: TrendingUp,
+            },
+            {
+              key: "commission",
+              label: "Commission",
+              value: `${Math.round(me.commission_rate * 100)}%`,
+              hint: "of each job",
+              icon: Banknote,
+              tone: "primary",
+            },
+            {
+              key: "geofence",
+              label: "Geofence",
+              value: open
+                ? open.is_within_geofence
+                  ? "Verified"
+                  : "Flagged"
+                : `${salon.geofence_radius_meters}m`,
+              hint: open?.is_within_geofence === false ? "off-site" : "within radius",
+              icon: MapPin,
+              tone: open && !open.is_within_geofence ? "danger" : "default",
+            },
+          ]}
         />
       </div>
 
@@ -408,6 +384,28 @@ const defaultPosterMessage = (firstName: string) => `Tip ${firstName}`;
 
 /** Per-staff poster message, persisted to localStorage. Blank saves as blank
  * so the print falls back to the default automatically. */
+function StaffOnboarding({
+  hasBank,
+  hasClockedIn,
+}: {
+  hasBank: boolean;
+  hasClockedIn: boolean;
+}) {
+  const steps = [
+    { label: "Add your payout account", done: hasBank, to: "/staff" as const },
+    { label: "Clock in for the first time", done: hasClockedIn, to: "/staff" as const },
+  ];
+  if (steps.every((s) => s.done)) {
+    return (
+      <SetupRibbon
+        storageKey="conecktos-staff-setup-dismissed"
+        message="Setup complete. You are all set to earn."
+      />
+    );
+  }
+  return <OnboardingChecklist title="Your setup" steps={steps} />;
+}
+
 function usePosterMessage(userId: string, fallback: string) {
   const [msg, setMsg] = useState(fallback);
   useEffect(() => {

@@ -11,6 +11,9 @@ import {
   Users,
 } from "lucide-react";
 import { BottomNav, BottomNavSpacer, type BottomNavItem } from "@/components/bottom-nav";
+import { HeroCard } from "@/components/hero-card";
+import { MetricScroller } from "@/components/metric-scroller";
+import { SetupRibbon } from "@/components/setup-ribbon";
 import { toast } from "sonner";
 import { AppShell, EmptyState, MetricCard } from "@/components/app-shell";
 import { TeamOnboarding } from "@/components/team-onboarding";
@@ -142,46 +145,72 @@ function ReceptionPage() {
   };
 
   return (
-    <AppShell
-      title={`${currentGreeting()}, ${firstName}`}
-      subtitle={`${todays.length} tickets today · ${onDuty.length} ${config.staffPlural.toLowerCase()} on duty`}
-    >
+    <AppShell>
       <BottomNavSpacer>
       {view === "tickets" ? (
       <>
-      <OnboardingChecklist
-        title="Front desk setup"
-        steps={[
-          { label: "Bill your first ticket", done: tickets.length > 0, to: "/reception" },
+      <FrontDeskOnboarding
+        billedAny={tickets.length > 0}
+        matchedAny={tickets.some((t) => t.status === "paid")}
+      />
+      <HeroCard
+        eyebrow={openTickets.length > 0 ? "Open at the desk" : "Front desk"}
+        amount={
+          openTickets.length > 0
+            ? `${openTickets.length} ${openTickets.length === 1 ? "ticket" : "tickets"}`
+            : "All clear"
+        }
+        badge={new Date().toLocaleDateString("en-NG", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+        })}
+        caption={
+          openTickets.length > 0
+            ? `${naira(openTickets.reduce((s, t) => s + t.total_amount, 0))} waiting on payment`
+            : "No open tickets"
+        }
+        metrics={[
           {
-            label: "Match a paid ticket",
-            done: tickets.some((t) => t.status === "paid"),
-            to: "/reception",
+            label: "Paid today",
+            value: String(todays.filter((t) => t.status === "paid").length),
+          },
+          {
+            label: "Collected",
+            value: naira(
+              todays.filter((t) => t.status === "paid").reduce((s, t) => s + t.total_amount, 0),
+            ),
+            tone: "lime",
           },
         ]}
       />
-      <div className="grid gap-4 sm:grid-cols-3">
-        <MetricCard
-          label="Tickets today"
-          value={String(todays.length)}
-          hint={`${openTickets.length} awaiting payment`}
-          icon={Receipt}
-        />
-        <MetricCard
-          label="Collected"
-          value={naira(
-            todays.filter((t) => t.status === "paid").reduce((s, t) => s + t.total_amount, 0),
-          )}
-          hint="Paid tickets only"
-          icon={CircleDollarSign}
-          tone="gold"
-        />
-        <MetricCard
-          label="On duty"
-          value={String(onDuty.length)}
-          hint={`Clocked-in ${config.staffPlural.toLowerCase()}`}
-          icon={Users}
-          tone="success"
+      <div className="mt-4">
+        <MetricScroller
+          items={[
+            {
+              key: "onduty",
+              label: "On duty",
+              value: `${onDuty.length} / ${staff.length}`,
+              hint: `clocked-in ${config.staffPlural.toLowerCase()}`,
+              icon: Users,
+              tone: "success",
+            },
+            {
+              key: "tickets-today",
+              label: "Tickets today",
+              value: String(todays.length),
+              hint: "billed so far",
+              icon: Receipt,
+            },
+            {
+              key: "waiting",
+              label: "Awaiting",
+              value: String(openTickets.length),
+              hint: openTickets.length > 0 ? "needs matching" : "all settled",
+              icon: CircleDollarSign,
+              tone: openTickets.length > 0 ? "warning" : "success",
+            },
+          ]}
         />
       </div>
 
@@ -396,6 +425,22 @@ function ReceptionPage() {
       />
     </AppShell>
   );
+}
+
+function FrontDeskOnboarding({ billedAny, matchedAny }: { billedAny: boolean; matchedAny: boolean }) {
+  const steps = [
+    { label: "Bill your first ticket", done: billedAny, to: "/reception" as const },
+    { label: "Match a paid ticket", done: matchedAny, to: "/reception" as const },
+  ];
+  if (steps.every((s) => s.done)) {
+    return (
+      <SetupRibbon
+        storageKey="conecktos-front-desk-setup-dismissed"
+        message="Front desk setup complete. Ready to bill."
+      />
+    );
+  }
+  return <OnboardingChecklist title="Front desk setup" steps={steps} />;
 }
 
 function ReceiptDialog({ ticket }: { ticket: Ticket }) {
