@@ -834,7 +834,7 @@ function CloseDayDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="rounded-2xl border border-border bg-gradient-surface p-5">
+        <div className="rounded-2xl border border-border bg-card p-5">
           <div className="flex items-baseline justify-between gap-3">
             <p className="font-display text-sm font-bold">{salon.name}</p>
             <p className="text-[11px] tabular-nums text-muted-foreground">

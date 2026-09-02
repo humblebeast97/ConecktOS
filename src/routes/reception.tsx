@@ -468,7 +468,7 @@ function ReceiptDialog({ ticket }: { ticket: Ticket }) {
           <DialogDescription>Print or save this ticket as a receipt.</DialogDescription>
         </DialogHeader>
 
-        <div className="rounded-2xl border border-border bg-gradient-surface p-5">
+        <div className="rounded-2xl border border-border bg-card p-5">
           <p className="font-display text-base font-bold">{salon.name}</p>
           <p className="text-xs text-muted-foreground">
             Receipt ·{" "}

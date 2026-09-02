@@ -520,7 +520,7 @@ function TipQrDialog({
 
         {hasBank ? (
           <>
-            <div className="rounded-2xl border border-primary/30 bg-gradient-surface p-5 text-center">
+            <div className="rounded-2xl border border-primary/30 bg-card p-5 text-center">
               <p className="font-display text-xs uppercase tracking-[0.25em] text-primary">
                 {salon.name}
               </p>
