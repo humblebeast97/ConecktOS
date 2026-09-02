@@ -1,6 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Building2, Save, MapPin, Loader2, FileText, Sun, Moon, Monitor } from "lucide-react";
+import {
+  Building2,
+  Clock,
+  FileText,
+  Loader2,
+  MapPin,
+  Monitor,
+  Moon,
+  Save,
+  Sun,
+} from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { RouteError } from "@/components/route-error";
@@ -208,22 +218,20 @@ function SettingsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="s-open">Opens</Label>
-                  <Input
+                  <TimeInput
                     id="s-open"
-                    type="time"
                     value={open}
-                    onChange={(e) => setOpen(e.target.value)}
-                    className="h-11 bg-surface"
+                    onChange={setOpen}
+                    ariaLabel="Opening time"
                   />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="s-close">Closes</Label>
-                  <Input
+                  <TimeInput
                     id="s-close"
-                    type="time"
                     value={close}
-                    onChange={(e) => setClose(e.target.value)}
-                    className="h-11 bg-surface"
+                    onChange={setClose}
+                    ariaLabel="Closing time"
                   />
                 </div>
               </div>
@@ -305,6 +313,39 @@ function SettingsPage() {
         </div>
       </form>
     </AppShell>
+  );
+}
+
+/** Cross-platform time input. iOS Safari renders <input type="time"> as a
+ * bare text box with no picker affordance; Android Chrome shows a native
+ * chevron. This wrapper adds a clock icon on the right so both platforms
+ * signal that the field opens a picker on tap. */
+function TimeInput({
+  id,
+  value,
+  onChange,
+  ariaLabel,
+}: {
+  id: string;
+  value: string;
+  onChange: (v: string) => void;
+  ariaLabel: string;
+}) {
+  return (
+    <div className="relative">
+      <Input
+        id={id}
+        type="time"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label={ariaLabel}
+        className="h-11 bg-surface pr-9"
+      />
+      <Clock
+        className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+        aria-hidden
+      />
+    </div>
   );
 }
 
