@@ -516,13 +516,14 @@ function AdminPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                {expenses.length > 0 && totalExpenses === 0 ? (
-                  <p className="px-5 pb-3 text-xs text-muted-foreground">
+                {expenses.length === 0 ? (
+                  <p className="px-5 py-6 text-center text-sm text-muted-foreground">
+                    No expenses logged yet. Use the form above to log your first one.
+                  </p>
+                ) : totalExpenses === 0 ? (
+                  <p className="px-5 py-6 text-center text-sm text-muted-foreground">
                     No expenses match this filter.
                   </p>
-                ) : null}
-                {totalExpenses === 0 ? (
-                  <p className="px-5 py-4 text-sm text-muted-foreground">No expenses logged yet.</p>
                 ) : (
                   <ul className="divide-y divide-border">
                     {expensesPage.map((e) => (

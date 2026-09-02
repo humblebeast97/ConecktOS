@@ -14,6 +14,7 @@ import { StoreProvider } from "../lib/store";
 import { IndustryProvider } from "../config/industry-context";
 import { Toaster } from "../components/ui/sonner";
 import { RouteProgress } from "../components/route-progress";
+import { InstallPrompt } from "../components/install-prompt";
 
 // Social scrapers need an absolute og:image. Set VITE_SITE_URL at deploy time
 // (e.g. https://app.conecktos.com); falls back to a relative path locally.
@@ -172,6 +173,7 @@ function RootComponent() {
           <RouteProgress />
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
+          <InstallPrompt />
           <Toaster position="top-center" />
         </IndustryProvider>
       </StoreProvider>
