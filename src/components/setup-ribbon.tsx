@@ -22,10 +22,13 @@ export function SetupRibbon({ storageKey, message }: Props) {
 
   if (dismissed) return null;
 
+  // Text uses the page foreground so it flips near-white in dark mode and
+  // near-black in light mode — always legible on the translucent mint fill.
+  // The check icon keeps the semantic success tone for at-a-glance meaning.
   return (
     <div
       role="status"
-      className="flex items-center justify-between gap-3 rounded-full border border-success/25 bg-success/15 px-4 py-2 text-xs font-medium text-success-foreground"
+      className="flex items-center justify-between gap-3 rounded-full border border-success/25 bg-success/15 px-4 py-2 text-xs font-medium text-foreground"
     >
       <span className="inline-flex items-center gap-2 truncate">
         <CheckCircle2 className="size-3.5 shrink-0 text-success" aria-hidden />
@@ -38,7 +41,7 @@ export function SetupRibbon({ storageKey, message }: Props) {
           if (typeof window !== "undefined") window.localStorage.setItem(storageKey, "1");
         }}
         aria-label="Dismiss setup notice"
-        className="text-success-foreground/60 hover:text-success-foreground"
+        className="text-foreground/60 hover:text-foreground"
       >
         <X className="size-3.5" />
       </button>
