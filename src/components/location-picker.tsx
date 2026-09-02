@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, MapPin, Navigation, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { reverseGeocode, searchAddress, type GeocodeMatch } from "@/lib/geocode";
 import "leaflet/dist/leaflet.css";
 
@@ -43,7 +42,7 @@ export function LocationPicker({ value, radiusMeters, onChange }: Props) {
         setMatches(results);
         setActiveIdx(0);
         setStatus(results.length ? "idle" : "unavailable");
-      } catch (e) {
+      } catch {
         if (!controller.signal.aborted) setStatus("error");
       }
     }, SEARCH_DEBOUNCE_MS);

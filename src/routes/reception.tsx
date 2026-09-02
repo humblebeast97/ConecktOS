@@ -15,7 +15,7 @@ import { HeroCard } from "@/components/hero-card";
 import { MetricScroller } from "@/components/metric-scroller";
 import { SetupRibbon } from "@/components/setup-ribbon";
 import { toast } from "sonner";
-import { AppShell, EmptyState, MetricCard } from "@/components/app-shell";
+import { AppShell, EmptyState } from "@/components/app-shell";
 import { TeamOnboarding } from "@/components/team-onboarding";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { TicketBuilder } from "@/components/ticket-builder";
@@ -43,7 +43,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useAttendance, useAuth, useSalon, useServices, useStaff, useTickets } from "@/api";
-import { currentGreeting } from "@/lib/greeting";
 import { useRoleGuard } from "@/lib/access";
 import {
   naira,
@@ -94,7 +93,7 @@ function ReceptionPage() {
   useRoleGuard(RECEPTION_ROLES);
   const config = useIndustryConfig();
   const { currentUser } = useAuth();
-  const { staff, profiles } = useStaff();
+  const { staff } = useStaff();
   const { tickets, ticketItems, markPaid } = useTickets();
   const { attendance } = useAttendance();
 
@@ -126,7 +125,6 @@ function ReceptionPage() {
     total: totalHistory,
   } = usePaginated(filteredHistory, 8);
 
-  const firstName = currentUser.full_name.split(" ")[0];
   const { view = "tickets" } = Route.useSearch();
   const navigate = useNavigate();
   const goToView = (v: ReceptionView) => navigate({ to: "/reception", search: { view: v } });

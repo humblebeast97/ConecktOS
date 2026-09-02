@@ -12,14 +12,13 @@ import {
   TrendingUp,
   User,
   Loader2,
-  ShieldAlert,
 } from "lucide-react";
 import { BottomNav, BottomNavSpacer, type BottomNavItem } from "@/components/bottom-nav";
 import { HeroCard } from "@/components/hero-card";
 import { MetricScroller } from "@/components/metric-scroller";
 import { SetupRibbon } from "@/components/setup-ribbon";
 import { toast } from "sonner";
-import { AppShell, MetricCard } from "@/components/app-shell";
+import { AppShell } from "@/components/app-shell";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { RouteError } from "@/components/route-error";
 import { Skeleton } from "@/components/skeleton";

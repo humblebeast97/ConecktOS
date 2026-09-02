@@ -276,11 +276,6 @@
     oklch(0.68 0.2 288),
     oklch(0.54 0.24 280)
   );
-  --background-image-gradient-surface: linear-gradient(
-    160deg,
-    oklch(1 0 0),
-    oklch(0.955 0.025 305)
-  );
 }
 
 @layer base {

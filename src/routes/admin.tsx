@@ -1,16 +1,13 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   BadgeCheck,
   Banknote,
-  CheckCircle2,
-  Circle,
   Clock,
   Flame,
   FileDown,
   Fuel,
-  LayoutDashboard,
   Home,
   Lock,
   Percent,
@@ -18,7 +15,6 @@ import {
   RotateCcw,
   Printer,
   Search,
-  Rocket,
   Settings2,
   TrendingUp,
   Undo2,
@@ -37,7 +33,6 @@ import { ServicesPanel } from "@/components/services-panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -93,7 +88,6 @@ import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { SortButton } from "@/components/sort-button";
 import { GeofenceBadge } from "@/components/geofence-badge";
 import { PayrollReminderCard } from "@/components/payroll-reminder-card";
-import { currentGreeting } from "@/lib/greeting";
 import { printHTML } from "@/lib/print-sheet";
 import { RouteError } from "@/components/route-error";
 import { useIndustryConfig } from "@/config/industry-context";

@@ -9,15 +9,11 @@ export function LoadMore({
   onLoadMore,
   shown,
   total,
-  endLabel = "You've seen everything",
-  showEnd = true,
 }: {
   hasMore: boolean;
   onLoadMore: () => void;
   shown: number;
   total: number;
-  endLabel?: string;
-  showEnd?: boolean;
 }) {
   if (hasMore) {
     return (
@@ -36,6 +32,5 @@ export function LoadMore({
       </div>
     );
   }
-  if (!showEnd || total <= shown) return null;
-  return null; // total === shown and no reason to show a divider mid-flow
+  return null;
 }
