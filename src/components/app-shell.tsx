@@ -10,7 +10,7 @@ import {
   MapPinOff,
   Repeat,
 } from "lucide-react";
-import { useEffect, useMemo, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useAttendance, useAuth, useInventory, useStaff, useTickets } from "@/api";
 import { useIndustryConfig } from "@/config/industry-context";
 import { personTitle, roleLabel, type Role } from "@/lib/groompulse";
@@ -72,31 +72,73 @@ export function AppShell({
   const offSite = showOps
     ? attendance.filter((a) => a.clock_out_time === null && !a.is_within_geofence)
     : [];
-  const notifications = [
-    low.length
-      ? {
-          icon: Package,
-          text: `${low.length} item${low.length > 1 ? "s" : ""} low on stock`,
-          to: "/admin" as const,
-        }
-      : null,
-    pending.length
-      ? {
-          icon: Receipt,
-          text: `${pending.length} ticket${pending.length > 1 ? "s" : ""} awaiting payment`,
-          to: "/reception" as const,
-        }
-      : null,
-    offSite.length
-      ? {
-          icon: MapPinOff,
-          text: `${offSite.length} off-site clock-in${offSite.length > 1 ? "s" : ""}`,
-          to: "/admin" as const,
-        }
-      : null,
-  ].filter(
-    (n): n is { icon: typeof Package; text: string; to: "/admin" | "/reception" } => n !== null,
-  );
+
+  // Track per-notification acknowledgement so the badge doesn't scream forever.
+  // Signature = `${count}` per source. Once the user opens the menu we store
+  // the current count; a fresh incident bumps the count and re-surfaces it.
+  type Notif = {
+    key: "low" | "pending" | "offsite";
+    icon: typeof Package;
+    text: string;
+    to: "/admin" | "/reception";
+    count: number;
+  };
+  const rawNotifs: Notif[] = useMemo(() => {
+    const items: (Notif | null)[] = [
+      low.length
+        ? {
+            key: "low",
+            icon: Package,
+            text: `${low.length} item${low.length > 1 ? "s" : ""} low on stock`,
+            to: "/admin",
+            count: low.length,
+          }
+        : null,
+      pending.length
+        ? {
+            key: "pending",
+            icon: Receipt,
+            text: `${pending.length} ticket${pending.length > 1 ? "s" : ""} awaiting payment`,
+            to: "/reception",
+            count: pending.length,
+          }
+        : null,
+      offSite.length
+        ? {
+            key: "offsite",
+            icon: MapPinOff,
+            text: `${offSite.length} off-site clock-in${offSite.length > 1 ? "s" : ""}`,
+            to: "/admin",
+            count: offSite.length,
+          }
+        : null,
+    ];
+    return items.filter((n): n is Notif => n !== null);
+  }, [low.length, pending.length, offSite.length]);
+
+  const [ack, setAck] = useState<Record<string, number>>({});
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      setAck(JSON.parse(window.localStorage.getItem("conecktos-notif-ack") ?? "{}"));
+    } catch {
+      /* ignore malformed */
+    }
+  }, []);
+  const persistAck = (next: Record<string, number>) => {
+    setAck(next);
+    if (typeof window !== "undefined")
+      window.localStorage.setItem("conecktos-notif-ack", JSON.stringify(next));
+  };
+  const notifications = rawNotifs.filter((n) => n.count > (ack[n.key] ?? 0));
+  const acknowledgeAll = () => {
+    if (rawNotifs.length === 0) return;
+    persistAck({
+      ...ack,
+      ...Object.fromEntries(rawNotifs.map((n) => [n.key, n.count])),
+    });
+  };
+  const acknowledgeOne = (key: string, count: number) => persistAck({ ...ack, [key]: count });
 
   // Keep the browser tab title in sync with the active industry sub-brand.
   // Skip when no title is provided; the route's own head() meta then wins.
@@ -149,18 +191,32 @@ export function AppShell({
                     </span>
                   ) : null}
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64">
-                  <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                <DropdownMenuContent align="end" className="w-72">
+                  <DropdownMenuLabel className="flex items-center justify-between gap-3">
+                    <span>Notifications</span>
+                    {notifications.length > 0 ? (
+                      <button
+                        type="button"
+                        onClick={acknowledgeAll}
+                        className="text-[11px] font-medium text-primary hover:underline"
+                      >
+                        Mark all read
+                      </button>
+                    ) : null}
+                  </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {notifications.length === 0 ? (
                     <p className="px-2 py-6 text-center text-xs text-muted-foreground">
                       You're all caught up.
                     </p>
                   ) : (
-                    notifications.map((n, i) => (
+                    notifications.map((n) => (
                       <DropdownMenuItem
-                        key={i}
-                        onSelect={() => navigate({ to: n.to })}
+                        key={n.key}
+                        onSelect={() => {
+                          acknowledgeOne(n.key, n.count);
+                          navigate({ to: n.to });
+                        }}
                         className="gap-2"
                       >
                         <n.icon className="size-4 shrink-0 text-muted-foreground" />
