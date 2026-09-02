@@ -402,6 +402,27 @@
   }
 }
 
+/* Native time / date inputs: hide the built-in picker indicator (Android
+ * Chrome's chevron, Safari's spinner arrows) so our wrapper's Clock icon is
+ * the only affordance on either platform. */
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+  appearance: none;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+input[type="time"]::-webkit-inner-spin-button,
+input[type="time"]::-webkit-outer-spin-button,
+input[type="date"]::-webkit-inner-spin-button,
+input[type="date"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
 /* Printing is handled by opening a fresh popup window with a standalone
  * document (see src/lib/print-sheet.ts). No page-scoped print CSS needed. */
 
