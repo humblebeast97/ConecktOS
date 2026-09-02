@@ -214,8 +214,6 @@ function AdminPage() {
     >
       <BottomNavSpacer>
         {tab === "team" ? <TeamTab /> : null}
-        {tab === "overview" ? <OwnerOnboarding /> : null}
-        {tab === "overview" ? <PayrollReminderCard /> : null}
         {tab === "overview" ? (
           <>
             <HeroCard
@@ -236,6 +234,12 @@ function AdminPage() {
                 },
               ]}
             />
+            <div className="mt-4">
+              <OwnerOnboarding />
+            </div>
+            <div className="mt-4">
+              <PayrollReminderCard />
+            </div>
             <div className="mt-4">
               <MetricScroller
                 items={[
