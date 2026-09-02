@@ -124,6 +124,21 @@
   --sidebar-accent-foreground: oklch(0.18 0.01 285);
   --sidebar-border: oklch(0.94 0.005 285);
   --sidebar-ring: oklch(0.65 0.22 285);
+
+  /* Aurora backdrop colors */
+  --aurora-1: oklch(0.75 0.15 285);
+  --aurora-2: oklch(0.88 0.06 40);
+
+  /* Glass surface tokens */
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-blur: blur(24px) saturate(180%);
+  --glass-shadow:
+    0 10px 32px -12px rgba(94, 62, 232, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --glass-shadow-soft:
+    0 4px 20px -8px rgba(94, 62, 232, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 /* Dark, system-preferred. Guarded so an explicit `light` choice on the root
@@ -184,6 +199,19 @@
     --sidebar-accent-foreground: oklch(0.97 0.008 285);
     --sidebar-border: oklch(0.30 0.025 285);
     --sidebar-ring: oklch(0.70 0.20 285);
+
+    --aurora-1: oklch(0.45 0.20 285);
+    --aurora-2: oklch(0.55 0.14 148);
+
+    --glass-bg: rgba(30, 25, 48, 0.5);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-blur: blur(24px) saturate(160%);
+    --glass-shadow:
+      0 12px 32px -14px rgba(0, 0, 0, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    --glass-shadow-soft:
+      0 6px 20px -10px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
 }
 
@@ -237,6 +265,19 @@
   --sidebar-accent-foreground: oklch(0.97 0.008 285);
   --sidebar-border: oklch(0.30 0.025 285);
   --sidebar-ring: oklch(0.70 0.20 285);
+
+  --aurora-1: oklch(0.45 0.20 285);
+  --aurora-2: oklch(0.55 0.14 148);
+
+  --glass-bg: rgba(30, 25, 48, 0.5);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-blur: blur(24px) saturate(160%);
+  --glass-shadow:
+    0 12px 32px -14px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --glass-shadow-soft:
+    0 6px 20px -10px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 @theme {
@@ -267,6 +308,43 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     font-feature-settings: "ss01", "cv01";
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Aurora backdrop. Two blurred radial blobs behind everything so glass
+   * surfaces have something to smear. Colors flip per theme. */
+  body::before,
+  body::after {
+    content: "";
+    position: fixed;
+    pointer-events: none;
+    z-index: -1;
+    filter: blur(90px);
+    border-radius: 999px;
+  }
+  body::before {
+    width: 55vw;
+    height: 55vw;
+    top: -14vw;
+    left: -10vw;
+    background: radial-gradient(circle, var(--aurora-1), transparent 70%);
+    opacity: 0.55;
+  }
+  body::after {
+    width: 60vw;
+    height: 60vw;
+    bottom: -16vw;
+    right: -10vw;
+    background: radial-gradient(circle, var(--aurora-2), transparent 65%);
+    opacity: 0.45;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    body::before,
+    body::after {
+      opacity: 0.35;
+    }
   }
 
   h1,
@@ -279,9 +357,19 @@
 }
 
 @utility card-lux {
-  background-color: var(--color-card);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-lux);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+@utility glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-soft);
 }
 
 @utility card-ink {
@@ -296,6 +384,22 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+/* Accessibility + performance fallback: viewers that opt out of transparency
+ * (system-level setting, older devices) get solid opaque cards. */
+@media (prefers-reduced-transparency) {
+  .card-lux,
+  .glass {
+    background: var(--color-card) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  }
+  body::before,
+  body::after {
+    display: none !important;
+  }
 }
 
 /* Printing is handled by opening a fresh popup window with a standalone
