@@ -47,30 +47,47 @@ export function HeroCard({ eyebrow, amount, badge, caption, metrics, action }: P
 
         {metrics && metrics.length > 0 ? (
           <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/10 pt-3.5">
+            {/* Left cluster: everything except the last metric when no action
+             * slot is used. When there's an action (staff Clock in), keep all
+             * metrics on the left so the action owns the right. */}
             <div className="flex flex-1 gap-6">
-              {metrics.map((m) => (
-                <div key={m.label}>
-                  <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-ink-foreground/55">
-                    {m.label}
-                  </p>
-                  <p
-                    className={
-                      m.tone === "lime"
-                        ? "mt-0.5 font-display text-sm font-bold text-lime"
-                        : m.tone === "success"
-                          ? "mt-0.5 font-display text-sm font-bold text-success"
-                          : "mt-0.5 font-display text-sm font-bold"
-                    }
-                  >
-                    {m.value}
-                  </p>
-                </div>
+              {(action ? metrics : metrics.slice(0, -1)).map((m) => (
+                <MetricStat key={m.label} metric={m} />
               ))}
             </div>
-            {action ? <div className="shrink-0">{action}</div> : null}
+            {action ? (
+              <div className="shrink-0">{action}</div>
+            ) : metrics.length > 1 ? (
+              <div className="shrink-0 text-right">
+                <MetricStat metric={metrics[metrics.length - 1]!} align="right" />
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>
     </section>
+  );
+}
+
+function MetricStat({
+  metric,
+  align = "left",
+}: {
+  metric: { label: string; value: string; tone?: "default" | "lime" | "success" };
+  align?: "left" | "right";
+}) {
+  const valueColor =
+    metric.tone === "lime"
+      ? "text-lime"
+      : metric.tone === "success"
+        ? "text-success"
+        : "text-ink-foreground";
+  return (
+    <div className={align === "right" ? "text-right" : undefined}>
+      <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-ink-foreground/55">
+        {metric.label}
+      </p>
+      <p className={`mt-0.5 font-display text-sm font-bold ${valueColor}`}>{metric.value}</p>
+    </div>
   );
 }
