@@ -402,9 +402,16 @@
   }
 }
 
-/* Native time / date inputs: hide the built-in picker indicator (Android
- * Chrome's chevron, Safari's spinner arrows) so our wrapper's Clock icon is
- * the only affordance on either platform. */
+/* Native time / date inputs: fully strip the browser-drawn affordance
+ * (Android Chrome's chevron, iOS Safari's built-in clock button, spinner
+ * arrows on desktop) so our wrapper's Clock icon is the only one visible
+ * on any platform. Tap on the input still opens the native picker. */
+input[type="time"],
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background-clip: padding-box;
+}
 input[type="time"]::-webkit-calendar-picker-indicator,
 input[type="date"]::-webkit-calendar-picker-indicator {
   display: none;
@@ -421,6 +428,19 @@ input[type="date"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   appearance: none;
   margin: 0;
+}
+input[type="time"]::-webkit-date-and-time-value,
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+  min-height: 1.25em;
+}
+/* iOS renders a built-in clear button. Hide it too so the field is fully
+ * ours. */
+input[type="time"]::-webkit-clear-button,
+input[type="date"]::-webkit-clear-button {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
 }
 
 /* Printing is handled by opening a fresh popup window with a standalone
