@@ -109,29 +109,21 @@ function LoginPage() {
         <section>
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-muted-foreground">
             <Sparkles className="size-3.5 text-primary" />
-            Built for Nigerian Businesses
+            Built for Nigerian service businesses
           </span>
-          <h1 className="mt-5 text-4xl font-extrabold leading-[1.05] sm:text-5xl">
-            Run your Business like a{" "}
-            <span className="text-gradient-primary">luxury operation.</span>
+          <h1 className="mt-6 text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.5rem]">
+            Every naira. Every clock-in.{" "}
+            <span className="text-gradient-primary">In one place.</span>
           </h1>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
-            ConecktOS handles geofenced staff clock-ins, automatic commission splits, consumables
-            tracking, overheads and a fraud-proof end-of-day audit. On any phone, tablet or desktop.
+          <p className="mt-5 max-w-md text-base leading-relaxed text-muted-foreground sm:text-lg">
+            The operating system your salon, barbershop or spa has been running on paper. Verify
+            attendance with GPS, split commissions the second a ticket is billed, and close the day
+            with a signed audit in one tap.
           </p>
-          <dl className="mt-8 grid grid-cols-2 gap-3 sm:max-w-md">
-            {[
-              ["GPS clock-in", "50m geofence"],
-              ["Commission", "Auto split per service"],
-              ["Tips", "Personal bank-transfer QR"],
-              ["Audit", "One-tap Close Day"],
-            ].map(([k, v]) => (
-              <div key={k} className="glass rounded-xl px-4 py-3">
-                <dt className="text-xs uppercase tracking-wider text-muted-foreground">{k}</dt>
-                <dd className="mt-1 text-sm font-semibold">{v}</dd>
-              </div>
-            ))}
-          </dl>
+          <p className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
+            <ShieldCheck className="size-4 shrink-0 text-success" />
+            No install, no card, no per-seat fee to start.
+          </p>
         </section>
 
         <section className="glass rounded-3xl p-6 sm:p-8">
