@@ -89,7 +89,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "ConecktOS runs service businesses: geofenced clock-ins, commission splits, inventory and daily audits.",
       },
       // theme-color per scheme so the browser chrome / iOS status bar match.
-      { name: "theme-color", content: "#EDE3F7", media: "(prefers-color-scheme: light)" },
+      { name: "theme-color", content: "#D9C7F0", media: "(prefers-color-scheme: light)" },
       { name: "theme-color", content: "#15121F", media: "(prefers-color-scheme: dark)" },
       { name: "color-scheme", content: "light dark" },
       // Stop iOS from turning every 4-digit-looking string into a call link.
