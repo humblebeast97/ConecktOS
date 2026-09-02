@@ -61,8 +61,7 @@ export function useTheme() {
     else window.localStorage.setItem(STORAGE_KEY, next);
   }, []);
 
-  const effective: "light" | "dark" =
-    mode === "system" ? (systemDark ? "dark" : "light") : mode;
+  const effective: "light" | "dark" = mode === "system" ? (systemDark ? "dark" : "light") : mode;
 
   return { mode, setMode, effective } as const;
 }

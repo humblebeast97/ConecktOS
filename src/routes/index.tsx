@@ -101,7 +101,8 @@ function LoginPage() {
             Built for Nigerian Businesses
           </span>
           <h1 className="mt-5 text-4xl font-extrabold leading-[1.05] sm:text-5xl">
-            Run your Business like a <span className="text-gradient-primary">luxury operation.</span>
+            Run your Business like a{" "}
+            <span className="text-gradient-primary">luxury operation.</span>
           </h1>
           <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
             ConecktOS handles geofenced staff clock-ins, automatic commission splits, consumables

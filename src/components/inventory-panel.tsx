@@ -349,9 +349,7 @@ function ItemRow({ item }: { item: InventoryItem }) {
               autoFocus
               className="h-8 border-0 bg-transparent px-2 text-right text-xs tabular-nums focus-visible:ring-0"
             />
-            <span className="whitespace-nowrap text-[11px] text-muted-foreground">
-              {item.unit}
-            </span>
+            <span className="whitespace-nowrap text-[11px] text-muted-foreground">{item.unit}</span>
           </div>
           <Button
             type="button"

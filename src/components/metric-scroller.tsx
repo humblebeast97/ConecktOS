@@ -45,7 +45,9 @@ export function MetricScroller({ items }: { items: MetricTile[] }) {
               </p>
               {Icon ? <Icon className="size-3.5 text-muted-foreground" /> : null}
             </div>
-            <p className={`mt-1 font-display text-[17px] font-bold leading-tight tracking-tight tabular-nums ${valueColor}`}>
+            <p
+              className={`mt-1 font-display text-[17px] font-bold leading-tight tracking-tight tabular-nums ${valueColor}`}
+            >
               {item.value}
             </p>
             {item.hint ? (

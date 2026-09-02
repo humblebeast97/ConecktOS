@@ -117,11 +117,7 @@ export function BusinessProfilePanel() {
               key={n}
               type="button"
               onClick={() => setRadius(n)}
-              className={
-                radius === n
-                  ? "font-semibold text-primary"
-                  : "hover:text-foreground"
-              }
+              className={radius === n ? "font-semibold text-primary" : "hover:text-foreground"}
             >
               {n} m
             </button>

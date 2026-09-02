@@ -34,6 +34,16 @@ const initialsOf = (name: string) =>
     .map((w) => w[0]?.toUpperCase() ?? "")
     .join("");
 
+// Demo-only role switcher targets. Hoisted so the useMemo below has a stable
+// identity — otherwise recreating the array each render bypasses memoisation.
+const ROLES_FOR_SWITCHER: Role[] = ["owner", "manager", "receptionist", "staff"];
+const PORTAL_FOR: Record<Role, "/admin" | "/reception" | "/staff"> = {
+  owner: "/admin",
+  manager: "/reception",
+  receptionist: "/reception",
+  staff: "/staff",
+};
+
 export function AppShell({
   title,
   subtitle,
@@ -98,18 +108,11 @@ export function AppShell({
   // Demo-only role switcher: one representative user per role, so testers /
   // stakeholders can jump between portals without touching code. When Phase 1
   // ships real auth this whole block becomes dev-only or is removed.
-  const portalFor: Record<Role, "/admin" | "/reception" | "/staff"> = {
-    owner: "/admin",
-    manager: "/reception",
-    receptionist: "/reception",
-    staff: "/staff",
-  };
-  const rolesForSwitcher: Role[] = ["owner", "manager", "receptionist", "staff"];
   const roleShortcuts = useMemo(
     () =>
-      rolesForSwitcher
-        .map((r) => ({ role: r, user: profiles.find((p) => p.role === r) }))
-        .filter((s): s is { role: Role; user: (typeof profiles)[number] } => Boolean(s.user)),
+      ROLES_FOR_SWITCHER.map((r) => ({ role: r, user: profiles.find((p) => p.role === r) })).filter(
+        (s): s is { role: Role; user: (typeof profiles)[number] } => Boolean(s.user),
+      ),
     [profiles],
   );
 
@@ -217,7 +220,7 @@ export function AppShell({
                           disabled={active}
                           onSelect={() => {
                             signIn(user.id);
-                            navigate({ to: portalFor[role] });
+                            navigate({ to: PORTAL_FOR[role] });
                           }}
                           className="flex flex-col items-start gap-0"
                         >

@@ -43,9 +43,7 @@ export function HeroCard({ eyebrow, amount, badge, caption, metrics, action }: P
         <p className="mt-3 font-display text-[34px] font-bold leading-none tracking-[-0.03em]">
           {amount}
         </p>
-        {caption ? (
-          <p className="mt-1.5 text-[11px] text-ink-foreground/60">{caption}</p>
-        ) : null}
+        {caption ? <p className="mt-1.5 text-[11px] text-ink-foreground/60">{caption}</p> : null}
 
         {metrics && metrics.length > 0 ? (
           <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/10 pt-3.5">

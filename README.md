@@ -26,14 +26,14 @@ ConecktOS closes those gaps:
 
 ConecktOS adapts its language, colours, and modules to the business it's running. Pick a category on setup and the whole app re-skins itself:
 
-| Sub-brand | Industry | Accent |
-|---|---|---|
-| **GroomConeckt** | Salons & barbershops | Gold |
-| **WashConeckt** | Car wash & detailing | Blue |
-| **StitchConeckt** | Tailoring & fashion houses | Violet |
-| **NightConeckt** | Lounges & nightclubs | Rose |
-| **FixConeckt** | Electronics repair plazas | Amber |
-| **ConecktOS** | Platform / landing / global | Sky |
+| Sub-brand         | Industry                    | Accent |
+| ----------------- | --------------------------- | ------ |
+| **GroomConeckt**  | Salons & barbershops        | Gold   |
+| **WashConeckt**   | Car wash & detailing        | Blue   |
+| **StitchConeckt** | Tailoring & fashion houses  | Violet |
+| **NightConeckt**  | Lounges & nightclubs        | Rose   |
+| **FixConeckt**    | Electronics repair plazas   | Amber  |
+| **ConecktOS**     | Platform / landing / global | Sky    |
 
 Labels change with the industry too — a "stylist" becomes a "washer", "detailer", "tailor", "bartender", or "technician"; "consumables" become "chemicals", "fabrics", or "spare parts".
 
@@ -52,24 +52,31 @@ ConecktOS is multi-tenant and role-aware. Each business is isolated, and each pe
 ## Core features
 
 ### Geofenced clock-in
+
 Staff clock in from their phone. ConecktOS reads the device's GPS and measures the distance to the shop using the Haversine formula. Inside the geofence radius → verified. Outside → recorded and flagged on the owner's dashboard.
 
 ### Automatic commission split
+
 Front desk opens a ticket, adds services, and assigns a staff member to each. ConecktOS calculates each split automatically (`service price × staff commission rate`) — no arithmetic, no arguments.
 
 ### Personal tip QR
+
 Every staff member gets a unique QR code linked to their tip destination. Stick it on the mirror, the wristband, the counter — the customer scans and tips. No asking, no awkwardness. Includes a printable mirror-card layout.
 
 ### Auto-deduct inventory
+
 Track consumables with reorder thresholds. Linking a service to its consumables (e.g. hair dye, chemicals, spare screens) deducts stock when the ticket is billed. Low-stock items surface in red on the owner dashboard.
 
 ### Generator & expense logging
+
 Log fuel, maintenance, rent, and supplies. ConecktOS computes generator overhead per billed service, so owners see the true cost behind each job.
 
 ### End-of-day audit
+
 A single **Close Day & Audit** flow reconciles the day — gross revenue by method (POS / transfer / cash), commissions payable, expenses, generator overhead, and anti-fraud checks (stock used with no matching ticket). Pick any date, review, then print or save as PDF.
 
 ### Installable PWA
+
 Add to home screen on phone, tablet, or desktop. Ships a web app manifest, maskable icons, a service worker with offline fallback, and a responsive layout that works from a 375px phone up to a reception tablet and desktop.
 
 ---
@@ -127,11 +134,11 @@ npm run format    # prettier
 
 Set these in `.env` (never committed) or in your deploy platform:
 
-| Variable | Purpose |
-|---|---|
-| `SUPABASE_URL` / `VITE_SUPABASE_URL` | Supabase project URL |
+| Variable                                                     | Purpose                                |
+| ------------------------------------------------------------ | -------------------------------------- |
+| `SUPABASE_URL` / `VITE_SUPABASE_URL`                         | Supabase project URL                   |
 | `SUPABASE_PUBLISHABLE_KEY` / `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable (client-safe) key |
-| `SUPABASE_PROJECT_ID` / `VITE_SUPABASE_PROJECT_ID` | Supabase project ref |
+| `SUPABASE_PROJECT_ID` / `VITE_SUPABASE_PROJECT_ID`           | Supabase project ref                   |
 
 See `.env.example` for the full list.
 

@@ -72,12 +72,8 @@ export function buildAudit(
   range?: Date | AuditRange,
 ): AuditReport {
   const now = new Date();
-  const from = startOfDay(
-    range instanceof Date ? range : range?.from ?? now,
-  );
-  const to = endOfDay(
-    range instanceof Date ? range : range?.to ?? range?.from ?? now,
-  );
+  const from = startOfDay(range instanceof Date ? range : (range?.from ?? now));
+  const to = endOfDay(range instanceof Date ? range : (range?.to ?? range?.from ?? now));
 
   const inWindow = args.tickets.filter((t) => inRange(t.created_at, from, to));
   const paid = inWindow.filter((t) => t.status === "paid");
@@ -95,9 +91,7 @@ export function buildAudit(
 
   // Voided expenses stay in the log for the audit trail, but never count
   // toward totals, generator overhead, or net position.
-  const rangeExpenses = args.expenses.filter(
-    (e) => !e.voided_at && inRange(e.logged_at, from, to),
-  );
+  const rangeExpenses = args.expenses.filter((e) => !e.voided_at && inRange(e.logged_at, from, to));
   const fuelExpense = rangeExpenses
     .filter((e) => e.category === "generator_fuel")
     .reduce((s, e) => s + e.amount, 0);

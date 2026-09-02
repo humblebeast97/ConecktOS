@@ -70,16 +70,9 @@ function NavButton({ item, active }: { item: BottomNavItem; active: boolean }) {
   );
 }
 
-function Fab({
-  label,
-  icon: Icon,
-  onClick,
-  tone = "primary",
-}: NonNullable<Props["fab"]>) {
+function Fab({ label, icon: Icon, onClick, tone = "primary" }: NonNullable<Props["fab"]>) {
   const styles =
-    tone === "lime"
-      ? "bg-lime text-lime-foreground"
-      : "bg-primary text-primary-foreground";
+    tone === "lime" ? "bg-lime text-lime-foreground" : "bg-primary text-primary-foreground";
   return (
     <button
       type="button"

@@ -218,12 +218,7 @@ function SettingsPage() {
               <div className="grid grid-cols-2 gap-5">
                 <div className="space-y-1.5">
                   <Label htmlFor="s-open">Opens</Label>
-                  <TimeInput
-                    id="s-open"
-                    value={open}
-                    onChange={setOpen}
-                    ariaLabel="Opening time"
-                  />
+                  <TimeInput id="s-open" value={open} onChange={setOpen} ariaLabel="Opening time" />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="s-close">Closes</Label>

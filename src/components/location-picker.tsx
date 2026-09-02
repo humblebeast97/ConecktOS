@@ -206,9 +206,7 @@ export function LocationPicker({ value, radiusMeters, onChange }: Props) {
 function StatusHint({ status }: { status: string }) {
   if (status === "denied")
     return (
-      <span className="text-xs text-destructive">
-        Location blocked. Type the address instead.
-      </span>
+      <span className="text-xs text-destructive">Location blocked. Type the address instead.</span>
     );
   if (status === "unavailable")
     return <span className="text-xs text-muted-foreground">No matches</span>;
@@ -265,7 +263,7 @@ function MapPreview({
           weight: 1.5,
           dashArray: "4 4",
           fillColor: "#6845E8",
-          fillOpacity: 0.10,
+          fillOpacity: 0.1,
         }).addTo(map);
         state.current = { map, marker: marker as unknown as import("leaflet").Marker, circle };
       } else {

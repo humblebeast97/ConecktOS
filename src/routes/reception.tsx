@@ -129,8 +129,7 @@ function ReceptionPage() {
   const firstName = currentUser.full_name.split(" ")[0];
   const { view = "tickets" } = Route.useSearch();
   const navigate = useNavigate();
-  const goToView = (v: ReceptionView) =>
-    navigate({ to: "/reception", search: { view: v } });
+  const goToView = (v: ReceptionView) => navigate({ to: "/reception", search: { view: v } });
   const navItems: BottomNavItem[] = [
     { key: "tickets", label: "Tickets", icon: Receipt, onClick: () => goToView("tickets") },
     { key: "history", label: "History", icon: Search, onClick: () => goToView("history") },
@@ -147,270 +146,276 @@ function ReceptionPage() {
   return (
     <AppShell>
       <BottomNavSpacer>
-      {view === "tickets" ? (
-      <>
-      <FrontDeskOnboarding
-        billedAny={tickets.length > 0}
-        matchedAny={tickets.some((t) => t.status === "paid")}
-      />
-      <HeroCard
-        eyebrow={openTickets.length > 0 ? "Open at the desk" : "Front desk"}
-        amount={
-          openTickets.length > 0
-            ? `${openTickets.length} ${openTickets.length === 1 ? "ticket" : "tickets"}`
-            : "All clear"
-        }
-        badge={new Date().toLocaleDateString("en-NG", {
-          weekday: "short",
-          day: "numeric",
-          month: "short",
-        })}
-        caption={
-          openTickets.length > 0
-            ? `${naira(openTickets.reduce((s, t) => s + t.total_amount, 0))} waiting on payment`
-            : "No open tickets"
-        }
-        metrics={[
-          {
-            label: "Paid today",
-            value: String(todays.filter((t) => t.status === "paid").length),
-          },
-          {
-            label: "Collected",
-            value: naira(
-              todays.filter((t) => t.status === "paid").reduce((s, t) => s + t.total_amount, 0),
-            ),
-            tone: "lime",
-          },
-        ]}
-      />
-      <div className="mt-4">
-        <MetricScroller
-          items={[
-            {
-              key: "onduty",
-              label: "On duty",
-              value: `${onDuty.length} / ${staff.length}`,
-              hint: `clocked-in ${config.staffPlural.toLowerCase()}`,
-              icon: Users,
-              tone: "success",
-            },
-            {
-              key: "tickets-today",
-              label: "Tickets today",
-              value: String(todays.length),
-              hint: "billed so far",
-              icon: Receipt,
-            },
-            {
-              key: "waiting",
-              label: "Awaiting",
-              value: String(openTickets.length),
-              hint: openTickets.length > 0 ? "needs matching" : "all settled",
-              icon: CircleDollarSign,
-              tone: openTickets.length > 0 ? "warning" : "success",
-            },
-          ]}
-        />
-      </div>
+        {view === "tickets" ? (
+          <>
+            <FrontDeskOnboarding
+              billedAny={tickets.length > 0}
+              matchedAny={tickets.some((t) => t.status === "paid")}
+            />
+            <HeroCard
+              eyebrow={openTickets.length > 0 ? "Open at the desk" : "Front desk"}
+              amount={
+                openTickets.length > 0
+                  ? `${openTickets.length} ${openTickets.length === 1 ? "ticket" : "tickets"}`
+                  : "All clear"
+              }
+              badge={new Date().toLocaleDateString("en-NG", {
+                weekday: "short",
+                day: "numeric",
+                month: "short",
+              })}
+              caption={
+                openTickets.length > 0
+                  ? `${naira(openTickets.reduce((s, t) => s + t.total_amount, 0))} waiting on payment`
+                  : "No open tickets"
+              }
+              metrics={[
+                {
+                  label: "Paid today",
+                  value: String(todays.filter((t) => t.status === "paid").length),
+                },
+                {
+                  label: "Collected",
+                  value: naira(
+                    todays
+                      .filter((t) => t.status === "paid")
+                      .reduce((s, t) => s + t.total_amount, 0),
+                  ),
+                  tone: "lime",
+                },
+              ]}
+            />
+            <div className="mt-4">
+              <MetricScroller
+                items={[
+                  {
+                    key: "onduty",
+                    label: "On duty",
+                    value: `${onDuty.length} / ${staff.length}`,
+                    hint: `clocked-in ${config.staffPlural.toLowerCase()}`,
+                    icon: Users,
+                    tone: "success",
+                  },
+                  {
+                    key: "tickets-today",
+                    label: "Tickets today",
+                    value: String(todays.length),
+                    hint: "billed so far",
+                    icon: Receipt,
+                  },
+                  {
+                    key: "waiting",
+                    label: "Awaiting",
+                    value: String(openTickets.length),
+                    hint: openTickets.length > 0 ? "needs matching" : "all settled",
+                    icon: CircleDollarSign,
+                    tone: openTickets.length > 0 ? "warning" : "success",
+                  },
+                ]}
+              />
+            </div>
 
-      <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
-        <div id="ticket-builder" className="scroll-mt-20">
-          <TicketBuilder />
-        </div>
+            <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+              <div id="ticket-builder" className="scroll-mt-20">
+                <TicketBuilder />
+              </div>
 
-        <div className="space-y-5">
-          <section className="card-lux rounded-2xl p-5">
-            <h2 className="text-lg font-bold">Payment matcher</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Confirm POS slips and bank alerts against open tickets.
-            </p>
-            {openTickets.length === 0 ? (
-              <div className="mt-4">
-                <EmptyState
-                  icon={BadgeCheck}
-                  title="All tickets settled"
-                  description="No open tickets waiting on a POS slip or transfer alert."
+              <div className="space-y-5">
+                <section className="card-lux rounded-2xl p-5">
+                  <h2 className="text-lg font-bold">Payment matcher</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Confirm POS slips and bank alerts against open tickets.
+                  </p>
+                  {openTickets.length === 0 ? (
+                    <div className="mt-4">
+                      <EmptyState
+                        icon={BadgeCheck}
+                        title="All tickets settled"
+                        description="No open tickets waiting on a POS slip or transfer alert."
+                      />
+                    </div>
+                  ) : (
+                    <ul className="mt-4 space-y-3">
+                      {openTickets.map((t) => (
+                        <li key={t.id} className="rounded-xl border border-border bg-surface p-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-semibold">{t.client_name}</p>
+                              <p className="truncate text-xs text-muted-foreground">
+                                {paymentLabel[t.payment_method]} · {timeOf(t.created_at)}
+                              </p>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-2">
+                              <span className="font-display text-sm font-bold tabular-nums">
+                                {naira(t.total_amount)}
+                              </span>
+                              <ReceiptDialog ticket={t} />
+                            </div>
+                          </div>
+                          <MatchRow
+                            id={`match-${t.id}`}
+                            onMatch={(ref) => {
+                              markPaid(t.id, ref);
+                              toast.success(`Ticket for ${t.client_name} marked paid`);
+                            }}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+
+                <section className="card-lux rounded-2xl p-5">
+                  <h2 className="text-lg font-bold">{config.staffPlural} on duty</h2>
+                  <ul className="mt-4 space-y-2">
+                    {staff.map((s) => {
+                      const att = onDuty.find((a) => a.staff_id === s.id);
+                      const earned = ticketItems
+                        .filter(
+                          (i) => i.staff_id === s.id && todays.some((t) => t.id === i.ticket_id),
+                        )
+                        .reduce((sum, i) => sum + i.staff_commission_amount, 0);
+                      return (
+                        <li
+                          key={s.id}
+                          className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-3 py-2.5"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold">{s.full_name}</p>
+                            <p className="truncate text-xs text-muted-foreground">
+                              {att ? `In at ${timeOf(att.clock_in_time)}` : "Not clocked in"} ·{" "}
+                              {naira(earned)}
+                            </p>
+                          </div>
+                          {att ? (
+                            <Badge
+                              variant="outline"
+                              className={
+                                att.is_within_geofence
+                                  ? "border-success/40 text-success"
+                                  : "border-destructive/40 text-destructive"
+                              }
+                            >
+                              <BadgeCheck className="size-3" />
+                              {att.is_within_geofence ? "On site" : "Off site"}
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-muted-foreground">
+                              Off
+                            </Badge>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+              </div>
+            </div>
+
+            <section className="mt-6">
+              <div className="mb-4">
+                <h2 className="text-xl font-bold">Front desk HR</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Walk-in hires: onboard a {config.staffTitle.toLowerCase()} or desk role without
+                  leaving reception.
+                </p>
+              </div>
+              <TeamOnboarding compact />
+            </section>
+          </>
+        ) : null}
+
+        {view === "history" ? (
+          <section className="card-lux overflow-hidden rounded-2xl">
+            <div className="flex items-center justify-between gap-3 p-5 pb-3">
+              <div>
+                <h2 className="text-lg font-bold">Ticket history</h2>
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  Every billed ticket, newest first. Search by client, phone or payment ref.
+                </p>
+              </div>
+              <Receipt className="size-4 text-muted-foreground" />
+            </div>
+            <div className="grid gap-2 px-5 pb-3 sm:grid-cols-[minmax(0,1fr)_9rem]">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={historyQuery}
+                  onChange={(e) => setHistoryQuery(e.target.value)}
+                  placeholder="Search name, phone, ref"
+                  aria-label="Search tickets"
+                  className="h-10 bg-surface pl-9 text-sm"
                 />
               </div>
+              <Select
+                value={historyStatus}
+                onValueChange={(v) => setHistoryStatus(v as "all" | "paid" | "pending")}
+              >
+                <SelectTrigger className="h-10 bg-surface text-sm" aria-label="Filter by status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {tickets.length === 0 ? (
+              <div className="px-5 pb-5">
+                <EmptyState
+                  icon={Receipt}
+                  title="No tickets yet"
+                  description="Bill your first ticket from the Quick service billing card above."
+                />
+              </div>
+            ) : totalHistory === 0 ? (
+              <p className="px-5 pb-5 text-sm text-muted-foreground">
+                No tickets match this search.
+              </p>
             ) : (
-              <ul className="mt-4 space-y-3">
-                {openTickets.map((t) => (
-                  <li key={t.id} className="rounded-xl border border-border bg-surface p-3">
-                    <div className="flex items-start justify-between gap-3">
+              <>
+                <ul className="divide-y divide-border">
+                  {historyPage.map((t) => (
+                    <li key={t.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold">{t.client_name}</p>
-                        <p className="truncate text-xs text-muted-foreground">
+                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
                           {paymentLabel[t.payment_method]} · {timeOf(t.created_at)}
+                          {t.reference ? ` · ref ${t.reference}` : ""}
                         </p>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
+                        <Badge
+                          variant="outline"
+                          className={
+                            t.status === "paid"
+                              ? "border-success/40 text-success"
+                              : "border-warning/40 text-warning"
+                          }
+                        >
+                          {t.status === "paid" ? "Paid" : "Pending"}
+                        </Badge>
                         <span className="font-display text-sm font-bold tabular-nums">
                           {naira(t.total_amount)}
                         </span>
                         <ReceiptDialog ticket={t} />
                       </div>
-                    </div>
-                    <MatchRow
-                      id={`match-${t.id}`}
-                      onMatch={(ref) => {
-                        markPaid(t.id, ref);
-                        toast.success(`Ticket for ${t.client_name} marked paid`);
-                      }}
-                    />
-                  </li>
-                ))}
-              </ul>
+                    </li>
+                  ))}
+                </ul>
+                <div className="px-5 pb-4">
+                  <LoadMore
+                    hasMore={hasMoreHistory}
+                    onLoadMore={loadMoreHistory}
+                    shown={shownHistory}
+                    total={totalHistory}
+                  />
+                </div>
+              </>
             )}
           </section>
-
-          <section className="card-lux rounded-2xl p-5">
-            <h2 className="text-lg font-bold">{config.staffPlural} on duty</h2>
-            <ul className="mt-4 space-y-2">
-              {staff.map((s) => {
-                const att = onDuty.find((a) => a.staff_id === s.id);
-                const earned = ticketItems
-                  .filter((i) => i.staff_id === s.id && todays.some((t) => t.id === i.ticket_id))
-                  .reduce((sum, i) => sum + i.staff_commission_amount, 0);
-                return (
-                  <li
-                    key={s.id}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-3 py-2.5"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold">{s.full_name}</p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {att ? `In at ${timeOf(att.clock_in_time)}` : "Not clocked in"} ·{" "}
-                        {naira(earned)}
-                      </p>
-                    </div>
-                    {att ? (
-                      <Badge
-                        variant="outline"
-                        className={
-                          att.is_within_geofence
-                            ? "border-success/40 text-success"
-                            : "border-destructive/40 text-destructive"
-                        }
-                      >
-                        <BadgeCheck className="size-3" />
-                        {att.is_within_geofence ? "On site" : "Off site"}
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-muted-foreground">
-                        Off
-                      </Badge>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        </div>
-      </div>
-
-      <section className="mt-6">
-        <div className="mb-4">
-          <h2 className="text-xl font-bold">Front desk HR</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Walk-in hires: onboard a {config.staffTitle.toLowerCase()} or desk role without leaving
-            reception.
-          </p>
-        </div>
-        <TeamOnboarding compact />
-      </section>
-      </>
-      ) : null}
-
-      {view === "history" ? (
-      <section className="card-lux overflow-hidden rounded-2xl">
-        <div className="flex items-center justify-between gap-3 p-5 pb-3">
-          <div>
-            <h2 className="text-lg font-bold">Ticket history</h2>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              Every billed ticket, newest first. Search by client, phone or payment ref.
-            </p>
-          </div>
-          <Receipt className="size-4 text-muted-foreground" />
-        </div>
-        <div className="grid gap-2 px-5 pb-3 sm:grid-cols-[minmax(0,1fr)_9rem]">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={historyQuery}
-              onChange={(e) => setHistoryQuery(e.target.value)}
-              placeholder="Search name, phone, ref"
-              aria-label="Search tickets"
-              className="h-10 bg-surface pl-9 text-sm"
-            />
-          </div>
-          <Select
-            value={historyStatus}
-            onValueChange={(v) => setHistoryStatus(v as "all" | "paid" | "pending")}
-          >
-            <SelectTrigger className="h-10 bg-surface text-sm" aria-label="Filter by status">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              <SelectItem value="paid">Paid</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {tickets.length === 0 ? (
-          <div className="px-5 pb-5">
-            <EmptyState
-              icon={Receipt}
-              title="No tickets yet"
-              description="Bill your first ticket from the Quick service billing card above."
-            />
-          </div>
-        ) : totalHistory === 0 ? (
-          <p className="px-5 pb-5 text-sm text-muted-foreground">No tickets match this search.</p>
-        ) : (
-          <>
-            <ul className="divide-y divide-border">
-              {historyPage.map((t) => (
-                <li key={t.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold">{t.client_name}</p>
-                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                      {paymentLabel[t.payment_method]} · {timeOf(t.created_at)}
-                      {t.reference ? ` · ref ${t.reference}` : ""}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <Badge
-                      variant="outline"
-                      className={
-                        t.status === "paid"
-                          ? "border-success/40 text-success"
-                          : "border-warning/40 text-warning"
-                      }
-                    >
-                      {t.status === "paid" ? "Paid" : "Pending"}
-                    </Badge>
-                    <span className="font-display text-sm font-bold tabular-nums">
-                      {naira(t.total_amount)}
-                    </span>
-                    <ReceiptDialog ticket={t} />
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <div className="px-5 pb-4">
-              <LoadMore
-                hasMore={hasMoreHistory}
-                onLoadMore={loadMoreHistory}
-                shown={shownHistory}
-                total={totalHistory}
-              />
-            </div>
-          </>
-        )}
-      </section>
-      ) : null}
+        ) : null}
       </BottomNavSpacer>
 
       <BottomNav
@@ -427,7 +432,13 @@ function ReceptionPage() {
   );
 }
 
-function FrontDeskOnboarding({ billedAny, matchedAny }: { billedAny: boolean; matchedAny: boolean }) {
+function FrontDeskOnboarding({
+  billedAny,
+  matchedAny,
+}: {
+  billedAny: boolean;
+  matchedAny: boolean;
+}) {
   const steps = [
     { label: "Bill your first ticket", done: billedAny, to: "/reception" as const },
     { label: "Match a paid ticket", done: matchedAny, to: "/reception" as const },
@@ -565,7 +576,10 @@ function renderReceiptHTML({
     timeStyle: "short",
   });
   const escape = (s: string) =>
-    s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+    s.replace(
+      /[&<>"']/g,
+      (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
+    );
   const lines = items
     .map((it) => {
       const svc = services.find((s) => s.id === it.service_id);

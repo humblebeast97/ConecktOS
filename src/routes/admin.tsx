@@ -137,7 +137,12 @@ function AdminPage() {
     { key: "overview", label: "Home", icon: Home, onClick: () => goToTab("overview") },
     { key: "team", label: "Team", icon: Users, onClick: () => goToTab("team") },
     { key: "reports", label: "Reports", icon: FileDown, onClick: () => goToTab("reports") },
-    { key: "settings", label: "Settings", icon: Settings2, onClick: () => navigate({ to: "/settings" }) },
+    {
+      key: "settings",
+      label: "Settings",
+      icon: Settings2,
+      onClick: () => navigate({ to: "/settings" }),
+    },
   ];
   const { salon } = useSalon();
   const { staff, profiles } = useStaff();
@@ -208,353 +213,355 @@ function AdminPage() {
   return (
     <AppShell
       title={tab === "team" ? "Team & HR" : undefined}
-      subtitle={tab === "team" ? `${salon.name} · manage the roster and onboard members` : undefined}
+      subtitle={
+        tab === "team" ? `${salon.name} · manage the roster and onboard members` : undefined
+      }
       actions={tab === "overview" ? <ResetAllDialog /> : null}
     >
       <BottomNavSpacer>
-      {tab === "team" ? <TeamTab /> : null}
-      {tab === "overview" ? <OwnerOnboarding /> : null}
-      {tab === "overview" ? <PayrollReminderCard /> : null}
-      {tab === "overview" ? (
-        <>
-          <HeroCard
-            eyebrow="Today's revenue"
-            amount={naira(audit.gross)}
-            badge={new Date().toLocaleDateString("en-NG", {
-              weekday: "short",
-              day: "numeric",
-              month: "short",
-            })}
-            caption={`${audit.billedServices} billed ${config.serviceTitle.toLowerCase()} jobs · ${naira(audit.pendingAmount)} pending`}
-            metrics={[
-              { label: "Commissions", value: naira(audit.commissionsPayable) },
-              {
-                label: "Net",
-                value: naira(audit.netPosition),
-                tone: audit.netPosition >= 0 ? "lime" : "default",
-              },
-            ]}
-          />
-          <div className="mt-4">
-            <MetricScroller
-              items={[
+        {tab === "team" ? <TeamTab /> : null}
+        {tab === "overview" ? <OwnerOnboarding /> : null}
+        {tab === "overview" ? <PayrollReminderCard /> : null}
+        {tab === "overview" ? (
+          <>
+            <HeroCard
+              eyebrow="Today's revenue"
+              amount={naira(audit.gross)}
+              badge={new Date().toLocaleDateString("en-NG", {
+                weekday: "short",
+                day: "numeric",
+                month: "short",
+              })}
+              caption={`${audit.billedServices} billed ${config.serviceTitle.toLowerCase()} jobs · ${naira(audit.pendingAmount)} pending`}
+              metrics={[
+                { label: "Commissions", value: naira(audit.commissionsPayable) },
                 {
-                  key: "power",
-                  label: config.powerCostLabel,
-                  value: naira(audit.fuelExpense),
-                  hint: `${audit.generatorHours}h run`,
-                  icon: Fuel,
-                  tone: audit.fuelExpense > 0 ? "danger" : "default",
-                },
-                {
-                  key: "commissions",
-                  label: "Commissions",
-                  value: naira(audit.commissionsPayable),
-                  hint: `${audit.billedServices} jobs`,
-                  icon: Wallet,
-                },
-                {
-                  key: "pending",
-                  label: "Pending",
-                  value: naira(audit.pendingAmount),
-                  hint: "awaiting payment",
-                  icon: TrendingUp,
-                },
-                {
-                  key: "net",
-                  label: "Net position",
+                  label: "Net",
                   value: naira(audit.netPosition),
-                  hint: audit.netPosition >= 0 ? "on track" : "in the red",
-                  icon: Banknote,
-                  tone: audit.netPosition >= 0 ? "success" : "danger",
+                  tone: audit.netPosition >= 0 ? "lime" : "default",
                 },
               ]}
             />
-          </div>
-
-          <section className="card-lux mt-5 rounded-2xl p-5">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-lg font-bold">Revenue by method</h2>
-              <span className="text-sm font-semibold tabular-nums text-muted-foreground">
-                {naira(audit.gross)} total
-              </span>
+            <div className="mt-4">
+              <MetricScroller
+                items={[
+                  {
+                    key: "power",
+                    label: config.powerCostLabel,
+                    value: naira(audit.fuelExpense),
+                    hint: `${audit.generatorHours}h run`,
+                    icon: Fuel,
+                    tone: audit.fuelExpense > 0 ? "danger" : "default",
+                  },
+                  {
+                    key: "commissions",
+                    label: "Commissions",
+                    value: naira(audit.commissionsPayable),
+                    hint: `${audit.billedServices} jobs`,
+                    icon: Wallet,
+                  },
+                  {
+                    key: "pending",
+                    label: "Pending",
+                    value: naira(audit.pendingAmount),
+                    hint: "awaiting payment",
+                    icon: TrendingUp,
+                  },
+                  {
+                    key: "net",
+                    label: "Net position",
+                    value: naira(audit.netPosition),
+                    hint: audit.netPosition >= 0 ? "on track" : "in the red",
+                    icon: Banknote,
+                    tone: audit.netPosition >= 0 ? "success" : "danger",
+                  },
+                ]}
+              />
             </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
-              {(["pos", "bank_transfer", "cash"] as PaymentMethod[]).map((m) => {
-                const val = audit.byMethod[m];
-                const pct = audit.gross > 0 ? Math.round((val / audit.gross) * 100) : 0;
-                return (
-                  <div key={m} className="rounded-xl border border-border bg-surface p-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">{paymentLabel[m]}</span>
-                      <span className="text-xs text-muted-foreground tabular-nums">{pct}%</span>
-                    </div>
-                    <p className="mt-1 font-display text-lg font-bold tabular-nums">{naira(val)}</p>
-                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-background">
-                      <div
-                        className="h-full rounded-full bg-gradient-primary transition-[width] duration-500 ease-out"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
 
-          {(offsiteAlerts.length > 0 || audit.discrepancies.length > 0) && (
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {offsiteAlerts.length > 0 ? (
-                <AlertCard
-                  title={`${offsiteAlerts.length} off-site clock-in${offsiteAlerts.length > 1 ? "s" : ""}`}
-                  body={offsiteAlerts
-                    .map((a) => profiles.find((p) => p.id === a.staff_id)?.full_name)
-                    .join(", ")}
-                />
-              ) : null}
-              {audit.discrepancies.length > 0 ? (
-                <AlertCard
-                  title="Inventory discrepancy"
-                  body={audit.discrepancies
-                    .map((d) => `${d.quantity} ${d.unit} ${d.item} used with no billed ticket`)
-                    .join(" · ")}
-                />
-              ) : null}
-            </div>
-          )}
-
-          <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-            <section className="card-lux overflow-hidden rounded-2xl">
-              <div className="flex items-center justify-between gap-3 p-5 pb-3">
-                <h2 className="text-lg font-bold">{config.staffPlural} attendance & earnings</h2>
-                <Clock className="size-4 text-muted-foreground" />
+            <section className="card-lux mt-5 rounded-2xl p-5">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-lg font-bold">Revenue by method</h2>
+                <span className="text-sm font-semibold tabular-nums text-muted-foreground">
+                  {naira(audit.gross)} total
+                </span>
               </div>
-              {/* Desktop / tablet: full table */}
-              <div className="hidden overflow-x-auto md:block">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-border hover:bg-transparent">
-                      <TableHead aria-sort={ariaSort("name")}>
-                        <SortButton
-                          label={config.staffTitle}
-                          active={attSort.key === "name"}
-                          dir={attSort.dir}
-                          onClick={() => toggleSort("name")}
-                        />
-                      </TableHead>
-                      <TableHead aria-sort={ariaSort("clock")}>
-                        <SortButton
-                          label="Clock in"
-                          active={attSort.key === "clock"}
-                          dir={attSort.dir}
-                          onClick={() => toggleSort("clock")}
-                        />
-                      </TableHead>
-                      <TableHead>Geofence</TableHead>
-                      <TableHead className="text-right" aria-sort={ariaSort("commission")}>
-                        <SortButton
-                          label="Commission"
-                          active={attSort.key === "commission"}
-                          dir={attSort.dir}
-                          onClick={() => toggleSort("commission")}
-                          align="right"
-                        />
-                      </TableHead>
-                      <TableHead className="text-right">Salary (monthly)</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {attRows.map(({ s, att, earned }) => {
-                      const comp = compensationType(s);
-                      return (
-                        <TableRow key={s.id} className="border-border">
-                          <TableCell className="font-medium">
-                            {s.full_name}
-                            <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                              <span className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-2 py-[1px] text-[10px] font-medium">
-                                <span className="size-1.5 rounded-full bg-current opacity-60" />
-                                {compensationLabel[comp]}
-                              </span>
-                              {comp !== "salary" ? (
-                                <span>{Math.round(s.commission_rate * 100)}% rate</span>
-                              ) : null}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {att ? timeOf(att.clock_in_time) : "-"}
-                            {att ? (
-                              <span
-                                className={
-                                  att.status === "late"
-                                    ? "block text-xs text-warning"
-                                    : "block text-xs text-success"
-                                }
-                              >
-                                {att.status === "late" ? "Late" : "On time"}
-                              </span>
-                            ) : null}
-                          </TableCell>
-                          <TableCell>
-                            <GeofenceBadge att={att} />
-                          </TableCell>
-                          <TableCell className="text-right font-semibold tabular-nums text-primary">
-                            {comp === "salary" ? "-" : naira(earned)}
-                          </TableCell>
-                          <TableCell className="text-right font-semibold tabular-nums">
-                            {s.base_salary ? (
-                              naira(s.base_salary)
-                            ) : (
-                              <span className="text-muted-foreground">-</span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Mobile: stacked cards */}
-              <ul className="divide-y divide-border md:hidden">
-                {attRows.map(({ s, att, earned }) => {
-                  const comp = compensationType(s);
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                {(["pos", "bank_transfer", "cash"] as PaymentMethod[]).map((m) => {
+                  const val = audit.byMethod[m];
+                  const pct = audit.gross > 0 ? Math.round((val / audit.gross) * 100) : 0;
                   return (
-                    <li key={s.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold">{s.full_name}</p>
-                        <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                          {att ? (
-                            <>
-                              <span>in {timeOf(att.clock_in_time)}</span>
-                              <span
-                                className={att.status === "late" ? "text-warning" : "text-success"}
-                              >
-                                ({att.status === "late" ? "late" : "on time"})
-                              </span>
-                            </>
-                          ) : (
-                            <span>not clocked in</span>
-                          )}
-                        </p>
-                        <div className="mt-1.5">
-                          <GeofenceBadge att={att} />
-                        </div>
+                    <div key={m} className="rounded-xl border border-border bg-surface p-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">{paymentLabel[m]}</span>
+                        <span className="text-xs text-muted-foreground tabular-nums">{pct}%</span>
                       </div>
-                      <div className="shrink-0 text-right">
-                        {comp !== "salary" ? (
-                          <p className="text-sm font-semibold tabular-nums text-primary">
-                            {naira(earned)}
-                          </p>
-                        ) : null}
-                        {s.base_salary ? (
-                          <p className="text-xs tabular-nums text-muted-foreground">
-                            +{naira(s.base_salary)}/mo
-                          </p>
-                        ) : null}
+                      <p className="mt-1 font-display text-lg font-bold tabular-nums">
+                        {naira(val)}
+                      </p>
+                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-background">
+                        <div
+                          className="h-full rounded-full bg-gradient-primary transition-[width] duration-500 ease-out"
+                          style={{ width: `${pct}%` }}
+                        />
                       </div>
-                    </li>
+                    </div>
                   );
                 })}
-              </ul>
+              </div>
             </section>
 
-            <div className="space-y-5">
-              {config.showInventory ? <InventoryPanel /> : null}
-              <ServicesPanel />
-            </div>
-          </div>
-        </>
-      ) : null}
-
-      {tab === "reports" ? (
-        <>
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
-            <ExpenseForm onSubmit={addExpense} />
-
-            <section className="card-lux overflow-hidden rounded-2xl">
-              <div className="flex items-center justify-between gap-3 p-5 pb-3">
-                <h2 className="text-lg font-bold">Expense log</h2>
-                <Flame className="size-4 text-muted-foreground" />
-              </div>
-              <div className="grid gap-2 px-5 pb-3 sm:grid-cols-[minmax(0,1fr)_10rem]">
-                <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    value={expenseQuery}
-                    onChange={(e) => setExpenseQuery(e.target.value)}
-                    placeholder="Search notes or category"
-                    aria-label="Search expenses"
-                    className="h-10 bg-surface pl-9 text-sm"
+            {(offsiteAlerts.length > 0 || audit.discrepancies.length > 0) && (
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                {offsiteAlerts.length > 0 ? (
+                  <AlertCard
+                    title={`${offsiteAlerts.length} off-site clock-in${offsiteAlerts.length > 1 ? "s" : ""}`}
+                    body={offsiteAlerts
+                      .map((a) => profiles.find((p) => p.id === a.staff_id)?.full_name)
+                      .join(", ")}
                   />
-                </div>
-                <Select
-                  value={expenseCategory}
-                  onValueChange={(v) => setExpenseCategory(v as "all" | ExpenseCategory)}
-                >
-                  <SelectTrigger
-                    className="h-10 bg-surface text-sm"
-                    aria-label="Filter by category"
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All categories</SelectItem>
-                    {(Object.keys(expenseLabel) as ExpenseCategory[]).map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {expenseLabel[c]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                ) : null}
+                {audit.discrepancies.length > 0 ? (
+                  <AlertCard
+                    title="Inventory discrepancy"
+                    body={audit.discrepancies
+                      .map((d) => `${d.quantity} ${d.unit} ${d.item} used with no billed ticket`)
+                      .join(" · ")}
+                  />
+                ) : null}
               </div>
-              {expenses.length > 0 && totalExpenses === 0 ? (
-                <p className="px-5 pb-3 text-xs text-muted-foreground">
-                  No expenses match this filter.
-                </p>
-              ) : null}
-              {totalExpenses === 0 ? (
-                <p className="px-5 py-4 text-sm text-muted-foreground">
-                  No expenses logged yet.
-                </p>
-              ) : (
-                <ul className="divide-y divide-border">
-                  {expensesPage.map((e) => (
-                    <ExpenseRow
-                      key={e.id}
-                      expense={e}
-                      canVoid={
-                        currentUser.role === "owner" || e.logged_by === currentUser.id
-                      }
-                      voiderName={
-                        e.voided_by
-                          ? profiles.find((p) => p.id === e.voided_by)?.full_name ?? "Someone"
-                          : null
-                      }
-                      onVoid={(reason) => {
-                        voidExpense(e.id, reason);
-                        toast.success("Expense voided", {
-                          description: `${expenseLabel[e.category]} · ${naira(e.amount)}`,
-                        });
-                      }}
-                    />
-                  ))}
+            )}
+
+            <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+              <section className="card-lux overflow-hidden rounded-2xl">
+                <div className="flex items-center justify-between gap-3 p-5 pb-3">
+                  <h2 className="text-lg font-bold">{config.staffPlural} attendance & earnings</h2>
+                  <Clock className="size-4 text-muted-foreground" />
+                </div>
+                {/* Desktop / tablet: full table */}
+                <div className="hidden overflow-x-auto md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-border hover:bg-transparent">
+                        <TableHead aria-sort={ariaSort("name")}>
+                          <SortButton
+                            label={config.staffTitle}
+                            active={attSort.key === "name"}
+                            dir={attSort.dir}
+                            onClick={() => toggleSort("name")}
+                          />
+                        </TableHead>
+                        <TableHead aria-sort={ariaSort("clock")}>
+                          <SortButton
+                            label="Clock in"
+                            active={attSort.key === "clock"}
+                            dir={attSort.dir}
+                            onClick={() => toggleSort("clock")}
+                          />
+                        </TableHead>
+                        <TableHead>Geofence</TableHead>
+                        <TableHead className="text-right" aria-sort={ariaSort("commission")}>
+                          <SortButton
+                            label="Commission"
+                            active={attSort.key === "commission"}
+                            dir={attSort.dir}
+                            onClick={() => toggleSort("commission")}
+                            align="right"
+                          />
+                        </TableHead>
+                        <TableHead className="text-right">Salary (monthly)</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {attRows.map(({ s, att, earned }) => {
+                        const comp = compensationType(s);
+                        return (
+                          <TableRow key={s.id} className="border-border">
+                            <TableCell className="font-medium">
+                              {s.full_name}
+                              <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-2 py-[1px] text-[10px] font-medium">
+                                  <span className="size-1.5 rounded-full bg-current opacity-60" />
+                                  {compensationLabel[comp]}
+                                </span>
+                                {comp !== "salary" ? (
+                                  <span>{Math.round(s.commission_rate * 100)}% rate</span>
+                                ) : null}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {att ? timeOf(att.clock_in_time) : "-"}
+                              {att ? (
+                                <span
+                                  className={
+                                    att.status === "late"
+                                      ? "block text-xs text-warning"
+                                      : "block text-xs text-success"
+                                  }
+                                >
+                                  {att.status === "late" ? "Late" : "On time"}
+                                </span>
+                              ) : null}
+                            </TableCell>
+                            <TableCell>
+                              <GeofenceBadge att={att} />
+                            </TableCell>
+                            <TableCell className="text-right font-semibold tabular-nums text-primary">
+                              {comp === "salary" ? "-" : naira(earned)}
+                            </TableCell>
+                            <TableCell className="text-right font-semibold tabular-nums">
+                              {s.base_salary ? (
+                                naira(s.base_salary)
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Mobile: stacked cards */}
+                <ul className="divide-y divide-border md:hidden">
+                  {attRows.map(({ s, att, earned }) => {
+                    const comp = compensationType(s);
+                    return (
+                      <li key={s.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold">{s.full_name}</p>
+                          <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                            {att ? (
+                              <>
+                                <span>in {timeOf(att.clock_in_time)}</span>
+                                <span
+                                  className={
+                                    att.status === "late" ? "text-warning" : "text-success"
+                                  }
+                                >
+                                  ({att.status === "late" ? "late" : "on time"})
+                                </span>
+                              </>
+                            ) : (
+                              <span>not clocked in</span>
+                            )}
+                          </p>
+                          <div className="mt-1.5">
+                            <GeofenceBadge att={att} />
+                          </div>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          {comp !== "salary" ? (
+                            <p className="text-sm font-semibold tabular-nums text-primary">
+                              {naira(earned)}
+                            </p>
+                          ) : null}
+                          {s.base_salary ? (
+                            <p className="text-xs tabular-nums text-muted-foreground">
+                              +{naira(s.base_salary)}/mo
+                            </p>
+                          ) : null}
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
-              )}
+              </section>
 
-              {totalExpenses > 0 ? (
-                <div className="px-5 pb-4">
-                  <LoadMore
-                    hasMore={hasMoreExpenses}
-                    onLoadMore={loadMoreExpenses}
-                    shown={shownExpenses}
-                    total={totalExpenses}
-                  />
+              <div className="space-y-5">
+                {config.showInventory ? <InventoryPanel /> : null}
+                <ServicesPanel />
+              </div>
+            </div>
+          </>
+        ) : null}
+
+        {tab === "reports" ? (
+          <>
+            <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+              <ExpenseForm onSubmit={addExpense} />
+
+              <section className="card-lux overflow-hidden rounded-2xl">
+                <div className="flex items-center justify-between gap-3 p-5 pb-3">
+                  <h2 className="text-lg font-bold">Expense log</h2>
+                  <Flame className="size-4 text-muted-foreground" />
                 </div>
-              ) : null}
-            </section>
-          </div>
-        </>
-      ) : null}
+                <div className="grid gap-2 px-5 pb-3 sm:grid-cols-[minmax(0,1fr)_10rem]">
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      value={expenseQuery}
+                      onChange={(e) => setExpenseQuery(e.target.value)}
+                      placeholder="Search notes or category"
+                      aria-label="Search expenses"
+                      className="h-10 bg-surface pl-9 text-sm"
+                    />
+                  </div>
+                  <Select
+                    value={expenseCategory}
+                    onValueChange={(v) => setExpenseCategory(v as "all" | ExpenseCategory)}
+                  >
+                    <SelectTrigger
+                      className="h-10 bg-surface text-sm"
+                      aria-label="Filter by category"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All categories</SelectItem>
+                      {(Object.keys(expenseLabel) as ExpenseCategory[]).map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {expenseLabel[c]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {expenses.length > 0 && totalExpenses === 0 ? (
+                  <p className="px-5 pb-3 text-xs text-muted-foreground">
+                    No expenses match this filter.
+                  </p>
+                ) : null}
+                {totalExpenses === 0 ? (
+                  <p className="px-5 py-4 text-sm text-muted-foreground">No expenses logged yet.</p>
+                ) : (
+                  <ul className="divide-y divide-border">
+                    {expensesPage.map((e) => (
+                      <ExpenseRow
+                        key={e.id}
+                        expense={e}
+                        canVoid={currentUser.role === "owner" || e.logged_by === currentUser.id}
+                        voiderName={
+                          e.voided_by
+                            ? (profiles.find((p) => p.id === e.voided_by)?.full_name ?? "Someone")
+                            : null
+                        }
+                        onVoid={(reason) => {
+                          voidExpense(e.id, reason);
+                          toast.success("Expense voided", {
+                            description: `${expenseLabel[e.category]} · ${naira(e.amount)}`,
+                          });
+                        }}
+                      />
+                    ))}
+                  </ul>
+                )}
+
+                {totalExpenses > 0 ? (
+                  <div className="px-5 pb-4">
+                    <LoadMore
+                      hasMore={hasMoreExpenses}
+                      onLoadMore={loadMoreExpenses}
+                      shown={shownExpenses}
+                      total={totalExpenses}
+                    />
+                  </div>
+                ) : null}
+              </section>
+            </div>
+          </>
+        ) : null}
       </BottomNavSpacer>
 
       <CloseDayDialog open={closeDayOpen} onOpenChange={setCloseDayOpen} trigger={false} />
@@ -809,8 +816,7 @@ function CloseDayDialog({
   );
   const isSingleDay = fromStr === toStr;
   const isToday = isSingleDay && fromStr === today;
-  const rangeDays =
-    Math.round((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const rangeDays = Math.round((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
   const overCap = rangeDays > 366;
   const noActivity = audit.gross === 0 && audit.pendingCount === 0 && audit.totalExpenses === 0;
 
@@ -895,10 +901,7 @@ function CloseDayDialog({
           <div className="mt-2 space-y-3">
             <Section title="Gross revenue">
               <Row label="POS" value={naira(audit.byMethod.pos)} />
-              <Row
-                label={paymentLabel.bank_transfer}
-                value={naira(audit.byMethod.bank_transfer)}
-              />
+              <Row label={paymentLabel.bank_transfer} value={naira(audit.byMethod.bank_transfer)} />
               <Row label="Cash" value={naira(audit.byMethod.cash)} />
               <Row label="Total collected" value={naira(audit.gross)} strong />
               <Row
@@ -937,10 +940,7 @@ function CloseDayDialog({
         <Button
           variant="outline"
           onClick={() =>
-            printHTML(
-              `${salon.name} · ${heading}`,
-              renderAuditHTML({ salon, audit, heading }),
-            )
+            printHTML(`${salon.name} · ${heading}`, renderAuditHTML({ salon, audit, heading }))
           }
         >
           <Printer className="size-4" />
@@ -957,7 +957,11 @@ function OwnerOnboarding() {
   const { services } = useServices();
   const { inventory } = useInventory();
   const steps = [
-    { label: "Complete your business profile", done: salon.latitude != null, to: "/settings" as const },
+    {
+      label: "Complete your business profile",
+      done: salon.latitude != null,
+      to: "/settings" as const,
+    },
     { label: "Add your team", done: staff.length > 0, to: "/team" as const },
     { label: "Add your services", done: services.length > 0, to: "/reception" as const },
     { label: "Stock your inventory", done: inventory.length > 0, to: "/admin" as const },
@@ -1150,9 +1154,7 @@ function formatRange(from: Date, to: Date): string {
   const opts: Intl.DateTimeFormatOptions = { day: "2-digit", month: "short", year: "numeric" };
   if (same) return from.toLocaleDateString("en-NG", opts);
   const sameYear = from.getFullYear() === to.getFullYear();
-  const fromFmt: Intl.DateTimeFormatOptions = sameYear
-    ? { day: "2-digit", month: "short" }
-    : opts;
+  const fromFmt: Intl.DateTimeFormatOptions = sameYear ? { day: "2-digit", month: "short" } : opts;
   return `${from.toLocaleDateString("en-NG", fromFmt)} to ${to.toLocaleDateString("en-NG", opts)}`;
 }
 

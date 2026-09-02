@@ -26,10 +26,7 @@ const searchCache = new Map<string, GeocodeMatch[]>();
 const reverseCache = new Map<string, GeocodeMatch>();
 
 /** Search addresses by free text. Returns up to 5 matches. */
-export async function searchAddress(
-  query: string,
-  signal?: AbortSignal,
-): Promise<GeocodeMatch[]> {
+export async function searchAddress(query: string, signal?: AbortSignal): Promise<GeocodeMatch[]> {
   const q = query.trim();
   if (q.length < 3) return [];
   const cached = searchCache.get(q);
@@ -91,7 +88,7 @@ function toMatch(hit: NominatimHit): GeocodeMatch {
   const houseNumber = a.house_number;
   const street = a.road ?? a.pedestrian ?? a.footway ?? a.path ?? a.neighbourhood;
   const primary =
-    (houseNumber && street ? `${houseNumber} ${street}` : street ?? parts[0]) ?? parts[0];
+    (houseNumber && street ? `${houseNumber} ${street}` : (street ?? parts[0])) ?? parts[0];
   // Region: everything after the primary component, trimmed to 3 useful bits.
   const rest = parts.filter((p) => p !== primary).slice(0, 3);
   return {
