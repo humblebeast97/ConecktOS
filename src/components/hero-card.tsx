@@ -13,6 +13,10 @@ interface Props {
   metrics?: { label: string; value: string; tone?: "default" | "lime" | "success" }[];
   /** Trailing element (button, action link) rendered on the right of the foot. */
   action?: ReactNode;
+  /** When true (and no `action`), the last metric peels off the left cluster
+   * and right-aligns under the badge. Opt-in per caller so the change stays
+   * scoped to the surfaces that need it (Owner home). */
+  alignLastMetricRight?: boolean;
 }
 
 /**
@@ -20,7 +24,16 @@ interface Props {
  * anchors the top of the screen as the darkest thing in the layout. Used as
  * the first-fold surface on the Owner / Front desk / Staff home views.
  */
-export function HeroCard({ eyebrow, amount, badge, caption, metrics, action }: Props) {
+export function HeroCard({
+  eyebrow,
+  amount,
+  badge,
+  caption,
+  metrics,
+  action,
+  alignLastMetricRight,
+}: Props) {
+  const splitLast = alignLastMetricRight && !action && metrics && metrics.length > 1;
   return (
     <section className="relative overflow-hidden rounded-3xl bg-ink p-5 text-ink-foreground">
       <div
@@ -47,17 +60,14 @@ export function HeroCard({ eyebrow, amount, badge, caption, metrics, action }: P
 
         {metrics && metrics.length > 0 ? (
           <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/10 pt-3.5">
-            {/* Left cluster: everything except the last metric when no action
-             * slot is used. When there's an action (staff Clock in), keep all
-             * metrics on the left so the action owns the right. */}
             <div className="flex flex-1 gap-6">
-              {(action ? metrics : metrics.slice(0, -1)).map((m) => (
+              {(splitLast ? metrics.slice(0, -1) : metrics).map((m) => (
                 <MetricStat key={m.label} metric={m} />
               ))}
             </div>
             {action ? (
               <div className="shrink-0">{action}</div>
-            ) : metrics.length > 1 ? (
+            ) : splitLast ? (
               <div className="shrink-0 text-right">
                 <MetricStat metric={metrics[metrics.length - 1]!} align="right" />
               </div>

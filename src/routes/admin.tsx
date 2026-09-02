@@ -271,6 +271,7 @@ function AdminPage() {
                   tone: audit.netPosition >= 0 ? "lime" : "default",
                 },
               ]}
+              alignLastMetricRight
             />
             <div className="mt-4">
               <OwnerOnboarding />
