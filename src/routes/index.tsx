@@ -116,9 +116,9 @@ function LoginPage() {
             <span className="text-gradient-primary">In one place.</span>
           </h1>
           <p className="mt-5 max-w-md text-base leading-relaxed text-muted-foreground sm:text-lg">
-            The operating system your salon, barbershop or spa has been running on paper. Verify
-            attendance with GPS, split commissions the second a ticket is billed, and close the day
-            with a signed audit in one tap.
+            The operating system your team has been running on paper. Verify attendance with GPS,
+            split commissions the second a ticket is billed, and close the day with a signed audit
+            in one tap.
           </p>
           <p className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
             <ShieldCheck className="size-4 shrink-0 text-success" />
