@@ -215,7 +215,7 @@ function SettingsPage() {
                   className="h-11 bg-surface"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-5">
                 <div className="space-y-1.5">
                   <Label htmlFor="s-open">Opens</Label>
                   <TimeInput
