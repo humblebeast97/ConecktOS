@@ -18,7 +18,7 @@ interface MetricTile {
 export function MetricScroller({ items }: { items: MetricTile[] }) {
   return (
     <div
-      className="flex snap-x snap-mandatory gap-2.5 overflow-x-auto pb-1"
+      className="flex snap-x snap-mandatory gap-2.5 overflow-x-auto pb-1 md:grid md:snap-none md:grid-cols-2 md:overflow-x-visible md:pb-0 lg:grid-cols-4"
       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
     >
       <style>{`.metric-scroller::-webkit-scrollbar { display: none; }`}</style>
@@ -37,7 +37,7 @@ export function MetricScroller({ items }: { items: MetricTile[] }) {
         return (
           <div
             key={item.key}
-            className="glass min-w-[9.5rem] shrink-0 snap-start rounded-2xl p-3.5"
+            className="glass min-w-[9.5rem] shrink-0 snap-start rounded-2xl p-3.5 md:min-w-0 md:shrink"
           >
             <div className="flex items-center justify-between">
               <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">

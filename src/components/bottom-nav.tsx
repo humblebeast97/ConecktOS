@@ -34,7 +34,7 @@ export function BottomNav({ items, activeKey, fab }: Props) {
   return (
     <nav
       aria-label="Portal sections"
-      className="fixed inset-x-0 bottom-0 z-40 pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-x-0 bottom-0 z-40 pb-[env(safe-area-inset-bottom)] md:hidden"
     >
       <div className="mx-auto max-w-md px-3 pb-3">
         <div className="glass relative flex items-center justify-around gap-1 rounded-3xl p-2">
@@ -85,7 +85,8 @@ function Fab({ label, icon: Icon, onClick, tone = "primary" }: NonNullable<Props
   );
 }
 
-/** Bottom padding so the last card is not obscured by the fixed nav bar. */
+/** Bottom padding on mobile so the last card is not obscured by the fixed
+ * nav bar. Desktop drops the padding since the bar is hidden. */
 export function BottomNavSpacer({ children }: { children: ReactNode }) {
-  return <div className="pb-28">{children}</div>;
+  return <div className="pb-28 md:pb-0">{children}</div>;
 }

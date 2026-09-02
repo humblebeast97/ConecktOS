@@ -210,8 +210,46 @@ function AdminPage() {
       subtitle={
         tab === "team" ? `${salon.name} · manage the roster and onboard members` : undefined
       }
-      actions={tab === "overview" ? <ResetAllDialog /> : null}
+      actions={
+        tab === "overview" ? (
+          <>
+            <ResetAllDialog />
+            <Button
+              className="hidden h-11 font-semibold md:inline-flex"
+              onClick={() => setCloseDayOpen(true)}
+            >
+              <FileDown className="size-4" />
+              Close Day & Audit
+            </Button>
+          </>
+        ) : null
+      }
     >
+      {/* Desktop tab pill. Bottom nav takes over on mobile. */}
+      <div className="mb-5 hidden md:flex md:w-fit md:items-center md:gap-1 md:rounded-full md:border md:border-border md:bg-card md:p-1">
+        {navItems
+          .filter((n) => n.key !== "settings")
+          .map((n) => {
+            const Icon = n.icon;
+            const active = tab === n.key;
+            return (
+              <button
+                key={n.key}
+                type="button"
+                onClick={n.onClick}
+                aria-pressed={active}
+                className={
+                  active
+                    ? "flex cursor-pointer items-center gap-1.5 rounded-full bg-ink px-4 py-1.5 text-xs font-semibold text-ink-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    : "flex cursor-pointer items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                }
+              >
+                <Icon className="size-3.5" />
+                {n.label}
+              </button>
+            );
+          })}
+      </div>
       <BottomNavSpacer>
         {tab === "team" ? <TeamTab /> : null}
         {tab === "overview" ? (
