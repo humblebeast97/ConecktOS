@@ -4,6 +4,8 @@ import {
   BadgeCheck,
   CircleDollarSign,
   Loader2,
+  LogOut,
+  MapPin,
   Plus,
   Printer,
   Receipt,
@@ -45,6 +47,7 @@ import {
 import { useAttendance, useAuth, useSalon, useServices, useStaff, useTickets } from "@/api";
 import { useRoleGuard } from "@/lib/access";
 import {
+  haversineMeters,
   naira,
   paymentLabel,
   timeOf,
@@ -94,12 +97,48 @@ function ReceptionPage() {
   const config = useIndustryConfig();
   const { currentUser } = useAuth();
   const { staff } = useStaff();
+  const { salon } = useSalon();
   const { tickets, ticketItems, markPaid } = useTickets();
-  const { attendance } = useAttendance();
+  const { attendance, clockIn, clockOut, openAttendanceFor } = useAttendance();
 
   const todays = tickets.filter((t) => isToday(t.created_at));
   const openTickets = todays.filter((t) => t.status === "pending");
   const onDuty = attendance.filter((a) => !a.clock_out_time);
+  const myShift = openAttendanceFor(currentUser.id);
+  const [locating, setLocating] = useState(false);
+
+  const requestClockIn = () => {
+    setLocating(true);
+    const evaluate = (coords: { lat: number; lng: number } | null) => {
+      setLocating(false);
+      if (!coords) {
+        toast.error("Location required to clock in", {
+          description: `Turn on location access. We verify you're at ${salon.name}.`,
+        });
+        return;
+      }
+      const distance = haversineMeters(coords.lat, coords.lng, salon.latitude, salon.longitude);
+      if (distance <= salon.geofence_radius_meters) {
+        clockIn(currentUser.id, coords);
+        toast.success("Clocked in", {
+          description: `Verified ${Math.round(distance)}m from ${salon.name}.`,
+        });
+      } else {
+        toast.error("You're too far to clock in", {
+          description: `You're ${Math.round(distance)}m from ${salon.address_label ?? salon.name}. Get within ${salon.geofence_radius_meters}m and try again.`,
+        });
+      }
+    };
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      evaluate(null);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => evaluate({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => evaluate(null),
+      { enableHighAccuracy: true, timeout: 8000 },
+    );
+  };
 
   const [historyQuery, setHistoryQuery] = useState("");
   const [historyStatus, setHistoryStatus] = useState<"all" | "paid" | "pending">("all");
@@ -151,7 +190,13 @@ function ReceptionPage() {
               matchedAny={tickets.some((t) => t.status === "paid")}
             />
             <HeroCard
-              eyebrow={openTickets.length > 0 ? "Open at the desk" : "Front desk"}
+              eyebrow={
+                myShift
+                  ? `On duty since ${timeOf(myShift.clock_in_time)}${myShift.is_within_geofence ? "" : " · off-site"}`
+                  : openTickets.length > 0
+                    ? "Open at the desk"
+                    : "Front desk"
+              }
               amount={
                 openTickets.length > 0
                   ? `${openTickets.length} ${openTickets.length === 1 ? "ticket" : "tickets"}`
@@ -182,6 +227,35 @@ function ReceptionPage() {
                   tone: "lime",
                 },
               ]}
+              action={
+                myShift ? (
+                  <Button
+                    size="sm"
+                    className="h-9 rounded-full bg-lime px-4 text-xs font-bold text-lime-foreground hover:bg-lime/90"
+                    onClick={() => {
+                      clockOut(currentUser.id);
+                      toast.success("Clocked out. Have a great evening!");
+                    }}
+                  >
+                    <LogOut className="size-3.5" />
+                    Clock out
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    className="h-9 rounded-full bg-lime px-4 text-xs font-bold text-lime-foreground hover:bg-lime/90"
+                    disabled={locating}
+                    onClick={requestClockIn}
+                  >
+                    {locating ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <MapPin className="size-3.5" />
+                    )}
+                    {locating ? "Locating..." : "Clock in"}
+                  </Button>
+                )
+              }
             />
             <div className="mt-4">
               <MetricScroller
