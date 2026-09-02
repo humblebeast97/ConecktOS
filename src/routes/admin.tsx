@@ -28,6 +28,9 @@ import {
 import { toast } from "sonner";
 import { AppShell, MetricCard } from "@/components/app-shell";
 import { BottomNav, BottomNavSpacer, type BottomNavItem } from "@/components/bottom-nav";
+import { HeroCard } from "@/components/hero-card";
+import { MetricScroller } from "@/components/metric-scroller";
+import { SetupRibbon } from "@/components/setup-ribbon";
 import { TeamOnboarding } from "@/components/team-onboarding";
 import { InventoryPanel } from "@/components/inventory-panel";
 import { ServicesPanel } from "@/components/services-panel";
@@ -204,16 +207,8 @@ function AdminPage() {
 
   return (
     <AppShell
-      title={tab === "team" ? "Team & HR" : `${currentGreeting()}, ${salon.name}`}
-      subtitle={
-        tab === "team"
-          ? `${salon.name} · manage the roster and onboard members`
-          : new Date().toLocaleDateString("en-NG", {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-            })
-      }
+      title={tab === "team" ? "Team & HR" : undefined}
+      subtitle={tab === "team" ? `${salon.name} · manage the roster and onboard members` : undefined}
       actions={tab === "overview" ? <ResetAllDialog /> : null}
     >
       <BottomNavSpacer>
@@ -222,33 +217,58 @@ function AdminPage() {
       {tab === "overview" ? <PayrollReminderCard /> : null}
       {tab === "overview" ? (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <MetricCard
-              label="Gross revenue"
-              value={naira(audit.gross)}
-              hint={`${naira(audit.pendingAmount)} still pending`}
-              icon={TrendingUp}
-              tone="gold"
-            />
-            <MetricCard
-              label="Commissions payable"
-              value={naira(audit.commissionsPayable)}
-              hint={`${audit.billedServices} billed ${config.serviceTitle.toLowerCase()} jobs`}
-              icon={Wallet}
-            />
-            <MetricCard
-              label={config.powerCostLabel}
-              value={naira(audit.fuelExpense)}
-              hint={`${audit.generatorHours}h run · ${naira(audit.overheadPerService)}/service`}
-              icon={Fuel}
-              tone={audit.fuelExpense > 0 ? "danger" : "default"}
-            />
-            <MetricCard
-              label="Net position"
-              value={naira(audit.netPosition)}
-              hint="Revenue − commissions − expenses"
-              icon={Banknote}
-              tone={audit.netPosition >= 0 ? "success" : "danger"}
+          <HeroCard
+            eyebrow="Today's revenue"
+            amount={naira(audit.gross)}
+            badge={new Date().toLocaleDateString("en-NG", {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+            })}
+            caption={`${audit.billedServices} billed ${config.serviceTitle.toLowerCase()} jobs · ${naira(audit.pendingAmount)} pending`}
+            metrics={[
+              { label: "Commissions", value: naira(audit.commissionsPayable) },
+              {
+                label: "Net",
+                value: naira(audit.netPosition),
+                tone: audit.netPosition >= 0 ? "lime" : "default",
+              },
+            ]}
+          />
+          <div className="mt-4">
+            <MetricScroller
+              items={[
+                {
+                  key: "power",
+                  label: config.powerCostLabel,
+                  value: naira(audit.fuelExpense),
+                  hint: `${audit.generatorHours}h run`,
+                  icon: Fuel,
+                  tone: audit.fuelExpense > 0 ? "danger" : "default",
+                },
+                {
+                  key: "commissions",
+                  label: "Commissions",
+                  value: naira(audit.commissionsPayable),
+                  hint: `${audit.billedServices} jobs`,
+                  icon: Wallet,
+                },
+                {
+                  key: "pending",
+                  label: "Pending",
+                  value: naira(audit.pendingAmount),
+                  hint: "awaiting payment",
+                  icon: TrendingUp,
+                },
+                {
+                  key: "net",
+                  label: "Net position",
+                  value: naira(audit.netPosition),
+                  hint: audit.netPosition >= 0 ? "on track" : "in the red",
+                  icon: Banknote,
+                  tone: audit.netPosition >= 0 ? "success" : "danger",
+                },
+              ]}
             />
           </div>
 
@@ -936,17 +956,22 @@ function OwnerOnboarding() {
   const { staff } = useStaff();
   const { services } = useServices();
   const { inventory } = useInventory();
-  return (
-    <OnboardingChecklist
-      title="Owner setup"
-      steps={[
-        { label: "Complete your business profile", done: salon.latitude != null, to: "/settings" },
-        { label: "Add your team", done: staff.length > 0, to: "/team" },
-        { label: "Add your services", done: services.length > 0, to: "/reception" },
-        { label: "Stock your inventory", done: inventory.length > 0, to: "/admin" },
-      ]}
-    />
-  );
+  const steps = [
+    { label: "Complete your business profile", done: salon.latitude != null, to: "/settings" as const },
+    { label: "Add your team", done: staff.length > 0, to: "/team" as const },
+    { label: "Add your services", done: services.length > 0, to: "/reception" as const },
+    { label: "Stock your inventory", done: inventory.length > 0, to: "/admin" as const },
+  ];
+  const allDone = steps.every((s) => s.done);
+  if (allDone) {
+    return (
+      <SetupRibbon
+        storageKey="conecktos-owner-setup-dismissed"
+        message="Owner setup complete. All four steps done."
+      />
+    );
+  }
+  return <OnboardingChecklist title="Owner setup" steps={steps} />;
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

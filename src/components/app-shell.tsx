@@ -40,7 +40,9 @@ export function AppShell({
   children,
   actions,
 }: {
-  title: string;
+  /** Optional. When omitted the title block is not rendered so the page can
+   * provide its own hero surface (e.g. an ink HeroCard). */
+  title?: string;
   subtitle?: string;
   children: ReactNode;
   actions?: ReactNode;
@@ -87,7 +89,9 @@ export function AppShell({
   );
 
   // Keep the browser tab title in sync with the active industry sub-brand.
+  // Skip when no title is provided; the route's own head() meta then wins.
   useEffect(() => {
+    if (!title) return;
     document.title = `${title} · ${config.appName}`;
   }, [title, config.appName]);
 
@@ -242,13 +246,17 @@ export function AppShell({
       </header>
 
       <main id="main-content" className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="truncate text-2xl font-bold sm:text-3xl">{title}</h1>
-            {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
+        {title || actions ? (
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+            {title ? (
+              <div className="min-w-0">
+                <h1 className="truncate text-2xl font-bold sm:text-3xl">{title}</h1>
+                {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
+              </div>
+            ) : null}
+            {actions ? <div className="ml-auto flex flex-wrap gap-2">{actions}</div> : null}
           </div>
-          {actions}
-        </div>
+        ) : null}
         {children}
       </main>
     </div>
