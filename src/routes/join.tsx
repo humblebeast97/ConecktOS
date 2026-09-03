@@ -88,15 +88,36 @@ function JoinPage() {
     submitted && !passwordStrong
       ? "Password must mix upper and lower case, a number and a symbol (8+ chars)"
       : null;
+  const emailError =
+    submitted && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+      ? "Enter a valid email address"
+      : null;
+  const bankPartial =
+    !isFrontDesk &&
+    (bankName.trim().length > 0 || accountNumber.trim().length > 0);
+  const bankNameError =
+    submitted && bankPartial && !bankName.trim() ? "Bank name is required" : null;
   const accountNumberError =
-    submitted && !isFrontDesk && accountNumber.trim() && !/^\d{10}$/.test(accountNumber.trim())
-      ? "Account number must be exactly 10 digits"
+    submitted && !isFrontDesk
+      ? bankPartial && !accountNumber.trim()
+        ? "Account number is required"
+        : accountNumber.trim() && !/^\d{10}$/.test(accountNumber.trim())
+          ? "Account number must be exactly 10 digits"
+          : null
       : null;
 
   const createAccount = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
-    if (!fullName.trim() || !passwordStrong || accountNumberError) return;
+    if (
+      !fullName.trim() ||
+      !passwordStrong ||
+      emailError ||
+      !email.trim() ||
+      bankNameError ||
+      accountNumberError
+    )
+      return;
     submit(() => {
       const member = addStylist({
         full_name: fullName.trim(),
@@ -222,7 +243,10 @@ function JoinPage() {
                 placeholder="you@business.ng"
                 className="h-11 bg-surface"
                 required
+                aria-invalid={Boolean(emailError)}
+                aria-describedby="jn-email-error"
               />
+              <FieldError id="jn-email-error" message={emailError} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="jn-invite">Business / invite code (optional)</Label>
@@ -300,7 +324,10 @@ function JoinPage() {
                       onChange={(e) => setBankName(e.target.value)}
                       placeholder="e.g. GTBank"
                       className="h-11 bg-surface"
+                      aria-invalid={Boolean(bankNameError)}
+                      aria-describedby="jn-bank-error"
                     />
+                    <FieldError id="jn-bank-error" message={bankNameError} />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="jn-acct">Account number</Label>
