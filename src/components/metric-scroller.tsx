@@ -15,10 +15,20 @@ interface MetricTile {
  * MetricCard grid on mobile so the secondary numbers stay glanceable without
  * pushing everything else below the fold.
  */
+const LG_COLS: Record<number, string> = {
+  1: "lg:grid-cols-1",
+  2: "lg:grid-cols-2",
+  3: "lg:grid-cols-3",
+  4: "lg:grid-cols-4",
+  5: "lg:grid-cols-5",
+  6: "lg:grid-cols-6",
+};
+
 export function MetricScroller({ items }: { items: MetricTile[] }) {
+  const lgCols = LG_COLS[items.length] ?? "lg:grid-cols-4";
   return (
     <div
-      className="flex snap-x snap-mandatory gap-2.5 overflow-x-auto pb-1 md:grid md:snap-none md:grid-cols-2 md:overflow-x-visible md:pb-0 lg:grid-cols-4"
+      className={`flex snap-x snap-mandatory gap-2.5 overflow-x-auto pb-1 md:grid md:snap-none md:grid-cols-2 md:overflow-x-visible md:pb-0 ${lgCols}`}
       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
     >
       <style>{`.metric-scroller::-webkit-scrollbar { display: none; }`}</style>
