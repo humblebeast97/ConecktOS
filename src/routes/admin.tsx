@@ -393,7 +393,7 @@ function AdminPage() {
                         </TableHead>
                         <TableHead aria-sort={ariaSort("clock")}>
                           <SortButton
-                            label="Clock in"
+                            label="Clock in / out"
                             active={attSort.key === "clock"}
                             dir={attSort.dir}
                             onClick={() => toggleSort("clock")}
@@ -430,16 +430,29 @@ function AdminPage() {
                               </span>
                             </TableCell>
                             <TableCell className="text-muted-foreground">
-                              {att ? timeOf(att.clock_in_time) : "-"}
+                              {att ? (
+                                <span className="tabular-nums">
+                                  {timeOf(att.clock_in_time)}
+                                  {att.clock_out_time ? ` → ${timeOf(att.clock_out_time)}` : ""}
+                                </span>
+                              ) : (
+                                "-"
+                              )}
                               {att ? (
                                 <span
                                   className={
-                                    att.status === "late"
-                                      ? "block text-xs text-warning"
-                                      : "block text-xs text-success"
+                                    att.clock_out_time
+                                      ? "block text-xs text-muted-foreground"
+                                      : att.status === "late"
+                                        ? "block text-xs text-warning"
+                                        : "block text-xs text-success"
                                   }
                                 >
-                                  {att.status === "late" ? "Late" : "On time"}
+                                  {att.clock_out_time
+                                    ? "Signed off"
+                                    : att.status === "late"
+                                      ? "Late · still in"
+                                      : "On time · still in"}
                                 </span>
                               ) : null}
                             </TableCell>
@@ -474,14 +487,23 @@ function AdminPage() {
                           <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                             {att ? (
                               <>
-                                <span>in {timeOf(att.clock_in_time)}</span>
-                                <span
-                                  className={
-                                    att.status === "late" ? "text-warning" : "text-success"
-                                  }
-                                >
-                                  ({att.status === "late" ? "late" : "on time"})
+                                <span className="tabular-nums">
+                                  {timeOf(att.clock_in_time)}
+                                  {att.clock_out_time
+                                    ? ` → ${timeOf(att.clock_out_time)}`
+                                    : ""}
                                 </span>
+                                {att.clock_out_time ? (
+                                  <span className="text-muted-foreground">(signed off)</span>
+                                ) : (
+                                  <span
+                                    className={
+                                      att.status === "late" ? "text-warning" : "text-success"
+                                    }
+                                  >
+                                    ({att.status === "late" ? "late" : "on time"})
+                                  </span>
+                                )}
                               </>
                             ) : (
                               <span>not clocked in</span>
