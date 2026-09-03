@@ -106,7 +106,7 @@ function LoginPage() {
         role="main"
         className="relative mx-auto grid min-h-dvh max-w-6xl items-center gap-10 px-5 py-12 lg:grid-cols-2 lg:gap-16"
       >
-        <section className="order-2 lg:order-1">
+        <section>
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-muted-foreground">
             <Sparkles className="size-3.5 text-primary" />
             The Operating System for Modern Service Brands
@@ -126,7 +126,7 @@ function LoginPage() {
           </p>
         </section>
 
-        <section className="glass order-1 rounded-3xl p-6 sm:p-8 lg:order-2">
+        <section className="glass rounded-3xl p-6 sm:p-8">
           <h2 className="font-display text-2xl font-bold tracking-tight">Welcome back</h2>
           <p className="mt-1 text-sm text-muted-foreground">Sign in to run your day.</p>
 
