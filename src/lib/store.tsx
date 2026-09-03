@@ -406,7 +406,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         if (s.usage) setUsage(s.usage);
         if (s.attendance) setAttendance(s.attendance);
         if (s.expenses) setExpenses(s.expenses);
-        if (s.currentUserId) setCurrentUserId(s.currentUserId);
+        if (typeof s.currentUserId === "string") setCurrentUserId(s.currentUserId);
       }
     } catch {
       // Corrupt/blocked storage. Fall back to seed state.
