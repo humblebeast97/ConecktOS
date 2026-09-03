@@ -3,6 +3,7 @@ import { useState } from "react";
 import {
   Building2,
   Clock,
+  CreditCard,
   FileText,
   Loader2,
   MapPin,
@@ -27,7 +28,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth, useSalon } from "@/api";
-import { currencyOptions, type PayrollReminderDays } from "@/lib/groompulse";
+import { useFrontDeskPrefs } from "@/lib/front-desk-prefs";
+import {
+  currencyOptions,
+  paymentLabel,
+  type PayrollReminderDays,
+  type PaymentMethod,
+} from "@/lib/groompulse";
 import { useTheme, type ThemeMode } from "@/lib/theme";
 
 export const Route = createFileRoute("/settings")({
@@ -48,6 +55,7 @@ export const Route = createFileRoute("/settings")({
 function SettingsPage() {
   const { currentUser } = useAuth();
   const canEditBusiness = currentUser?.role === "owner" || currentUser?.role === "manager";
+  const isFrontDesk = currentUser?.role === "receptionist";
   const { salon, updateSalon } = useSalon();
 
   const [name, setName] = useState(salon.name);
@@ -111,7 +119,9 @@ function SettingsPage() {
       subtitle={
         canEditBusiness
           ? "Profile, location, currency and hours"
-          : "Appearance and account preferences"
+          : isFrontDesk
+            ? "Billing defaults and appearance"
+            : "Appearance and account preferences"
       }
     >
       <form
@@ -253,6 +263,8 @@ function SettingsPage() {
           <ThemePicker />
         </section>
 
+        {isFrontDesk ? <FrontDeskSection /> : null}
+
         {canEditBusiness ? (
         <section className="card-lux rounded-2xl p-5 sm:p-6">
           <div>
@@ -354,6 +366,60 @@ function TimeInput({
         aria-hidden
       />
     </div>
+  );
+}
+
+function FrontDeskSection() {
+  const { prefs, update } = useFrontDeskPrefs();
+  const options: PaymentMethod[] = ["pos", "cash", "bank_transfer"];
+  return (
+    <section className="card-lux rounded-2xl p-5 sm:p-6">
+      <div className="flex items-start gap-3">
+        <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
+          <CreditCard className="size-5" />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold">Front desk preferences</h2>
+          <p className="text-sm text-muted-foreground">
+            Defaults for the tickets you bill on this device.
+          </p>
+        </div>
+      </div>
+      <div className="mt-5">
+        <p className="text-sm font-medium">Default payment method</p>
+        <p className="text-xs text-muted-foreground">
+          Pre-selected when you open a new ticket. Change per-ticket at billing time.
+        </p>
+        <div
+          className="mt-3 flex flex-wrap gap-2"
+          role="radiogroup"
+          aria-label="Default payment method"
+        >
+          {options.map((m) => {
+            const active = prefs.defaultPaymentMethod === m;
+            return (
+              <button
+                key={m}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => {
+                  update({ defaultPaymentMethod: m });
+                  toast.success(`Default set to ${paymentLabel[m]}`);
+                }}
+                className={
+                  active
+                    ? "cursor-pointer rounded-full bg-gradient-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    : "cursor-pointer rounded-full border border-border bg-surface px-4 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                }
+              >
+                {paymentLabel[m]}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </section>
   );
 }
 

@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { useAuth, useServices, useStaff, useTickets } from "@/api";
 import type { DraftLine, DraftUsage } from "@/lib/store";
 import { useIndustryConfig } from "@/config/industry-context";
+import { useFrontDeskPrefs } from "@/lib/front-desk-prefs";
 import { naira, type PaymentMethod } from "@/lib/groompulse";
 
 export type ConsumablesMode = "auto" | "manual";
@@ -27,6 +28,7 @@ export function useTicketDraft() {
   const { staff, profiles } = useStaff();
   const { tickets, createTicket } = useTickets();
   const { currentUser } = useAuth();
+  const { prefs: frontDeskPrefs } = useFrontDeskPrefs();
 
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
@@ -34,7 +36,7 @@ export function useTicketDraft() {
   const [lines, setLines] = useState<DraftLine[]>(() =>
     services[0] && staff[0] ? [{ service_id: services[0].id, staff_id: staff[0].id }] : [],
   );
-  const [method, setMethod] = useState<PaymentMethod>("pos");
+  const [method, setMethod] = useState<PaymentMethod>(frontDeskPrefs.defaultPaymentMethod);
   const [skipUsage, setSkipUsage] = useState<string[]>([]);
   const [consumablesMode, setConsumablesMode] = useState<ConsumablesMode>("auto");
   const [qtyOverride, setQtyOverride] = useState<Record<string, number>>({});
@@ -169,6 +171,7 @@ export function useTicketDraft() {
     setQtyOverride({});
     setAutoExtras([]);
     setManualEntries([]);
+    setMethod(frontDeskPrefs.defaultPaymentMethod);
   };
 
   const submit = (status: "pending" | "paid") => {
