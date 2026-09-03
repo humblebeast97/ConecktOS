@@ -139,7 +139,7 @@ function JoinPage() {
             Your role
           </h2>
           <div
-            className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3"
+            className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3"
             role="radiogroup"
             aria-label="Your role"
             onKeyDown={(e) => {
@@ -166,8 +166,8 @@ function JoinPage() {
                   onClick={() => setRole(r)}
                   className={
                     selected
-                      ? "flex min-h-[5rem] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-primary/70 bg-primary/10 px-2 py-3 text-center transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      : "flex min-h-[5rem] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-2 py-3 text-center transition-all hover:border-primary/40 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      ? "flex cursor-pointer items-center gap-3 rounded-2xl border-2 border-primary/70 bg-primary/10 px-3 py-3 text-left transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-[5rem] sm:flex-col sm:items-center sm:justify-center sm:gap-2 sm:px-2 sm:text-center"
+                      : "flex cursor-pointer items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-3 text-left transition-all hover:border-primary/40 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-[5rem] sm:flex-col sm:items-center sm:justify-center sm:gap-2 sm:px-2 sm:text-center"
                   }
                 >
                   <span
@@ -179,7 +179,7 @@ function JoinPage() {
                   >
                     <Icon className="size-4" />
                   </span>
-                  <span className="block w-full truncate text-xs font-semibold">
+                  <span className="min-w-0 flex-1 text-sm font-semibold sm:w-full sm:flex-none sm:truncate sm:text-xs">
                     {roleLabel[r]}
                   </span>
                 </button>
