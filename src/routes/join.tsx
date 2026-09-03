@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import {
-  ArrowRight,
   Check,
   Circle,
   ConciergeBell,
@@ -350,10 +349,7 @@ function JoinPage() {
               ) : (
                 <UserPlus className="size-4" />
               )}
-              {isSubmitting
-                ? "Creating…"
-                : `Create account and open ${isFrontDesk ? "front desk" : "my"} portal`}
-              {isSubmitting ? null : <ArrowRight className="size-4" />}
+              {isSubmitting ? "Creating…" : "Create my account"}
             </Button>
           </form>
 
