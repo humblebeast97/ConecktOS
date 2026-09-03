@@ -194,10 +194,21 @@ export function TicketBuilder() {
               inputMode="tel"
               autoComplete="tel"
               value={draft.clientPhone}
-              onChange={(e) => draft.setClientPhone(e.target.value)}
+              onChange={(e) => {
+                // Digits, spaces, +, - and () only. Keeps history search happy
+                // and stops junk like "asdf" ending up on saved tickets.
+                const cleaned = e.target.value.replace(/[^\d+\s\-()]/g, "");
+                draft.setClientPhone(cleaned);
+              }}
               placeholder="0803 000 0000"
               className="h-11 bg-surface"
             />
+            {draft.clientPhone.trim() &&
+            draft.clientPhone.replace(/\D/g, "").length < 7 ? (
+              <p className="text-xs text-muted-foreground">
+                Enter at least 7 digits, or leave blank.
+              </p>
+            ) : null}
           </div>
         </div>
 

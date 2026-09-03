@@ -792,14 +792,20 @@ function ExpenseForm({
         onSubmit={(e) => {
           e.preventDefault();
           const value = Number(amount);
-          if (!value) {
-            toast.error("Enter an amount");
+          if (!Number.isFinite(value) || value <= 0) {
+            toast.error("Amount must be a positive number");
+            return;
+          }
+          const rounded = Math.round(value);
+          const hoursValue = category === "generator_fuel" && hours ? Number(hours) : null;
+          if (hoursValue !== null && (!Number.isFinite(hoursValue) || hoursValue < 0)) {
+            toast.error("Generator hours must be zero or higher");
             return;
           }
           onSubmit({
             category,
-            amount: value,
-            generator_hours_run: category === "generator_fuel" && hours ? Number(hours) : null,
+            amount: rounded,
+            generator_hours_run: hoursValue,
             notes: notes.trim(),
           });
           toast.success("Expense logged");
@@ -828,9 +834,12 @@ function ExpenseForm({
             <Label htmlFor="amount">Amount (₦)</Label>
             <Input
               id="amount"
+              type="number"
               inputMode="numeric"
+              min={1}
+              step={1}
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ""))}
               placeholder="18000"
               className="h-11 bg-surface"
             />
@@ -1028,9 +1037,14 @@ function CloseDayDialog({
 
         <Button
           variant="outline"
-          onClick={() =>
-            printHTML(`${salon.name} · ${heading}`, renderAuditHTML({ salon, audit, heading }))
-          }
+          disabled={overCap}
+          onClick={() => {
+            if (overCap) {
+              toast.error("Range is over 12 months. Narrow the dates before printing.");
+              return;
+            }
+            printHTML(`${salon.name} · ${heading}`, renderAuditHTML({ salon, audit, heading }));
+          }}
         >
           <Printer className="size-4" />
           Print / save as PDF

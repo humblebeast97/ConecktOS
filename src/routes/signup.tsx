@@ -67,6 +67,10 @@ function SignUpPage() {
   const { isSubmitting: isCreating, submit: submitCreate } = useSubmit();
   const { isSubmitting: isEntering, submit: submitEnter } = useSubmit();
   const nameError = submitted && !fullName.trim() ? "Your full name is required" : null;
+  const emailError =
+    submitted && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+      ? "Enter a valid email address"
+      : null;
   const passwordError =
     submitted && !passwordStrong
       ? "Password must mix upper and lower case, a number and a symbol (8+ chars)"
@@ -75,7 +79,7 @@ function SignUpPage() {
   const createAccount = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
-    if (!fullName.trim() || !passwordStrong) return;
+    if (!fullName.trim() || emailError || !email.trim() || !passwordStrong) return;
     submitCreate(() => {
       toast.success("Account created. Now set up your business.");
       setStep(2);
@@ -169,7 +173,10 @@ function SignUpPage() {
                   placeholder="you@business.ng"
                   className="h-11 bg-surface"
                   required
+                  aria-invalid={Boolean(emailError)}
+                  aria-describedby="su-email-error"
                 />
+                <FieldError id="su-email-error" message={emailError} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="su-password">

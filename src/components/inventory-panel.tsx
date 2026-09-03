@@ -178,11 +178,21 @@ function ItemRow({ item }: { item: InventoryItem }) {
       toast.error("Item name can't be empty");
       return;
     }
+    const qty = Number(draft.quantity);
+    const reorder = Number(draft.reorder_level);
+    if (!Number.isFinite(qty) || qty < 0) {
+      toast.error("Quantity must be zero or higher");
+      return;
+    }
+    if (!Number.isFinite(reorder) || reorder < 0) {
+      toast.error("Reorder level must be zero or higher");
+      return;
+    }
     updateInventoryItem(item.id, {
       item_name: draft.item_name.trim(),
-      quantity: Math.max(0, Number(draft.quantity) || 0),
+      quantity: qty,
       unit: draft.unit.trim() || "units",
-      reorder_level: Math.max(0, Number(draft.reorder_level) || 0),
+      reorder_level: reorder,
     });
     setEditing(false);
     toast.success("Inventory updated");

@@ -482,7 +482,6 @@ function TipQrDialog({
   const first = me.full_name.split(" ")[0];
   const [posterMsg, setPosterMsg] = usePosterMessage(me.id, defaultPosterMessage(first));
   const posterLen = posterMsg.length;
-  const posterOver = posterLen > POSTER_MSG_MAX;
   // Encode a link to the public tip page (details in the URL so it works on any
   // device without a backend). Swap to /tip/{id} once real data exists.
   const tipUrl =
@@ -583,9 +582,7 @@ function TipQrDialog({
                 <label htmlFor="poster-msg" className="text-xs font-semibold text-muted-foreground">
                   Poster headline (default: Tip {first})
                 </label>
-                <span
-                  className={`text-[11px] tabular-nums ${posterOver ? "text-destructive" : "text-muted-foreground"}`}
-                >
+                <span className="text-[11px] tabular-nums text-muted-foreground">
                   {posterLen} / {POSTER_MSG_MAX}
                 </span>
               </div>
@@ -612,7 +609,6 @@ function TipQrDialog({
 
             <Button
               variant="outline"
-              disabled={posterOver}
               onClick={() => printTipCard({ salon, me, tipUrl, message: posterMsg })}
             >
               <Printer className="size-4" />

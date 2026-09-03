@@ -691,7 +691,18 @@ function MatchRow({ onMatch, id }: { onMatch: (ref: string) => void; id: string 
       className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-2"
       onSubmit={(e) => {
         e.preventDefault();
-        submit(() => onMatch(ref.trim() || "MANUAL"));
+        const trimmed = ref.trim();
+        if (!trimmed) {
+          if (
+            typeof window !== "undefined" &&
+            !window.confirm("No reference entered. Match this ticket as a manual reconciliation?")
+          )
+            return;
+        }
+        submit(() => {
+          onMatch(trimmed || "MANUAL");
+          setRef("");
+        });
       }}
     >
       <div className="min-w-0">
