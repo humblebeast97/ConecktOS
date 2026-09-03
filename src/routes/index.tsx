@@ -156,8 +156,8 @@ function LoginPage() {
                   onClick={() => setRole(r.role)}
                   className={
                     selected
-                      ? "flex cursor-pointer items-center justify-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-ink-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      : "flex cursor-pointer items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      ? "flex cursor-pointer items-center justify-center gap-1 whitespace-nowrap rounded-full bg-ink px-2 py-1.5 text-xs font-semibold text-ink-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      : "flex cursor-pointer items-center justify-center gap-1 whitespace-nowrap rounded-full px-2 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   }
                 >
                   <r.icon className="size-3.5" />
