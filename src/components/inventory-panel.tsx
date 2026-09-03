@@ -384,7 +384,7 @@ export function InventoryPanel() {
   const low = lowStock(inventory);
 
   return (
-    <section className="card-lux rounded-2xl p-5">
+    <section id="inventory" className="card-lux scroll-mt-24 rounded-2xl p-5">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Package className="size-4 text-muted-foreground" />

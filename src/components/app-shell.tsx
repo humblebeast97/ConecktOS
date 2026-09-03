@@ -81,6 +81,7 @@ export function AppShell({
     icon: typeof Package;
     text: string;
     to: "/admin" | "/reception";
+    hash?: string;
     count: number;
   };
   const rawNotifs: Notif[] = useMemo(() => {
@@ -91,6 +92,7 @@ export function AppShell({
             icon: Package,
             text: `${low.length} item${low.length > 1 ? "s" : ""} low on stock`,
             to: "/admin",
+            hash: "inventory",
             count: low.length,
           }
         : null,
@@ -215,7 +217,7 @@ export function AppShell({
                         key={n.key}
                         onSelect={() => {
                           acknowledgeOne(n.key, n.count);
-                          navigate({ to: n.to });
+                          navigate({ to: n.to, hash: n.hash });
                         }}
                         className="gap-2"
                       >
