@@ -122,6 +122,7 @@ interface StoreValue {
       Pick<
         Profile,
         | "full_name"
+        | "avatar_url"
         | "job_title"
         | "commission_rate"
         | "base_salary"

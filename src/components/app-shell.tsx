@@ -15,7 +15,7 @@ import { useAttendance, useAuth, useInventory, useStaff, useTickets } from "@/ap
 import { useIndustryConfig } from "@/config/industry-context";
 import { personTitle, roleLabel, type Role } from "@/lib/groompulse";
 import { lowStock } from "@/lib/reports";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { OfflineBanner } from "@/components/offline-banner";
 import {
   DropdownMenu,
@@ -230,6 +230,9 @@ export function AppShell({
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-2 rounded-full border border-border bg-surface py-1 pl-1 pr-2 outline-none transition-colors hover:border-primary/40 focus-visible:ring-1 focus-visible:ring-ring">
                 <Avatar className="size-7">
+                  {currentUser.avatar_url ? (
+                    <AvatarImage src={currentUser.avatar_url} alt={currentUser.full_name} />
+                  ) : null}
                   <AvatarFallback className="bg-gradient-primary text-[11px] font-semibold text-primary-foreground">
                     {initialsOf(currentUser.full_name)}
                   </AvatarFallback>

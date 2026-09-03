@@ -1,16 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Building2,
+  Camera,
   Clock,
   CreditCard,
   FileText,
+  Lock,
   Loader2,
   MapPin,
   Monitor,
   Moon,
   Save,
   Sun,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
@@ -27,7 +30,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAuth, useSalon } from "@/api";
+import { useAuth, useSalon, useStaff } from "@/api";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useFrontDeskPrefs } from "@/lib/front-desk-prefs";
 import {
   currencyOptions,
@@ -131,6 +135,8 @@ function SettingsPage() {
           if (canEditBusiness) save();
         }}
       >
+        <PersonalProfileSection />
+
         {canEditBusiness ? (
         <section className="card-lux rounded-2xl p-5 sm:p-6">
           <div className="flex items-start gap-3">
@@ -138,7 +144,7 @@ function SettingsPage() {
               <Building2 className="size-5" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold">Profile</h2>
+              <h2 className="text-lg font-semibold">Business profile</h2>
               <p className="text-sm text-muted-foreground">Your business name and currency.</p>
             </div>
           </div>
@@ -253,6 +259,8 @@ function SettingsPage() {
         </section>
         ) : null}
 
+        {!canEditBusiness ? <ReadOnlyLocationSection /> : null}
+
         <section className="card-lux rounded-2xl p-5 sm:p-6">
           <div>
             <h2 className="text-lg font-semibold">Appearance</h2>
@@ -366,6 +374,202 @@ function TimeInput({
         aria-hidden
       />
     </div>
+  );
+}
+
+const initialsOf = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
+
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+
+function PersonalProfileSection() {
+  const { currentUser } = useAuth();
+  const { updateProfile } = useStaff();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [name, setName] = useState(currentUser?.full_name ?? "");
+  const [nameSubmitted, setNameSubmitted] = useState(false);
+
+  if (!currentUser) return null;
+  const nameError = nameSubmitted && !name.trim() ? "Name is required" : null;
+
+  const commitName = () => {
+    setNameSubmitted(true);
+    const trimmed = name.trim();
+    if (!trimmed || trimmed === currentUser.full_name) return;
+    updateProfile(currentUser.id, { full_name: trimmed });
+    toast.success("Name updated");
+  };
+
+  const onPhotoPicked = (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Pick an image file");
+      return;
+    }
+    if (file.size > MAX_AVATAR_BYTES) {
+      toast.error("Photo must be 2 MB or smaller");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      updateProfile(currentUser.id, { avatar_url: String(reader.result) });
+      toast.success("Photo updated");
+    };
+    reader.onerror = () => toast.error("Couldn't read that photo");
+    reader.readAsDataURL(file);
+  };
+
+  const clearPhoto = () => {
+    updateProfile(currentUser.id, { avatar_url: null });
+    if (fileRef.current) fileRef.current.value = "";
+    toast.success("Photo removed");
+  };
+
+  return (
+    <section className="card-lux rounded-2xl p-5 sm:p-6">
+      <div className="flex items-start gap-3">
+        <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
+          <Camera className="size-5" />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold">Your profile</h2>
+          <p className="text-sm text-muted-foreground">Name and photo shown across the app.</p>
+        </div>
+      </div>
+
+      <div className="mt-5 flex items-center gap-5">
+        <div className="relative size-20 shrink-0">
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            aria-label="Change profile photo"
+            className="group block size-20 cursor-pointer overflow-hidden rounded-full shadow-md ring-1 ring-border transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Avatar className="size-20">
+              {currentUser.avatar_url ? (
+                <AvatarImage src={currentUser.avatar_url} alt={currentUser.full_name} />
+              ) : null}
+              <AvatarFallback className="bg-gradient-primary text-2xl font-bold text-primary-foreground">
+                {initialsOf(currentUser.full_name)}
+              </AvatarFallback>
+            </Avatar>
+          </button>
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -right-1 -bottom-1 grid size-7 place-items-center rounded-full border-2 border-background bg-card text-foreground shadow"
+          >
+            <Camera className="size-3.5" />
+          </span>
+          {currentUser.avatar_url ? (
+            <button
+              type="button"
+              onClick={clearPhoto}
+              aria-label="Remove photo"
+              title="Remove photo"
+              className="absolute -right-1 -top-1 grid size-6 cursor-pointer place-items-center rounded-full border border-border bg-card text-destructive shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <X className="size-3" />
+            </button>
+          ) : null}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) onPhotoPicked(file);
+            }}
+          />
+        </div>
+        <div className="min-w-0 text-sm">
+          <p className="font-medium">Tap your photo to change it.</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            JPG or PNG, up to 2 MB. Your initials show when no photo is set.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-5 space-y-1.5">
+        <Label htmlFor="p-name">Full name</Label>
+        <Input
+          id="p-name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onBlur={commitName}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
+          className="h-11 bg-surface"
+          minLength={2}
+          maxLength={80}
+          aria-invalid={Boolean(nameError)}
+          aria-describedby="p-name-error"
+        />
+        <FieldError id="p-name-error" message={nameError} />
+      </div>
+    </section>
+  );
+}
+
+function ReadOnlyLocationSection() {
+  const { salon } = useSalon();
+  const hasLocation = salon.latitude != null && salon.longitude != null;
+  return (
+    <section className="card-lux rounded-2xl p-5 sm:p-6">
+      <div className="flex items-start gap-3">
+        <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
+          <MapPin className="size-5" />
+        </div>
+        <div className="flex-1">
+          <h2 className="text-lg font-semibold">Location &amp; hours</h2>
+          <p className="text-sm text-muted-foreground">Used for geofenced clock-ins.</p>
+        </div>
+        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <Lock className="size-3" />
+          Read only
+        </span>
+      </div>
+
+      <div className="mt-5 rounded-xl border border-border bg-surface px-4 py-3 text-sm">
+        {hasLocation ? (
+          <span className="flex items-center gap-2 text-success">
+            <MapPin className="size-4 shrink-0" />
+            {salon.name} · {salon.latitude!.toFixed(4)}, {salon.longitude!.toFixed(4)}
+          </span>
+        ) : (
+          <span className="text-muted-foreground">No business location set yet.</span>
+        )}
+      </div>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label>Geofence radius</Label>
+          <Input readOnly value={`${salon.geofence_radius_meters} metres`} className="h-11 bg-muted/40 text-muted-foreground" />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label>Opens</Label>
+            <Input readOnly value={salon.open_time} className="h-11 bg-muted/40 text-muted-foreground" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Closes</Label>
+            <Input readOnly value={salon.close_time} className="h-11 bg-muted/40 text-muted-foreground" />
+          </div>
+        </div>
+      </div>
+
+      <p className="mt-3 rounded-lg border-l-2 border-lime bg-lime/20 px-3 py-2 text-xs text-foreground">
+        Only the business owner can change these. Ask them if the location or opening hours have moved.
+      </p>
+    </section>
   );
 }
 
