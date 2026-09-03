@@ -293,7 +293,7 @@ function ReceptionPage() {
               </div>
 
               <div className="space-y-5">
-                <section className="card-lux rounded-2xl p-5">
+                <section id="pending" className="card-lux scroll-mt-24 rounded-2xl p-5">
                   <h2 className="text-lg font-bold">Payment matcher</h2>
                   <p className="mt-1 text-sm text-muted-foreground">
                     Confirm POS slips and bank alerts against open tickets.

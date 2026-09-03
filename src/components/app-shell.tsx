@@ -102,6 +102,7 @@ export function AppShell({
             icon: Receipt,
             text: `${pending.length} ticket${pending.length > 1 ? "s" : ""} awaiting payment`,
             to: "/reception",
+            hash: "pending",
             count: pending.length,
           }
         : null,
@@ -111,6 +112,7 @@ export function AppShell({
             icon: MapPinOff,
             text: `${offSite.length} off-site clock-in${offSite.length > 1 ? "s" : ""}`,
             to: "/admin",
+            hash: "attendance",
             count: offSite.length,
           }
         : null,

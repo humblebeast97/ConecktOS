@@ -395,7 +395,7 @@ function AdminPage() {
             )}
 
             <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-              <section className="card-lux overflow-hidden rounded-2xl">
+              <section id="attendance" className="card-lux scroll-mt-24 overflow-hidden rounded-2xl">
                 <div className="flex items-center justify-between gap-3 p-5 pb-3">
                   <h2 className="text-lg font-bold">{config.staffPlural} attendance & earnings</h2>
                   <Clock className="size-4 text-muted-foreground" />

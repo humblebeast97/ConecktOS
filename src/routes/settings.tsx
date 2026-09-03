@@ -533,9 +533,12 @@ function ReadOnlyLocationSection() {
 
       <div className="mt-5 rounded-xl border border-border bg-surface px-4 py-3 text-sm">
         {hasLocation ? (
-          <span className="flex items-center gap-2 text-success">
-            <MapPin className="size-4 shrink-0" />
-            {salon.name} · {salon.latitude!.toFixed(4)}, {salon.longitude!.toFixed(4)}
+          <span className="flex items-center gap-2">
+            <MapPin className="size-4 shrink-0 text-success" />
+            <span className="font-medium">{salon.name}</span>
+            <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-success">
+              GPS set
+            </span>
           </span>
         ) : (
           <span className="text-muted-foreground">No business location set yet.</span>
