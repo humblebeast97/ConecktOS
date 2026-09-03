@@ -549,9 +549,6 @@ function ReadOnlyLocationSection() {
         </div>
       </div>
 
-      <p className="mt-3 rounded-lg border-l-2 border-lime bg-lime/20 px-3 py-2 text-xs text-foreground">
-        Only the business owner can change these. Ask them if the location or opening hours have moved.
-      </p>
     </section>
   );
 }
