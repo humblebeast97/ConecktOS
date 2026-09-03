@@ -132,7 +132,12 @@ function SettingsPage() {
         className="mx-auto max-w-2xl space-y-5"
         onSubmit={(e) => {
           e.preventDefault();
-          if (canEditBusiness) save();
+          if (canEditBusiness) {
+            save();
+          } else {
+            (document.activeElement as HTMLElement | null)?.blur();
+            toast.success("Settings saved");
+          }
         }}
       >
         <PersonalProfileSection />
@@ -328,16 +333,14 @@ function SettingsPage() {
               Terms
             </Link>
           </p>
-          {canEditBusiness ? (
-            <Button type="submit" disabled={isSubmitting} className="h-11 font-semibold">
-              {isSubmitting ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Save className="size-4" />
-              )}
-              {isSubmitting ? "Saving…" : "Save settings"}
-            </Button>
-          ) : null}
+          <Button type="submit" disabled={isSubmitting} className="h-11 font-semibold">
+            {isSubmitting ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Save className="size-4" />
+            )}
+            {isSubmitting ? "Saving…" : "Save settings"}
+          </Button>
         </div>
       </form>
     </AppShell>
