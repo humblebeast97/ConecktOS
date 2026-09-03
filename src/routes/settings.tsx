@@ -322,26 +322,28 @@ function SettingsPage() {
         </section>
         ) : null}
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="flex items-center gap-2 text-xs text-muted-foreground">
-            <FileText className="size-3.5" />
-            <Link to="/privacy" className="text-primary underline-offset-4 hover:underline">
-              Privacy
-            </Link>
-            <span>·</span>
-            <Link to="/terms" className="text-primary underline-offset-4 hover:underline">
-              Terms
-            </Link>
-          </p>
-          <Button type="submit" disabled={isSubmitting} className="h-11 font-semibold">
-            {isSubmitting ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Save className="size-4" />
-            )}
-            {isSubmitting ? "Saving…" : "Save settings"}
-          </Button>
-        </div>
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="h-12 w-full font-semibold"
+        >
+          {isSubmitting ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Save className="size-4" />
+          )}
+          {isSubmitting ? "Saving…" : "Save settings"}
+        </Button>
+        <p className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <FileText className="size-3.5" />
+          <Link to="/privacy" className="text-primary underline-offset-4 hover:underline">
+            Privacy
+          </Link>
+          <span>·</span>
+          <Link to="/terms" className="text-primary underline-offset-4 hover:underline">
+            Terms
+          </Link>
+        </p>
       </form>
     </AppShell>
   );
