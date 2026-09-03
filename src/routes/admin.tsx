@@ -156,11 +156,23 @@ function AdminPage() {
     key: "name" | "clock" | "commission";
     dir: "asc" | "desc";
   }>({ key: "commission", dir: "desc" });
+  // The Clock column is a two-state toggle: tap once to view Clock out,
+  // tap again to flip back to Clock in.
+  const [clockField, setClockField] = useState<"in" | "out">("in");
 
-  const toggleSort = (key: "name" | "clock" | "commission") =>
+  const toggleSort = (key: "name" | "clock" | "commission") => {
+    if (key === "clock") {
+      // Clicking the clock column toggles the field (in ↔ out). Sorting
+      // stays descending on whichever timestamp is active, which is what
+      // owners want ("most recent first").
+      setClockField((f) => (f === "in" ? "out" : "in"));
+      setAttSort({ key: "clock", dir: "desc" });
+      return;
+    }
     setAttSort((s) =>
       s.key === key ? { key, dir: s.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" },
     );
+  };
 
   const ariaSort = (key: "name" | "clock" | "commission") =>
     attSort.key === key ? (attSort.dir === "asc" ? "ascending" : "descending") : "none";
@@ -177,13 +189,19 @@ function AdminPage() {
     return rows.sort((a, b) => {
       if (attSort.key === "name") return a.s.full_name.localeCompare(b.s.full_name) * dir;
       if (attSort.key === "clock") {
-        const at = a.att ? new Date(a.att.clock_in_time).getTime() : Infinity;
-        const bt = b.att ? new Date(b.att.clock_in_time).getTime() : Infinity;
-        return (at - bt) * dir;
+        const stamp = (att?: { clock_in_time: string; clock_out_time: string | null }) =>
+          clockField === "out"
+            ? att?.clock_out_time
+              ? new Date(att.clock_out_time).getTime()
+              : Infinity
+            : att?.clock_in_time
+              ? new Date(att.clock_in_time).getTime()
+              : Infinity;
+        return (stamp(a.att) - stamp(b.att)) * dir;
       }
       return (a.earned - b.earned) * dir;
     });
-  }, [staff, attendance, ticketItems, attSort]);
+  }, [staff, attendance, ticketItems, attSort, clockField]);
 
   const [expenseQuery, setExpenseQuery] = useState("");
   const [expenseCategory, setExpenseCategory] = useState<"all" | ExpenseCategory>("all");
@@ -393,7 +411,7 @@ function AdminPage() {
                         </TableHead>
                         <TableHead aria-sort={ariaSort("clock")}>
                           <SortButton
-                            label="Clock in / out"
+                            label={clockField === "out" ? "Clock out" : "Clock in"}
                             active={attSort.key === "clock"}
                             dir={attSort.dir}
                             onClick={() => toggleSort("clock")}
@@ -431,30 +449,34 @@ function AdminPage() {
                             </TableCell>
                             <TableCell className="text-muted-foreground">
                               {att ? (
-                                <span className="tabular-nums">
-                                  {timeOf(att.clock_in_time)}
-                                  {att.clock_out_time ? ` → ${timeOf(att.clock_out_time)}` : ""}
-                                </span>
+                                clockField === "out" ? (
+                                  <>
+                                    <span className="tabular-nums">
+                                      {att.clock_out_time ? timeOf(att.clock_out_time) : "-"}
+                                    </span>
+                                    <span className="block text-xs text-muted-foreground">
+                                      {att.clock_out_time ? "Signed off" : "Still on shift"}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="tabular-nums">
+                                      {timeOf(att.clock_in_time)}
+                                    </span>
+                                    <span
+                                      className={
+                                        att.status === "late"
+                                          ? "block text-xs text-warning"
+                                          : "block text-xs text-success"
+                                      }
+                                    >
+                                      {att.status === "late" ? "Late" : "On time"}
+                                    </span>
+                                  </>
+                                )
                               ) : (
                                 "-"
                               )}
-                              {att ? (
-                                <span
-                                  className={
-                                    att.clock_out_time
-                                      ? "block text-xs text-muted-foreground"
-                                      : att.status === "late"
-                                        ? "block text-xs text-warning"
-                                        : "block text-xs text-success"
-                                  }
-                                >
-                                  {att.clock_out_time
-                                    ? "Signed off"
-                                    : att.status === "late"
-                                      ? "Late · still in"
-                                      : "On time · still in"}
-                                </span>
-                              ) : null}
                             </TableCell>
                             <TableCell>
                               <GeofenceBadge att={att} />
