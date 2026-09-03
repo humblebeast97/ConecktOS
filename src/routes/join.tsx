@@ -139,14 +139,14 @@ function JoinPage() {
             Your role
           </h2>
           <div
-            className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3"
+            className="mt-3 grid grid-cols-3 gap-1.5 rounded-full border border-border bg-muted p-1"
             role="radiogroup"
             aria-label="Your role"
             onKeyDown={(e) => {
-              if (!["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(e.key)) return;
+              if (!["ArrowRight", "ArrowLeft"].includes(e.key)) return;
               e.preventDefault();
               const idx = teamRoles.indexOf(role);
-              const dir = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1;
+              const dir = e.key === "ArrowRight" ? 1 : -1;
               const next = (idx + dir + teamRoles.length) % teamRoles.length;
               setRole(teamRoles[next]);
               const btns = e.currentTarget.querySelectorAll<HTMLButtonElement>('[role="radio"]');
@@ -156,6 +156,8 @@ function JoinPage() {
             {teamRoles.map((r) => {
               const selected = r === role;
               const Icon = r === "receptionist" || r === "manager" ? ConciergeBell : UserRound;
+              const short =
+                r === "receptionist" ? "Front desk" : r === "manager" ? "Manager" : "Staff";
               return (
                 <button
                   key={r}
@@ -166,22 +168,12 @@ function JoinPage() {
                   onClick={() => setRole(r)}
                   className={
                     selected
-                      ? "flex cursor-pointer items-center gap-3 rounded-2xl border-2 border-primary/70 bg-primary/10 px-3 py-3 text-left transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-[5rem] sm:flex-col sm:items-center sm:justify-center sm:gap-2 sm:px-2 sm:text-center"
-                      : "flex cursor-pointer items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-3 text-left transition-all hover:border-primary/40 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-[5rem] sm:flex-col sm:items-center sm:justify-center sm:gap-2 sm:px-2 sm:text-center"
+                      ? "flex cursor-pointer items-center justify-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-ink-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      : "flex cursor-pointer items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   }
                 >
-                  <span
-                    className={
-                      selected
-                        ? "grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-primary text-primary-foreground"
-                        : "grid size-9 shrink-0 place-items-center rounded-xl bg-accent text-muted-foreground"
-                    }
-                  >
-                    <Icon className="size-4" />
-                  </span>
-                  <span className="min-w-0 flex-1 text-sm font-semibold sm:w-full sm:flex-none sm:truncate sm:text-xs">
-                    {roleLabel[r]}
-                  </span>
+                  <Icon className="size-3.5" />
+                  {short}
                 </button>
               );
             })}
