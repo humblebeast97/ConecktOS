@@ -431,17 +431,7 @@ function PersonalProfileSection() {
 
   return (
     <section className="card-lux rounded-2xl p-5 sm:p-6">
-      <div className="flex items-start gap-3">
-        <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
-          <Camera className="size-5" />
-        </div>
-        <div>
-          <h2 className="text-lg font-semibold">Your profile</h2>
-          <p className="text-sm text-muted-foreground">Name and photo shown across the app.</p>
-        </div>
-      </div>
-
-      <div className="mt-5 flex items-center gap-5">
+      <div className="flex items-center gap-5">
         <div className="relative size-20 shrink-0">
           <button
             type="button"
@@ -486,16 +476,8 @@ function PersonalProfileSection() {
             }}
           />
         </div>
-        <div className="min-w-0 text-sm">
-          <p className="font-medium">Tap your photo to change it.</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            JPG or PNG, up to 2 MB. Your initials show when no photo is set.
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-5 space-y-1.5">
-        <Label htmlFor="p-name">Full name</Label>
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <Label htmlFor="p-name">Full name</Label>
         <Input
           id="p-name"
           value={name}
@@ -513,7 +495,8 @@ function PersonalProfileSection() {
           aria-invalid={Boolean(nameError)}
           aria-describedby="p-name-error"
         />
-        <FieldError id="p-name-error" message={nameError} />
+          <FieldError id="p-name-error" message={nameError} />
+        </div>
       </div>
     </section>
   );
