@@ -162,11 +162,15 @@ function AdminPage() {
 
   const toggleSort = (key: "name" | "clock" | "commission") => {
     if (key === "clock") {
-      // Clicking the clock column toggles the field (in ↔ out). Sorting
-      // stays descending on whichever timestamp is active, which is what
-      // owners want ("most recent first").
-      setClockField((f) => (f === "in" ? "out" : "in"));
-      setAttSort({ key: "clock", dir: "desc" });
+      // Clock column toggles between in/out. Arrow direction encodes which
+      // field is active: down = Clock in, up = Clock out. Phase 1 will read
+      // clockField off attSort so the API can request the right timestamp
+      // column server-side without another piece of state to plumb through.
+      setClockField((f) => {
+        const next = f === "in" ? "out" : "in";
+        setAttSort({ key: "clock", dir: next === "out" ? "asc" : "desc" });
+        return next;
+      });
       return;
     }
     setAttSort((s) =>
