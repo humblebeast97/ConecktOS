@@ -5,7 +5,9 @@ import {
   Eye,
   EyeOff,
   Gauge,
+  KeyRound,
   Loader2,
+  Mail,
   ShieldCheck,
   Sparkles,
   UserRound,
@@ -16,6 +18,14 @@ import { useSubmit } from "@/lib/use-submit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { defaultUserForRole } from "@/lib/store";
 import { useAuth } from "@/api";
 import type { Role } from "@/lib/groompulse";
@@ -78,6 +88,10 @@ function LoginPage() {
   const [role, setRole] = useState<Role>("owner");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSubmitted, setForgotSubmitted] = useState(false);
+  const [forgotSending, setForgotSending] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
   const navigate = useNavigate();
@@ -254,16 +268,17 @@ function LoginPage() {
                 />
                 Remember me
               </label>
-              <Link
-                to="/"
-                className="font-semibold text-primary hover:underline"
-                onClick={(e) => {
-                  e.preventDefault();
-                  toast.info("Password reset ships with Phase 1.");
+              <button
+                type="button"
+                onClick={() => {
+                  setForgotEmail(email);
+                  setForgotSubmitted(false);
+                  setForgotOpen(true);
                 }}
+                className="cursor-pointer font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 Forgot?
-              </Link>
+              </button>
             </div>
 
             <Button
@@ -320,6 +335,81 @@ function LoginPage() {
           </p>
         </section>
       </div>
+
+      <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="size-5 text-primary" />
+              Reset your password
+            </DialogTitle>
+            <DialogDescription>
+              Enter the email on your account. If it matches a workspace, a reset link lands in
+              your inbox within a minute.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            className="space-y-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const value = forgotEmail.trim();
+              if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                setForgotSubmitted(true);
+                return;
+              }
+              setForgotSending(true);
+              window.setTimeout(() => {
+                setForgotSending(false);
+                setForgotOpen(false);
+                toast.success("Reset link sent", {
+                  description: `Check ${value} in a minute (spam folder counts).`,
+                });
+              }, 700);
+            }}
+          >
+            <div className="space-y-1.5">
+              <Label htmlFor="forgot-email">Email</Label>
+              <div className="relative">
+                <Mail
+                  className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden
+                />
+                <Input
+                  id="forgot-email"
+                  type="email"
+                  autoComplete="email"
+                  autoFocus
+                  required
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  className="h-11 bg-surface pl-9"
+                  placeholder="you@business.ng"
+                  aria-invalid={
+                    forgotSubmitted && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(forgotEmail.trim())
+                  }
+                />
+              </div>
+              {forgotSubmitted && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(forgotEmail.trim()) ? (
+                <p className="text-xs text-destructive">Enter a valid email address.</p>
+              ) : null}
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setForgotOpen(false)}
+                disabled={forgotSending}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={forgotSending} className="font-semibold">
+                {forgotSending ? <Loader2 className="size-4 animate-spin" /> : null}
+                {forgotSending ? "Sending…" : "Send reset link"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
