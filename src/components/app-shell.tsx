@@ -11,6 +11,7 @@ import {
   Repeat,
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { toast } from "sonner";
 import { useAttendance, useAuth, useInventory, useStaff, useTickets } from "@/api";
 import { useIndustryConfig } from "@/config/industry-context";
 import { personTitle, roleLabel, type Role } from "@/lib/groompulse";
@@ -57,13 +58,18 @@ export function AppShell({
   children: ReactNode;
   actions?: ReactNode;
 }) {
-  const { currentUser, signIn } = useAuth();
+  const { currentUser, isSignedIn, signIn, signOut } = useAuth();
   const { profiles } = useStaff();
   const { inventory } = useInventory();
   const { tickets } = useTickets();
   const { attendance } = useAttendance();
   const config = useIndustryConfig();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isSignedIn) navigate({ to: "/", replace: true });
+  }, [isSignedIn, navigate]);
+  if (!isSignedIn) return null;
 
   // Ops notifications. Only for owner / manager / front desk.
   const showOps = ["owner", "manager", "receptionist"].includes(currentUser.role);
@@ -299,7 +305,11 @@ export function AppShell({
                 ) : null}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onSelect={() => navigate({ to: "/" })}
+                  onSelect={() => {
+                    signOut();
+                    navigate({ to: "/", replace: true });
+                    toast.success("Signed out");
+                  }}
                   className="gap-2 text-destructive focus:text-destructive"
                 >
                   <LogOut className="size-4" />

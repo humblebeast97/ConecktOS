@@ -88,6 +88,11 @@ function LoginPage() {
   const [role, setRole] = useState<Role>("owner");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [signInSubmitted, setSignInSubmitted] = useState(false);
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const emailError = signInSubmitted && !emailValid ? "Enter a valid email address" : null;
+  const passwordError =
+    signInSubmitted && password.length < 6 ? "Password must be at least 6 characters" : null;
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotSubmitted, setForgotSubmitted] = useState(false);
@@ -214,6 +219,8 @@ function LoginPage() {
             className="space-y-3.5"
             onSubmit={(e) => {
               e.preventDefault();
+              setSignInSubmitted(true);
+              if (!emailValid || password.length < 6) return;
               submit(() => {
                 signIn(defaultUserForRole[role]);
                 navigate({ to: active.to });
@@ -231,7 +238,14 @@ function LoginPage() {
                 autoComplete="email"
                 className="h-11 bg-surface"
                 required
+                aria-invalid={Boolean(emailError)}
+                aria-describedby="email-error"
               />
+              {emailError ? (
+                <p id="email-error" className="text-xs text-destructive">
+                  {emailError}
+                </p>
+              ) : null}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="password">Password</Label>
@@ -245,6 +259,8 @@ function LoginPage() {
                   autoComplete="current-password"
                   className="h-11 bg-surface pr-11"
                   required
+                  aria-invalid={Boolean(passwordError)}
+                  aria-describedby="password-error"
                 />
                 <button
                   type="button"
@@ -256,6 +272,11 @@ function LoginPage() {
                   {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
+              {passwordError ? (
+                <p id="password-error" className="text-xs text-destructive">
+                  {passwordError}
+                </p>
+              ) : null}
             </div>
 
             <div className="flex items-center justify-between text-xs">

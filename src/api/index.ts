@@ -12,8 +12,8 @@ import { useStore } from "@/lib/store";
  */
 
 export function useAuth() {
-  const { currentUser, signIn } = useStore();
-  return { currentUser, signIn };
+  const { currentUser, isSignedIn, signIn, signOut } = useStore();
+  return { currentUser, isSignedIn, signIn, signOut };
 }
 
 export function useSalon() {

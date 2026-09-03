@@ -70,7 +70,9 @@ interface StoreValue {
   expenses: Expense[];
   currentUserId: string;
   currentUser: Profile;
+  isSignedIn: boolean;
   signIn: (userId: string) => void;
+  signOut: () => void;
   staff: Profile[];
   clockIn: (
     staffId: string,
@@ -164,6 +166,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     () => profiles.find((p) => p.id === currentUserId) ?? profiles[0],
     [profiles, currentUserId],
   );
+  const isSignedIn = currentUserId !== "";
 
   const staff = useMemo(() => profiles.filter((p) => commissionRoles.includes(p.role)), [profiles]);
 
@@ -459,7 +462,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     expenses,
     currentUserId,
     currentUser,
+    isSignedIn,
     signIn: setCurrentUserId,
+    signOut: () => setCurrentUserId(""),
     staff,
     clockIn,
     clockOut,

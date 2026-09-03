@@ -58,9 +58,14 @@ export const Route = createFileRoute("/settings")({
 
 function SettingsPage() {
   const { currentUser } = useAuth();
+  const { updateProfile } = useStaff();
   const canEditBusiness = currentUser?.role === "owner" || currentUser?.role === "manager";
   const isFrontDesk = currentUser?.role === "receptionist";
   const { salon, updateSalon } = useSalon();
+  const [personalName, setPersonalName] = useState(currentUser?.full_name ?? "");
+  const [personalSubmitted, setPersonalSubmitted] = useState(false);
+  const personalNameError =
+    personalSubmitted && !personalName.trim() ? "Name is required" : null;
 
   const [name, setName] = useState(salon.name);
   const [currency, setCurrency] = useState(salon.currency);
@@ -132,15 +137,29 @@ function SettingsPage() {
         className="mx-auto max-w-2xl space-y-5"
         onSubmit={(e) => {
           e.preventDefault();
+          setPersonalSubmitted(true);
+          const nextName = personalName.trim();
+          const nameDirty = currentUser && nextName && nextName !== currentUser.full_name;
           if (canEditBusiness) {
+            if (nameDirty && currentUser)
+              updateProfile(currentUser.id, { full_name: nextName });
             save();
-          } else {
-            (document.activeElement as HTMLElement | null)?.blur();
+            return;
+          }
+          if (personalName.trim().length === 0) return;
+          if (nameDirty && currentUser) {
+            updateProfile(currentUser.id, { full_name: nextName });
             toast.success("Settings saved");
+          } else {
+            toast.info("Nothing to save");
           }
         }}
       >
-        <PersonalProfileSection />
+        <PersonalProfileSection
+          name={personalName}
+          onNameChange={setPersonalName}
+          nameError={personalNameError}
+        />
 
         {canEditBusiness ? (
         <section className="card-lux rounded-2xl p-5 sm:p-6">
@@ -392,23 +411,20 @@ const initialsOf = (name: string) =>
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 
-function PersonalProfileSection() {
+function PersonalProfileSection({
+  name,
+  onNameChange,
+  nameError,
+}: {
+  name: string;
+  onNameChange: (value: string) => void;
+  nameError: string | null;
+}) {
   const { currentUser } = useAuth();
   const { updateProfile } = useStaff();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [name, setName] = useState(currentUser?.full_name ?? "");
-  const [nameSubmitted, setNameSubmitted] = useState(false);
 
   if (!currentUser) return null;
-  const nameError = nameSubmitted && !name.trim() ? "Name is required" : null;
-
-  const commitName = () => {
-    setNameSubmitted(true);
-    const trimmed = name.trim();
-    if (!trimmed || trimmed === currentUser.full_name) return;
-    updateProfile(currentUser.id, { full_name: trimmed });
-    toast.success("Name updated");
-  };
 
   const onPhotoPicked = (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -483,23 +499,16 @@ function PersonalProfileSection() {
         </div>
         <div className="min-w-0 flex-1 space-y-1.5">
           <Label htmlFor="p-name">Full name</Label>
-        <Input
-          id="p-name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onBlur={commitName}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              (e.target as HTMLInputElement).blur();
-            }
-          }}
-          className="h-11 bg-surface"
-          minLength={2}
-          maxLength={80}
-          aria-invalid={Boolean(nameError)}
-          aria-describedby="p-name-error"
-        />
+          <Input
+            id="p-name"
+            value={name}
+            onChange={(e) => onNameChange(e.target.value)}
+            className="h-11 bg-surface"
+            minLength={2}
+            maxLength={80}
+            aria-invalid={Boolean(nameError)}
+            aria-describedby="p-name-error"
+          />
           <FieldError id="p-name-error" message={nameError} />
         </div>
       </div>
