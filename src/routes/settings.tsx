@@ -26,8 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useSalon } from "@/api";
-import { useRoleGuard } from "@/lib/access";
+import { useAuth, useSalon } from "@/api";
 import { currencyOptions, type PayrollReminderDays } from "@/lib/groompulse";
 import { useTheme, type ThemeMode } from "@/lib/theme";
 
@@ -46,10 +45,9 @@ export const Route = createFileRoute("/settings")({
   errorComponent: RouteError,
 });
 
-const SETTINGS_ROLES = ["owner", "manager"] as const;
-
 function SettingsPage() {
-  useRoleGuard(SETTINGS_ROLES);
+  const { currentUser } = useAuth();
+  const canEditBusiness = currentUser?.role === "owner" || currentUser?.role === "manager";
   const { salon, updateSalon } = useSalon();
 
   const [name, setName] = useState(salon.name);
@@ -108,14 +106,22 @@ function SettingsPage() {
   };
 
   return (
-    <AppShell title="Business settings" subtitle="Profile, location, currency and hours">
+    <AppShell
+      title={canEditBusiness ? "Business settings" : "Settings"}
+      subtitle={
+        canEditBusiness
+          ? "Profile, location, currency and hours"
+          : "Appearance and account preferences"
+      }
+    >
       <form
         className="mx-auto max-w-2xl space-y-5"
         onSubmit={(e) => {
           e.preventDefault();
-          save();
+          if (canEditBusiness) save();
         }}
       >
+        {canEditBusiness ? (
         <section className="card-lux rounded-2xl p-5 sm:p-6">
           <div className="flex items-start gap-3">
             <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
@@ -162,7 +168,9 @@ function SettingsPage() {
             </div>
           </div>
         </section>
+        ) : null}
 
+        {canEditBusiness ? (
         <section className="card-lux rounded-2xl p-5 sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -233,6 +241,7 @@ function SettingsPage() {
             </div>
           </div>
         </section>
+        ) : null}
 
         <section className="card-lux rounded-2xl p-5 sm:p-6">
           <div>
@@ -244,6 +253,7 @@ function SettingsPage() {
           <ThemePicker />
         </section>
 
+        {canEditBusiness ? (
         <section className="card-lux rounded-2xl p-5 sm:p-6">
           <div>
             <h2 className="text-lg font-semibold">Payroll reminder</h2>
@@ -285,6 +295,7 @@ function SettingsPage() {
             })}
           </div>
         </section>
+        ) : null}
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -297,14 +308,16 @@ function SettingsPage() {
               Terms
             </Link>
           </p>
-          <Button type="submit" disabled={isSubmitting} className="h-11 font-semibold">
-            {isSubmitting ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Save className="size-4" />
-            )}
-            {isSubmitting ? "Saving…" : "Save settings"}
-          </Button>
+          {canEditBusiness ? (
+            <Button type="submit" disabled={isSubmitting} className="h-11 font-semibold">
+              {isSubmitting ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Save className="size-4" />
+              )}
+              {isSubmitting ? "Saving…" : "Save settings"}
+            </Button>
+          ) : null}
         </div>
       </form>
     </AppShell>

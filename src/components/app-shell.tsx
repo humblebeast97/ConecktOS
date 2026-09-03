@@ -252,15 +252,15 @@ export function AppShell({
                   </span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {currentUser.role === "owner" || currentUser.role === "manager" ? (
-                  <DropdownMenuItem
-                    onSelect={() => navigate({ to: "/settings" })}
-                    className="gap-2"
-                  >
-                    <Settings className="size-4" />
-                    Business settings
-                  </DropdownMenuItem>
-                ) : null}
+                <DropdownMenuItem
+                  onSelect={() => navigate({ to: "/settings" })}
+                  className="gap-2"
+                >
+                  <Settings className="size-4" />
+                  {currentUser.role === "owner" || currentUser.role === "manager"
+                    ? "Business settings"
+                    : "Settings"}
+                </DropdownMenuItem>
                 {roleShortcuts.length > 1 ? (
                   <>
                     <DropdownMenuSeparator />
