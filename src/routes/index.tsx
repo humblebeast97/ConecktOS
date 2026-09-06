@@ -123,7 +123,7 @@ function LoginPage() {
       <div
         id="main-content"
         role="main"
-        className="relative mx-auto grid min-h-dvh max-w-6xl items-center gap-10 px-5 py-12 lg:grid-cols-2 lg:gap-16"
+        className="relative mx-auto grid min-h-dvh max-w-6xl items-center gap-10 px-5 py-12 pt-[max(3rem,env(safe-area-inset-top))] lg:grid-cols-2 lg:gap-16"
       >
         <section>
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-muted-foreground">

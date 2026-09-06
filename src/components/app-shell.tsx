@@ -171,7 +171,7 @@ export function AppShell({
   return (
     <div className="min-h-dvh bg-background pb-10">
       <OfflineBanner />
-      <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
         <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-6">
           <Link to="/" className="flex min-w-0 items-center gap-2.5">
             <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-primary">
