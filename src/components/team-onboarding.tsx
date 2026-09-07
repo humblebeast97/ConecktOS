@@ -46,7 +46,7 @@ const steps = ["Identity", "Role"] as const;
 /** Reusable onboarding wizard + roster. Embedded on /team, /admin and /reception. */
 export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
   const config = useIndustryConfig();
-  const { profiles, addStylist, removeProfile } = useStaff();
+  const { profiles, addStaff, removeProfile } = useStaff();
   const { ticketItems } = useTickets();
   const industryRoleLabel = (role: Role) =>
     role === "staff" ? config.staffTitle : roleLabel[role];
@@ -98,7 +98,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
       const name = form.full_name.trim();
       const salaryAmount = Number(form.base_salary) || 0;
       const paydayNum = Math.min(31, Math.max(1, Number(form.salary_payday) || 30));
-      addStylist({
+      addStaff({
         full_name: name,
         role: form.role,
         job_title: form.job_title.trim() || null,

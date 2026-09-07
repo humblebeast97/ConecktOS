@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import {
-  SALON_ID,
+  BUSINESS_ID,
   haversineMeters,
   setMoneyFormat,
   seedAttendance,
@@ -16,7 +16,7 @@ import {
   seedInventory,
   commissionRoles,
   seedProfiles,
-  seedSalon,
+  seedBusiness,
   seedServices,
   seedTicketItems,
   seedTickets,
@@ -28,7 +28,7 @@ import {
   type PaymentMethod,
   type Profile,
   type Role,
-  type Salon,
+  type Business,
   type Service,
   type Ticket,
   type TicketInventoryUsage,
@@ -59,7 +59,7 @@ interface CreateTicketInput {
 }
 
 interface StoreValue {
-  salon: Salon;
+  business: Business;
   profiles: Profile[];
   services: Service[];
   inventory: InventoryItem[];
@@ -107,7 +107,7 @@ interface StoreValue {
     patch: Partial<Pick<Service, "name" | "price" | "duration_minutes">>,
   ) => void;
   removeService: (serviceId: string) => void;
-  addStylist: (input: {
+  addStaff: (input: {
     full_name: string;
     role: Role;
     job_title: string | null;
@@ -137,7 +137,7 @@ interface StoreValue {
     >,
   ) => void;
   removeProfile: (profileId: string) => void;
-  updateSalon: (patch: Partial<Salon>) => void;
+  updateBusiness: (patch: Partial<Business>) => void;
   /** Clears tickets, commissions, usage, attendance, expenses and zeroes stock on hand. */
   resetAll: () => void;
 }
@@ -145,10 +145,10 @@ interface StoreValue {
 const StoreContext = createContext<StoreValue | null>(null);
 
 /** localStorage key for the persisted demo state. Bump the suffix to reset all clients. */
-const STORE_KEY = "conecktos-store-v11";
+const STORE_KEY = "conecktos-store-v12";
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [salon, setSalon] = useState<Salon>(seedSalon);
+  const [business, setBusiness] = useState<Business>(seedBusiness);
   const [profiles, setProfiles] = useState<Profile[]>(seedProfiles);
   const [inventory, setInventory] = useState<InventoryItem[]>(seedInventory);
   const [services, setServices] = useState<Service[]>(seedServices);
@@ -182,9 +182,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const late = now.getHours() > 9 || (now.getHours() === 9 && now.getMinutes() > 15);
       // Measure against the business's own location (set by the owner), not the seed.
       const distance = coords
-        ? haversineMeters(coords.lat, coords.lng, salon.latitude, salon.longitude)
+        ? haversineMeters(coords.lat, coords.lng, business.latitude, business.longitude)
         : null;
-      const withinGeofence = distance !== null && distance <= salon.geofence_radius_meters;
+      const withinGeofence = distance !== null && distance <= business.geofence_radius_meters;
       setAttendance((prev) => [
         {
           id: uid("att"),
@@ -200,7 +200,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ]);
       return { withinGeofence, distance };
     },
-    [salon],
+    [business],
   );
 
   const clockOut = useCallback((staffId: string) => {
@@ -230,7 +230,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       });
       const ticket: Ticket = {
         id: ticketId,
-        salon_id: SALON_ID,
+        business_id: BUSINESS_ID,
         client_name: input.client_name,
         client_phone: input.client_phone,
         total_amount: items.reduce((sum, i) => sum + i.service_price, 0),
@@ -276,7 +276,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setExpenses((prev) => [
         {
           id: uid("exp"),
-          salon_id: SALON_ID,
+          business_id: BUSINESS_ID,
           logged_at: new Date().toISOString(),
           logged_by: currentUserId,
           voided_at: null,
@@ -317,7 +317,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addInventoryItem = useCallback<StoreValue["addInventoryItem"]>((input) => {
-    setInventory((prev) => [...prev, { id: uid("inv"), salon_id: SALON_ID, ...input }]);
+    setInventory((prev) => [...prev, { id: uid("inv"), business_id: BUSINESS_ID, ...input }]);
   }, []);
 
   const updateInventoryItem = useCallback<StoreValue["updateInventoryItem"]>(
@@ -334,7 +334,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const addService = useCallback<StoreValue["addService"]>((input) => {
     const service: Service = {
       id: uid("svc"),
-      salon_id: SALON_ID,
+      business_id: BUSINESS_ID,
       suggested_inventory: [],
       ...input,
     };
@@ -350,10 +350,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setServices((prev) => prev.filter((s) => s.id !== serviceId));
   }, []);
 
-  const addStylist = useCallback<StoreValue["addStylist"]>((input) => {
+  const addStaff = useCallback<StoreValue["addStaff"]>((input) => {
     const profile: Profile = {
       id: uid("u"),
-      salon_id: SALON_ID,
+      business_id: BUSINESS_ID,
       avatar_url: null,
       salary_last_paid_at: null,
       ...input,
@@ -371,8 +371,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setCurrentUserId((cur) => (cur === profileId ? "u-owner" : cur));
   }, []);
 
-  const updateSalon = useCallback<StoreValue["updateSalon"]>((patch) => {
-    setSalon((prev) => ({ ...prev, ...patch }));
+  const updateBusiness = useCallback<StoreValue["updateBusiness"]>((patch) => {
+    setBusiness((prev) => ({ ...prev, ...patch }));
   }, []);
 
   const resetAll = useCallback(() => {
@@ -386,8 +386,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   // Keep the money formatter in sync with the business's currency setting.
   useEffect(() => {
-    setMoneyFormat(salon.currency);
-  }, [salon.currency]);
+    setMoneyFormat(business.currency);
+  }, [business.currency]);
 
   // Hydrate once from localStorage after mount (kept out of the initial render to
   // avoid SSR hydration mismatches).
@@ -397,7 +397,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const raw = window.localStorage.getItem(STORE_KEY);
       if (raw) {
         const s = JSON.parse(raw);
-        if (s.salon) setSalon(s.salon);
+        if (s.business) setBusiness(s.business);
         if (s.profiles) setProfiles(s.profiles);
         if (s.inventory) setInventory(s.inventory);
         if (s.services) setServices(s.services);
@@ -421,7 +421,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       window.localStorage.setItem(
         STORE_KEY,
         JSON.stringify({
-          salon,
+          business,
           profiles,
           inventory,
           services,
@@ -438,7 +438,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   }, [
     hydrated,
-    salon,
+    business,
     profiles,
     inventory,
     services,
@@ -451,7 +451,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   ]);
 
   const value: StoreValue = {
-    salon,
+    business,
     profiles,
     services,
     inventory,
@@ -480,10 +480,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     addService,
     updateService,
     removeService,
-    addStylist,
+    addStaff,
     updateProfile,
     removeProfile,
-    updateSalon,
+    updateBusiness,
     resetAll,
   };
 

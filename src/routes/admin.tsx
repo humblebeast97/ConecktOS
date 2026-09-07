@@ -64,7 +64,7 @@ import {
   useAuth,
   useExpenses,
   useInventory,
-  useSalon,
+  useBusiness,
   useServices,
   useStaff,
   useTickets,
@@ -141,7 +141,7 @@ function AdminPage() {
       onClick: () => navigate({ to: "/settings" }),
     },
   ];
-  const { salon } = useSalon();
+  const { business } = useBusiness();
   const { staff, profiles } = useStaff();
   const { inventory, usage } = useInventory();
   const { tickets, ticketItems } = useTickets();
@@ -233,7 +233,7 @@ function AdminPage() {
     <AppShell
       title={tab === "team" ? "Team & HR" : undefined}
       subtitle={
-        tab === "team" ? `${salon.name} · manage the roster and onboard members` : undefined
+        tab === "team" ? `${business.name} · manage the roster and onboard members` : undefined
       }
       actions={
         tab === "overview" ? (
@@ -674,7 +674,7 @@ function AdminPage() {
 
 function TeamTab() {
   const { profiles } = useStaff();
-  const { salon } = useSalon();
+  const { business } = useBusiness();
   const floor = profiles.filter((p) => earnsCommission(p.role));
   const pendingPayouts = floor.filter((p) => !p.account_number).length;
 
@@ -682,7 +682,7 @@ function TeamTab() {
     <div>
       <div className="mb-5">
         <p className="text-sm text-muted-foreground">
-          {salon.name} · {floor.length} on the floor · {profiles.length - floor.length} at the desk
+          {business.name} · {floor.length} on the floor · {profiles.length - floor.length} at the desk
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
@@ -900,7 +900,7 @@ const monthLabel = (d: Date) => d.toLocaleDateString("en-NG", { month: "long", y
 function PayrollSection() {
   const { staff, updateProfile } = useStaff();
   const { tickets, ticketItems } = useTickets();
-  const { salon } = useSalon();
+  const { business } = useBusiness();
   const [monthOffset, setMonthOffset] = useState(0);
 
   const range = useMemo(() => monthRange(monthOffset), [monthOffset]);
@@ -938,7 +938,7 @@ function PayrollSection() {
       ["Name", "Role", "Jobs", "Commission", "Base salary", "Total due", "Status"],
       rows,
     );
-    downloadFile(stampName(salon.name, "payroll", range.from, range.to), csv);
+    downloadFile(stampName(business.name, "payroll", range.from, range.to), csv);
     toast.success("Payroll CSV downloaded");
   };
 
@@ -1053,7 +1053,7 @@ function CloseDayDialog({
    * (used when an external control opens it, e.g. the bottom-nav FAB). */
   trigger?: boolean;
 } = {}) {
-  const { salon } = useSalon();
+  const { business } = useBusiness();
   const { tickets, ticketItems } = useTickets();
   const { inventory, usage } = useInventory();
   const { expenses } = useExpenses();
@@ -1103,7 +1103,7 @@ function CloseDayDialog({
 
         <div className="rounded-2xl border border-border bg-card p-5">
           <div className="flex items-baseline justify-between gap-3">
-            <p className="font-display text-sm font-bold">{salon.name}</p>
+            <p className="font-display text-sm font-bold">{business.name}</p>
             <p className="text-[11px] tabular-nums text-muted-foreground">
               {formatRange(fromDate, toDate)}
             </p>
@@ -1207,7 +1207,7 @@ function CloseDayDialog({
                 toast.error("Range is over 12 months. Narrow the dates before printing.");
                 return;
               }
-              printHTML(`${salon.name} · ${heading}`, renderAuditHTML({ salon, audit, heading }));
+              printHTML(`${business.name} · ${heading}`, renderAuditHTML({ business, audit, heading }));
             }}
           >
             <Printer className="size-4" />
@@ -1267,7 +1267,7 @@ function CloseDayDialog({
                 ],
                 rows,
               );
-              downloadFile(stampName(salon.name, "transactions", fromDate, toDate), csv);
+              downloadFile(stampName(business.name, "transactions", fromDate, toDate), csv);
               toast.success(`${rows.length} transactions exported`);
             }}
           >
@@ -1281,14 +1281,14 @@ function CloseDayDialog({
 }
 
 function OwnerOnboarding() {
-  const { salon } = useSalon();
+  const { business } = useBusiness();
   const { staff } = useStaff();
   const { services } = useServices();
   const { inventory } = useInventory();
   const steps = [
     {
       label: "Complete your business profile",
-      done: salon.latitude != null,
+      done: business.latitude != null,
       to: "/settings" as const,
     },
     { label: "Add your team", done: staff.length > 0, to: "/team" as const },
@@ -1488,11 +1488,11 @@ function formatRange(from: Date, to: Date): string {
 }
 
 function renderAuditHTML({
-  salon,
+  business,
   audit,
   heading,
 }: {
-  salon: { name: string };
+  business: { name: string };
   audit: ReturnType<typeof buildAudit>;
   heading: string;
 }): string {
@@ -1515,7 +1515,7 @@ function renderAuditHTML({
 
   const page1 = `
     <section class="page">
-      <h1>${salon.name}</h1>
+      <h1>${business.name}</h1>
       <p class="subtitle">${heading} · ${rangeLabel}${totalPages === 1 ? "" : ` · ${rangeDays} days`}</p>
       <table>
         <tbody>
@@ -1542,7 +1542,7 @@ function renderAuditHTML({
   const page2 = audit.monthly.length
     ? `
     <section class="page break">
-      <h1>${salon.name}</h1>
+      <h1>${business.name}</h1>
       <p class="subtitle">Monthly breakdown · ${rangeLabel}</p>
       <table class="months">
         <thead>

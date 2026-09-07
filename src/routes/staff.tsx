@@ -32,8 +32,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useAttendance, useAuth, useSalon, useServices, useStaff, useTickets } from "@/api";
-import { haversineMeters, naira, timeOf, type Profile, type Salon } from "@/lib/groompulse";
+import { useAttendance, useAuth, useBusiness, useServices, useStaff, useTickets } from "@/api";
+import { haversineMeters, naira, timeOf, type Profile, type Business } from "@/lib/groompulse";
 import { copyText } from "@/lib/clipboard";
 import { staffDailyCommission } from "@/lib/reports";
 import { printHTML } from "@/lib/print-sheet";
@@ -73,7 +73,7 @@ function StaffPortal() {
   const config = useIndustryConfig();
   const { currentUser } = useAuth();
   const { staff } = useStaff();
-  const { salon } = useSalon();
+  const { business } = useBusiness();
   const { tickets, ticketItems } = useTickets();
   const { services } = useServices();
   const { clockIn, clockOut, openAttendanceFor } = useAttendance();
@@ -131,20 +131,20 @@ function StaffPortal() {
       // Location is required. We can't confirm you're at the business without it.
       if (!coords) {
         toast.error("Location required to clock in", {
-          description: `Turn on location access. We verify you're at ${salon.name}.`,
+          description: `Turn on location access. We verify you're at ${business.name}.`,
         });
         return;
       }
-      const distance = haversineMeters(coords.lat, coords.lng, salon.latitude, salon.longitude);
-      if (distance <= salon.geofence_radius_meters) {
+      const distance = haversineMeters(coords.lat, coords.lng, business.latitude, business.longitude);
+      if (distance <= business.geofence_radius_meters) {
         clockIn(me.id, coords);
         toast.success("Clocked in", {
-          description: `Verified ${Math.round(distance)}m from ${salon.name}.`,
+          description: `Verified ${Math.round(distance)}m from ${business.name}.`,
         });
       } else {
         // Outside the business's geofence. Block the clock-in.
         toast.error("You're too far to clock in", {
-          description: `You're ${Math.round(distance)}m from ${salon.address_label ?? salon.name}. Get within ${salon.geofence_radius_meters}m and try again.`,
+          description: `You're ${Math.round(distance)}m from ${business.address_label ?? business.name}. Get within ${business.geofence_radius_meters}m and try again.`,
         });
       }
     };
@@ -254,7 +254,7 @@ function StaffPortal() {
                       ? open.is_within_geofence
                         ? "Verified"
                         : "Flagged"
-                      : `${salon.geofence_radius_meters}m`,
+                      : `${business.geofence_radius_meters}m`,
                     hint: open?.is_within_geofence === false ? "off-site" : "within radius",
                     icon: MapPin,
                     tone: open && !open.is_within_geofence ? "danger" : "default",
@@ -330,7 +330,7 @@ function StaffPortal() {
               <div className="min-w-0">
                 <p className="font-display text-lg font-bold">{me.full_name}</p>
                 <p className="text-sm text-muted-foreground">
-                  {salon.name} · commission {Math.round(me.commission_rate * 100)}%
+                  {business.name} · commission {Math.round(me.commission_rate * 100)}%
                 </p>
               </div>
             </div>
@@ -367,8 +367,8 @@ function StaffPortal() {
               <DialogTitle>Use your location to clock in?</DialogTitle>
               <DialogDescription>
                 ConecktOS reads your device location once, only when you clock in, to confirm you're
-                at {salon.name}. It's never tracked in the background. Clock-in only works on-site -
-                within {salon.geofence_radius_meters}m of the business.
+                at {business.name}. It's never tracked in the background. Clock-in only works on-site -
+                within {business.geofence_radius_meters}m of the business.
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-2">
@@ -431,12 +431,12 @@ function usePosterMessage(userId: string, fallback: string) {
 }
 
 function printTipCard({
-  salon,
+  business,
   me,
   tipUrl,
   message,
 }: {
-  salon: Salon;
+  business: Business;
   me: Profile;
   tipUrl: string;
   message: string;
@@ -451,10 +451,10 @@ function printTipCard({
     );
   const headline = message.trim() || defaultPosterMessage(first);
   printHTML(
-    `${headline} · ${salon.name}`,
+    `${headline} · ${business.name}`,
     `
       <div style="text-align:center;padding-top:12mm">
-        <p style="font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:#666;margin:0 0 24px">${escape(salon.name)}</p>
+        <p style="font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:#666;margin:0 0 24px">${escape(business.name)}</p>
         <div style="display:inline-block;padding:12px;background:#fff;border:1px solid #ccc;border-radius:8px">${qr}</div>
         <h1 style="margin-top:24px;font-size:24px;white-space:pre-line;letter-spacing:-0.01em">${escape(headline)}</h1>
         <p class="subtitle" style="margin-top:8px">Scan QR code to tip ${escape(first)}</p>
@@ -475,7 +475,7 @@ function TipQrDialog({
 } = {}) {
   const { currentUser } = useAuth();
   const { staff } = useStaff();
-  const { salon } = useSalon();
+  const { business } = useBusiness();
   const me = currentUser.role === "staff" ? currentUser : staff[0];
   const hasBank = Boolean(me.account_number);
   const accountName = me.account_name ?? me.full_name;
@@ -492,7 +492,7 @@ function TipQrDialog({
           b: me.bank_name ?? "",
           a: me.account_number ?? "",
           an: accountName,
-          biz: salon.name,
+          biz: business.name,
         })
           .toString()
           // Router decodes %20 (not "+") back to spaces.
@@ -530,7 +530,7 @@ function TipQrDialog({
           <>
             <div className="rounded-2xl border border-primary/30 bg-card p-5 text-center">
               <p className="font-display text-xs uppercase tracking-[0.25em] text-primary">
-                {salon.name}
+                {business.name}
               </p>
               <div className="mx-auto mt-4 grid size-[168px] w-fit place-items-center rounded-xl bg-white p-3">
                 <Suspense fallback={<Skeleton className="size-[144px] bg-black/5" />}>
@@ -609,7 +609,7 @@ function TipQrDialog({
 
             <Button
               variant="outline"
-              onClick={() => printTipCard({ salon, me, tipUrl, message: posterMsg })}
+              onClick={() => printTipCard({ business, me, tipUrl, message: posterMsg })}
             >
               <Printer className="size-4" />
               Print poster

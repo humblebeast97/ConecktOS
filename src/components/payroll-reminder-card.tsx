@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Clock } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { useExpenses, useSalon, useStaff } from "@/api";
+import { useExpenses, useBusiness, useStaff } from "@/api";
 import { naira, nextUnpaidPaydayDays } from "@/lib/groompulse";
 import { useSubmit } from "@/lib/use-submit";
 
@@ -14,11 +14,11 @@ import { useSubmit } from "@/lib/use-submit";
  * paid cursor forward so the next cycle picks up automatically.
  */
 export function PayrollReminderCard() {
-  const { salon } = useSalon();
+  const { business } = useBusiness();
   const { staff, updateProfile } = useStaff();
   const { addExpense } = useExpenses();
   const { isSubmitting, submit } = useSubmit();
-  const cadence = salon.payroll_reminder_days ?? 7;
+  const cadence = business.payroll_reminder_days ?? 7;
 
   const dueList = useMemo(
     () =>

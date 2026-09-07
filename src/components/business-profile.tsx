@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useSalon } from "@/api";
+import { useBusiness } from "@/api";
 import { FieldError } from "@/components/field-error";
 import { useSubmit } from "@/lib/use-submit";
 import { LocationPicker, type LocationValue } from "@/components/location-picker";
@@ -14,16 +14,16 @@ const RADIUS_MAX = 500;
 const RADIUS_STEPS = [25, 50, 100, 250, 500] as const;
 
 export function BusinessProfilePanel() {
-  const { salon, updateSalon } = useSalon();
+  const { business, updateBusiness } = useBusiness();
 
-  const [name, setName] = useState(salon.name);
-  const [radius, setRadius] = useState<number>(salon.geofence_radius_meters);
+  const [name, setName] = useState(business.name);
+  const [radius, setRadius] = useState<number>(business.geofence_radius_meters);
   const [location, setLocation] = useState<LocationValue | null>(
-    salon.latitude && salon.longitude
+    business.latitude && business.longitude
       ? {
-          latitude: salon.latitude,
-          longitude: salon.longitude,
-          address_label: salon.address_label ?? "Location set",
+          latitude: business.latitude,
+          longitude: business.longitude,
+          address_label: business.address_label ?? "Location set",
         }
       : null,
   );
@@ -36,7 +36,7 @@ export function BusinessProfilePanel() {
     if (!name.trim()) return;
     submit(() => {
       const clampedRadius = Math.min(RADIUS_MAX, Math.max(RADIUS_MIN, radius));
-      updateSalon({
+      updateBusiness({
         name: name.trim(),
         geofence_radius_meters: clampedRadius,
         ...(location

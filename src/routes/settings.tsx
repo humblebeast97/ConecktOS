@@ -30,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAuth, useSalon, useStaff } from "@/api";
+import { useAuth, useBusiness, useStaff } from "@/api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useFrontDeskPrefs } from "@/lib/front-desk-prefs";
 import {
@@ -61,21 +61,21 @@ function SettingsPage() {
   const { updateProfile } = useStaff();
   const canEditBusiness = currentUser?.role === "owner" || currentUser?.role === "manager";
   const isFrontDesk = currentUser?.role === "receptionist";
-  const { salon, updateSalon } = useSalon();
+  const { business, updateBusiness } = useBusiness();
   const [personalName, setPersonalName] = useState(currentUser?.full_name ?? "");
   const [personalSubmitted, setPersonalSubmitted] = useState(false);
   const personalNameError =
     personalSubmitted && !personalName.trim() ? "Name is required" : null;
 
-  const [name, setName] = useState(salon.name);
-  const [currency, setCurrency] = useState(salon.currency);
-  const [radius, setRadius] = useState(String(salon.geofence_radius_meters));
-  const [lat, setLat] = useState(salon.latitude?.toString() ?? "");
-  const [lng, setLng] = useState(salon.longitude?.toString() ?? "");
-  const [open, setOpen] = useState(salon.open_time);
-  const [close, setClose] = useState(salon.close_time);
+  const [name, setName] = useState(business.name);
+  const [currency, setCurrency] = useState(business.currency);
+  const [radius, setRadius] = useState(String(business.geofence_radius_meters));
+  const [lat, setLat] = useState(business.latitude?.toString() ?? "");
+  const [lng, setLng] = useState(business.longitude?.toString() ?? "");
+  const [open, setOpen] = useState(business.open_time);
+  const [close, setClose] = useState(business.close_time);
   const [payrollReminder, setPayrollReminder] = useState<PayrollReminderDays>(
-    salon.payroll_reminder_days ?? 7,
+    business.payroll_reminder_days ?? 7,
   );
   const [locating, setLocating] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -108,7 +108,7 @@ function SettingsPage() {
     if (!name.trim()) return;
     submit(() => {
       const clampedRadius = Math.min(500, Math.max(10, Number(radius) || 50));
-      updateSalon({
+      updateBusiness({
         name: name.trim(),
         currency,
         geofence_radius_meters: clampedRadius,
@@ -517,8 +517,8 @@ function PersonalProfileSection({
 }
 
 function ReadOnlyLocationSection() {
-  const { salon } = useSalon();
-  const hasLocation = salon.latitude != null && salon.longitude != null;
+  const { business } = useBusiness();
+  const hasLocation = business.latitude != null && business.longitude != null;
   return (
     <section className="card-lux rounded-2xl p-5 sm:p-6">
       <div className="flex items-start gap-3">
@@ -544,7 +544,7 @@ function ReadOnlyLocationSection() {
         {hasLocation ? (
           <span className="flex items-center gap-2">
             <MapPin className="size-4 shrink-0 text-success" />
-            <span className="font-medium">{salon.name}</span>
+            <span className="font-medium">{business.name}</span>
             <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-success">
               GPS set
             </span>
@@ -557,16 +557,16 @@ function ReadOnlyLocationSection() {
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label>Geofence radius</Label>
-          <Input readOnly value={`${salon.geofence_radius_meters} metres`} className="h-11 bg-muted/40 text-muted-foreground" />
+          <Input readOnly value={`${business.geofence_radius_meters} metres`} className="h-11 bg-muted/40 text-muted-foreground" />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label>Opens</Label>
-            <Input readOnly value={salon.open_time} className="h-11 bg-muted/40 text-muted-foreground" />
+            <Input readOnly value={business.open_time} className="h-11 bg-muted/40 text-muted-foreground" />
           </div>
           <div className="space-y-1.5">
             <Label>Closes</Label>
-            <Input readOnly value={salon.close_time} className="h-11 bg-muted/40 text-muted-foreground" />
+            <Input readOnly value={business.close_time} className="h-11 bg-muted/40 text-muted-foreground" />
           </div>
         </div>
       </div>

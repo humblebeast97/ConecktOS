@@ -16,14 +16,14 @@ export function useAuth() {
   return { currentUser, isSignedIn, signIn, signOut };
 }
 
-export function useSalon() {
-  const { salon, updateSalon } = useStore();
-  return { salon, updateSalon };
+export function useBusiness() {
+  const { business, updateBusiness } = useStore();
+  return { business, updateBusiness };
 }
 
 export function useStaff() {
-  const { staff, profiles, addStylist, removeProfile, updateProfile } = useStore();
-  return { staff, profiles, addStylist, removeProfile, updateProfile };
+  const { staff, profiles, addStaff, removeProfile, updateProfile } = useStore();
+  return { staff, profiles, addStaff, removeProfile, updateProfile };
 }
 
 export function useServices() {

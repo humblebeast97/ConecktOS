@@ -44,7 +44,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useAttendance, useAuth, useSalon, useServices, useStaff, useTickets } from "@/api";
+import { useAttendance, useAuth, useBusiness, useServices, useStaff, useTickets } from "@/api";
 import { useRoleGuard } from "@/lib/access";
 import {
   haversineMeters,
@@ -52,7 +52,7 @@ import {
   paymentLabel,
   timeOf,
   type Profile,
-  type Salon,
+  type Business,
   type Service,
   type Ticket,
   type TicketItem,
@@ -97,7 +97,7 @@ function ReceptionPage() {
   const config = useIndustryConfig();
   const { currentUser } = useAuth();
   const { staff } = useStaff();
-  const { salon } = useSalon();
+  const { business } = useBusiness();
   const { tickets, ticketItems, markPaid } = useTickets();
   const { attendance, clockIn, clockOut, openAttendanceFor } = useAttendance();
 
@@ -113,19 +113,19 @@ function ReceptionPage() {
       setLocating(false);
       if (!coords) {
         toast.error("Location required to clock in", {
-          description: `Turn on location access. We verify you're at ${salon.name}.`,
+          description: `Turn on location access. We verify you're at ${business.name}.`,
         });
         return;
       }
-      const distance = haversineMeters(coords.lat, coords.lng, salon.latitude, salon.longitude);
-      if (distance <= salon.geofence_radius_meters) {
+      const distance = haversineMeters(coords.lat, coords.lng, business.latitude, business.longitude);
+      if (distance <= business.geofence_radius_meters) {
         clockIn(currentUser.id, coords);
         toast.success("Clocked in", {
-          description: `Verified ${Math.round(distance)}m from ${salon.name}.`,
+          description: `Verified ${Math.round(distance)}m from ${business.name}.`,
         });
       } else {
         toast.error("You're too far to clock in", {
-          description: `You're ${Math.round(distance)}m from ${salon.address_label ?? salon.name}. Get within ${salon.geofence_radius_meters}m and try again.`,
+          description: `You're ${Math.round(distance)}m from ${business.address_label ?? business.name}. Get within ${business.geofence_radius_meters}m and try again.`,
         });
       }
     };
@@ -527,7 +527,7 @@ function FrontDeskOnboarding({
 }
 
 function ReceiptDialog({ ticket }: { ticket: Ticket }) {
-  const { salon } = useSalon();
+  const { business } = useBusiness();
   const { ticketItems } = useTickets();
   const { services } = useServices();
   const { staff } = useStaff();
@@ -552,7 +552,7 @@ function ReceiptDialog({ ticket }: { ticket: Ticket }) {
         </DialogHeader>
 
         <div className="rounded-2xl border border-border bg-card p-5">
-          <p className="font-display text-base font-bold">{salon.name}</p>
+          <p className="font-display text-base font-bold">{business.name}</p>
           <p className="text-xs text-muted-foreground">
             Receipt ·{" "}
             {new Date(ticket.created_at).toLocaleString("en-NG", {
@@ -617,8 +617,8 @@ function ReceiptDialog({ ticket }: { ticket: Ticket }) {
           variant="outline"
           onClick={() =>
             printHTML(
-              `${salon.name} · Receipt`,
-              renderReceiptHTML({ salon, ticket, items, services, staff }),
+              `${business.name} · Receipt`,
+              renderReceiptHTML({ business, ticket, items, services, staff }),
             )
           }
         >
@@ -631,13 +631,13 @@ function ReceiptDialog({ ticket }: { ticket: Ticket }) {
 }
 
 function renderReceiptHTML({
-  salon,
+  business,
   ticket,
   items,
   services,
   staff,
 }: {
-  salon: Salon;
+  business: Business;
   ticket: Ticket;
   items: TicketItem[];
   services: Service[];
@@ -666,7 +666,7 @@ function renderReceiptHTML({
     })
     .join("");
   return `
-    <h1>${escape(salon.name)}</h1>
+    <h1>${escape(business.name)}</h1>
     <p class="subtitle">Receipt · ${escape(when)}</p>
     <table>
       <tbody>

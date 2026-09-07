@@ -16,7 +16,7 @@ type BusinessType = "beauty" | "car_wash" | "tailoring" | "nightlife" | "repair"
  */
 export type PayrollReminderDays = 0 | 3 | 7 | -1;
 
-export interface Salon {
+export interface Business {
   id: string;
   name: string;
   business_type: BusinessType;
@@ -36,7 +36,7 @@ export interface Salon {
 
 export interface Profile {
   id: string;
-  salon_id: string;
+  business_id: string;
   full_name: string;
   role: Role;
   /** Free-text job title, e.g. "Technician", "Attendant", "Cashier". */
@@ -69,7 +69,7 @@ export interface Attendance {
 
 export interface Service {
   id: string;
-  salon_id: string;
+  business_id: string;
   name: string;
   price: number;
   duration_minutes: number;
@@ -79,7 +79,7 @@ export interface Service {
 
 export interface InventoryItem {
   id: string;
-  salon_id: string;
+  business_id: string;
   item_name: string;
   quantity: number;
   unit: string;
@@ -88,7 +88,7 @@ export interface InventoryItem {
 
 export interface Ticket {
   id: string;
-  salon_id: string;
+  business_id: string;
   client_name: string;
   client_phone: string;
   total_amount: number;
@@ -117,7 +117,7 @@ export interface TicketInventoryUsage {
 
 export interface Expense {
   id: string;
-  salon_id: string;
+  business_id: string;
   category: ExpenseCategory;
   amount: number;
   generator_hours_run: number | null;
@@ -133,7 +133,7 @@ export interface Expense {
  * within this many milliseconds of being logged. After that it is locked. */
 export const EXPENSE_VOID_WINDOW_MS = 5 * 60 * 1000;
 
-export const SALON_ID = "salon-001";
+export const BUSINESS_ID = "business-001";
 
 export const currencyOptions = [
   { code: "NGN", locale: "en-NG", label: "Nigerian Naira (₦)" },
@@ -289,8 +289,8 @@ const today = (h: number, m = 0) => {
   return d.toISOString();
 };
 
-export const seedSalon: Salon = {
-  id: SALON_ID,
+export const seedBusiness: Business = {
+  id: BUSINESS_ID,
   name: "Marina Service Co.",
   business_type: "beauty",
   latitude: 6.4318,
@@ -308,7 +308,7 @@ export const seedSalon: Salon = {
 export const seedProfiles: Profile[] = [
   {
     id: "u-owner",
-    salon_id: SALON_ID,
+    business_id: BUSINESS_ID,
     full_name: "Adaeze Okonkwo",
     role: "owner",
     job_title: null,
@@ -323,7 +323,7 @@ export const seedProfiles: Profile[] = [
   },
   {
     id: "u-recep",
-    salon_id: SALON_ID,
+    business_id: BUSINESS_ID,
     full_name: "Blessing Eze",
     role: "receptionist",
     job_title: null,
@@ -338,7 +338,7 @@ export const seedProfiles: Profile[] = [
   },
   {
     id: "u-staff-1",
-    salon_id: SALON_ID,
+    business_id: BUSINESS_ID,
     full_name: "Tunde Bakare",
     role: "staff",
     job_title: null,
@@ -353,7 +353,7 @@ export const seedProfiles: Profile[] = [
   },
   {
     id: "u-staff-2",
-    salon_id: SALON_ID,
+    business_id: BUSINESS_ID,
     full_name: "Chidinma Nwosu",
     role: "staff",
     job_title: null,
@@ -368,7 +368,7 @@ export const seedProfiles: Profile[] = [
   },
   {
     id: "u-staff-3",
-    salon_id: SALON_ID,
+    business_id: BUSINESS_ID,
     full_name: "Musa Ibrahim",
     role: "staff",
     job_title: null,
@@ -386,7 +386,7 @@ export const seedProfiles: Profile[] = [
 export const seedInventory: InventoryItem[] = [
   {
     id: "inv-1",
-    salon_id: SALON_ID,
+    business_id: BUSINESS_ID,
     item_name: "Consumable A",
     quantity: 0,
     unit: "bottles",
@@ -394,7 +394,7 @@ export const seedInventory: InventoryItem[] = [
   },
   {
     id: "inv-2",
-    salon_id: SALON_ID,
+    business_id: BUSINESS_ID,
     item_name: "Cleaning Solution (1L)",
     quantity: 0,
     unit: "bottles",
@@ -402,7 +402,7 @@ export const seedInventory: InventoryItem[] = [
   },
   {
     id: "inv-3",
-    salon_id: SALON_ID,
+    business_id: BUSINESS_ID,
     item_name: "Refill Kit",
     quantity: 0,
     unit: "packs",
@@ -410,7 +410,7 @@ export const seedInventory: InventoryItem[] = [
   },
   {
     id: "inv-4",
-    salon_id: SALON_ID,
+    business_id: BUSINESS_ID,
     item_name: "Disposable Gloves",
     quantity: 0,
     unit: "boxes",
@@ -418,7 +418,7 @@ export const seedInventory: InventoryItem[] = [
   },
   {
     id: "inv-5",
-    salon_id: SALON_ID,
+    business_id: BUSINESS_ID,
     item_name: "Spare Parts",
     quantity: 0,
     unit: "pcs",
@@ -429,7 +429,7 @@ export const seedInventory: InventoryItem[] = [
 export const seedServices: Service[] = [
   {
     id: "svc-1",
-    salon_id: SALON_ID,
+    business_id: BUSINESS_ID,
     name: "Basic Service",
     price: 5000,
     duration_minutes: 40,
@@ -437,7 +437,7 @@ export const seedServices: Service[] = [
   },
   {
     id: "svc-2",
-    salon_id: SALON_ID,
+    business_id: BUSINESS_ID,
     name: "Standard Service",
     price: 15000,
     duration_minutes: 90,
@@ -445,7 +445,7 @@ export const seedServices: Service[] = [
   },
   {
     id: "svc-3",
-    salon_id: SALON_ID,
+    business_id: BUSINESS_ID,
     name: "Express Service",
     price: 7000,
     duration_minutes: 45,
@@ -453,7 +453,7 @@ export const seedServices: Service[] = [
   },
   {
     id: "svc-4",
-    salon_id: SALON_ID,
+    business_id: BUSINESS_ID,
     name: "Premium Service",
     price: 18000,
     duration_minutes: 120,
@@ -461,7 +461,7 @@ export const seedServices: Service[] = [
   },
   {
     id: "svc-5",
-    salon_id: SALON_ID,
+    business_id: BUSINESS_ID,
     name: "Deluxe Service",
     price: 9000,
     duration_minutes: 60,
@@ -469,7 +469,7 @@ export const seedServices: Service[] = [
   },
   {
     id: "svc-6",
-    salon_id: SALON_ID,
+    business_id: BUSINESS_ID,
     name: "Add-on Service",
     price: 3500,
     duration_minutes: 25,

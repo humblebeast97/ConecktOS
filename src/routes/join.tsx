@@ -56,7 +56,7 @@ function JoinPage() {
   const navigate = useNavigate();
   const config = useIndustryConfig();
   const { signIn } = useAuth();
-  const { addStylist } = useStaff();
+  const { addStaff } = useStaff();
 
   const [role, setRole] = useState<Role>("staff");
   const [fullName, setFullName] = useState("");
@@ -119,7 +119,7 @@ function JoinPage() {
     )
       return;
     submit(() => {
-      const member = addStylist({
+      const member = addStaff({
         full_name: fullName.trim(),
         role,
         job_title: jobTitle.trim() || null,
