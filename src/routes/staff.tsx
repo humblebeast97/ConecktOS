@@ -353,7 +353,7 @@ function StaffPortal() {
             </div>
 
             {!me.account_number ? (
-              <p className="rounded-xl border border-warning/40 bg-warning/10 p-3 text-xs text-warning">
+              <p className="rounded-xl border border-warning/50 bg-surface p-3 text-xs text-warning-foreground">
                 Ask your manager to add your bank details from the team roster so clients can tip
                 you.
               </p>
@@ -616,7 +616,7 @@ function TipQrDialog({
             </Button>
           </>
         ) : (
-          <div className="rounded-2xl border border-warning/30 bg-warning/10 p-5 text-center text-sm text-warning">
+          <div className="rounded-2xl border border-warning/50 bg-surface p-5 text-center text-sm text-warning-foreground">
             Your bank details aren't set up yet. Ask your manager to add them from the team roster.
           </div>
         )}
