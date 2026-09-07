@@ -179,17 +179,17 @@ export const roleLabel: Record<Role, string> = {
   owner: "Owner / Admin",
   manager: "Manager",
   receptionist: "Front Desk",
-  staff: "Floor Staff",
+  staff: "Staff",
 };
 
 export const roleHint: Record<Role, string> = {
   owner: "Full access: reports, payouts, audits",
-  manager: "Runs the floor, logs expenses, no payout edits",
+  manager: "Runs the team, logs expenses, no payout edits",
   receptionist: "Front desk billing and payment matching",
-  staff: "On the floor · clocks in and earns commission",
+  staff: "On the team · clocks in and earns commission",
 };
 
-/** Permission tiers that appear on the floor, clock in and earn a commission split. */
+/** Permission tiers that clock in and earn a commission split. */
 export const commissionRoles: Role[] = ["staff"];
 
 export const earnsCommission = (role: Role) => commissionRoles.includes(role);
@@ -199,7 +199,7 @@ export const personTitle = (p: { role: Role; job_title?: string | null }) =>
   p.job_title?.trim() || roleLabel[p.role];
 
 export const roleGroups: { label: string; roles: Role[] }[] = [
-  { label: "Floor (earns commission)", roles: ["staff"] },
+  { label: "Staff (earns commission)", roles: ["staff"] },
   { label: "Front desk & management", roles: ["receptionist", "manager", "owner"] },
 ];
 

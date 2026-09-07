@@ -52,7 +52,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
     role === "staff" ? config.staffTitle : roleLabel[role];
   const [form, setForm] = useState(emptyForm);
   const [step, setStep] = useState(0);
-  const [filter, setFilter] = useState<"all" | "floor" | "desk">("all");
+  const [filter, setFilter] = useState<"all" | "staff" | "desk">("all");
   const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
   const pendingRemove = pendingRemoveId
     ? (profiles.find((p) => p.id === pendingRemoveId) ?? null)
@@ -62,7 +62,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
   const roster = useMemo(() => {
     const q = rosterQuery.trim().toLowerCase();
     const roleFiltered =
-      filter === "floor"
+      filter === "staff"
         ? profiles.filter((p) => earnsCommission(p.role))
         : filter === "desk"
           ? profiles.filter((p) => !earnsCommission(p.role))
@@ -74,7 +74,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
     );
   }, [profiles, filter, rosterQuery]);
 
-  const isFloor = earnsCommission(form.role);
+  const isEarner = earnsCommission(form.role);
   const nameValid = form.full_name.trim().length >= 3;
   const lastStep = 1;
   const [nameTouched, setNameTouched] = useState(false);
@@ -102,7 +102,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
         full_name: name,
         role: form.role,
         job_title: form.job_title.trim() || null,
-        commission_rate: isFloor ? form.commission_rate / 100 : 0,
+        commission_rate: isEarner ? form.commission_rate / 100 : 0,
         base_salary: salaryAmount > 0 ? salaryAmount : null,
         salary_payday: salaryAmount > 0 ? paydayNum : null,
         // Payout details are entered by the staff member during their own sign-up.
@@ -111,7 +111,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
         account_name: name,
       });
       const bits: string[] = [];
-      if (isFloor) bits.push(`${form.commission_rate}% commission`);
+      if (isEarner) bits.push(`${form.commission_rate}% commission`);
       if (salaryAmount > 0) bits.push(`${naira(salaryAmount)}/mo`);
       toast.success(`${name} onboarded`, {
         description: `${industryRoleLabel(form.role)}${bits.length ? ` · ${bits.join(" · ")}` : ""}`,
@@ -239,7 +239,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
                 </div>
               ))}
 
-              {isFloor ? (
+              {isEarner ? (
                 <div className="space-y-3 border-t border-border pt-4">
                   <div className="flex items-center justify-between">
                     <Label>Commission split</Label>
@@ -299,7 +299,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
                         31,
                         Math.max(1, Number(form.salary_payday) || 30),
                       )} of the month.`
-                    : isFloor
+                    : isEarner
                       ? "Leave blank for commission-only. Fill in for hybrid or salary-only pay."
                       : "Leave blank if unpaid, or set a monthly amount for this role."}
                 </p>
@@ -357,8 +357,8 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
               <TabsTrigger value="all" className="text-xs">
                 All
               </TabsTrigger>
-              <TabsTrigger value="floor" className="text-xs">
-                Floor
+              <TabsTrigger value="staff" className="text-xs">
+                Staff
               </TabsTrigger>
               <TabsTrigger value="desk" className="text-xs">
                 Desk
@@ -384,7 +384,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
               title={
                 filter === "all"
                   ? "No team members yet"
-                  : `No ${filter === "floor" ? "floor" : "desk"} roles yet`
+                  : `No ${filter === "staff" ? "staff" : "desk"} roles yet`
               }
               description={
                 filter === "all"
@@ -399,8 +399,8 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
             const lifetime = ticketItems
               .filter((i) => i.staff_id === p.id)
               .reduce((sum, i) => sum + i.staff_commission_amount, 0);
-            const floor = earnsCommission(p.role);
-            const ready = !floor || Boolean(p.account_number);
+            const earns = earnsCommission(p.role);
+            const ready = !earns || Boolean(p.account_number);
             return (
               <li key={p.id} className="flex flex-wrap items-center gap-3 py-4">
                 <span className="grid size-10 shrink-0 place-items-center rounded-full bg-gradient-primary font-display text-sm font-bold text-primary-foreground">
@@ -414,13 +414,13 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
                   <p className="truncate text-sm font-semibold">{p.full_name}</p>
                   <p className="truncate text-xs text-muted-foreground">
                     {personTitle(p)}
-                    {floor
+                    {earns
                       ? ` · ${Math.round(p.commission_rate * 100)}% · earned ${naira(lifetime)}`
                       : ""}
                   </p>
                 </div>
 
-                {floor ? (
+                {earns ? (
                   <Badge
                     variant="outline"
                     className={

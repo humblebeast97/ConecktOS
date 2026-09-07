@@ -31,7 +31,7 @@ export const Route = createFileRoute("/join")({
       {
         name: "description",
         content:
-          "Onboarded staff create their own ConecktOS login here. Front desk gets the billing portal, floor staff get GPS clock-in and commissions.",
+          "Onboarded staff create their own ConecktOS login here. Front desk gets the billing portal, commission staff get GPS clock-in and commissions.",
       },
       { property: "og:title", content: "Team sign-up · ConecktOS" },
       {

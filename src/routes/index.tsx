@@ -1546,7 +1546,7 @@ const LANDING_HTML = `<!-- NAV -->
       </a>
       <div class="nav-links">
         <a href="#how">How it works</a>
-        <a href="#floors">For your business</a>
+        <a href="#features">For your business</a>
         <a href="#pricing">Pricing</a>
       </div>
       <div class="nav-right">
@@ -1863,7 +1863,7 @@ const LANDING_HTML = `<!-- NAV -->
 </section>
 
 <!-- SECTION 1 — COMMISSION -->
-<section class="section" id="floors">
+<section class="section" id="features">
   <div class="container section-inner">
     <div>
       <span class="eyebrow">01 · Commissions</span>

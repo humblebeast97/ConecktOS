@@ -131,7 +131,7 @@ function LoginPage() {
             The Operating System for Modern Service Brands
           </span>
           <h1 className="mt-6 text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.5rem]">
-            Total command of your floor, staff, and{" "}
+            Total command of your business, staff, and{" "}
             <span className="text-gradient-primary">revenue.</span>
           </h1>
           <p className="mt-5 max-w-md text-base leading-relaxed text-muted-foreground sm:text-lg">

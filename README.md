@@ -85,7 +85,7 @@ Add to home screen on phone, tablet, or desktop. Ships a web app manifest, maska
 
 - `/` — sign in (role selector + credentials)
 - `/signup` — owner sign-up with guided business setup
-- `/join` — team sign-up (front desk & floor staff)
+- `/join` — team sign-up (front desk & commission staff)
 - `/staff` — staff portal: clock-in status, live earnings, tip QR, history
 - `/reception` — front desk: quick billing, open tickets, clocked-in staff
 - `/team` — team & HR onboarding and roster

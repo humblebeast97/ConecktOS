@@ -675,29 +675,29 @@ function AdminPage() {
 function TeamTab() {
   const { profiles } = useStaff();
   const { business } = useBusiness();
-  const floor = profiles.filter((p) => earnsCommission(p.role));
-  const pendingPayouts = floor.filter((p) => !p.account_number).length;
+  const earners = profiles.filter((p) => earnsCommission(p.role));
+  const pendingPayouts = earners.filter((p) => !p.account_number).length;
 
   return (
     <div>
       <div className="mb-5">
         <p className="text-sm text-muted-foreground">
-          {business.name} · {floor.length} on the floor · {profiles.length - floor.length} at the desk
+          {business.name} · {earners.length} on the team · {profiles.length - earners.length} at the desk
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
         <MetricCard
           label="Team size"
           value={String(profiles.length)}
-          hint={`${floor.length} commission earners`}
+          hint={`${earners.length} commission earners`}
           icon={Users}
         />
         <MetricCard
           label="Avg. commission"
           value={`${Math.round(
-            (floor.reduce((s, p) => s + p.commission_rate, 0) / Math.max(1, floor.length)) * 100,
+            (earners.reduce((s, p) => s + p.commission_rate, 0) / Math.max(1, earners.length)) * 100,
           )}%`}
-          hint="Across floor roles"
+          hint="Across commission roles"
           icon={Percent}
           tone="gold"
         />
