@@ -130,6 +130,20 @@ function JoinPage() {
         account_number: isFrontDesk ? null : accountNumber.trim() || null,
         account_name: isFrontDesk ? null : accountName.trim() || fullName.trim(),
       });
+      // The invite code links a joiner to a specific business. Server-side
+      // validation against an invite registry lands in Phase 1; until then we
+      // persist what they entered against the new member so nothing is lost and
+      // Phase 1 can reconcile it. No backend, no silent discard.
+      if (inviteCode.trim() && typeof window !== "undefined") {
+        try {
+          const key = "conecktos-pending-invites";
+          const store = JSON.parse(window.localStorage.getItem(key) ?? "{}");
+          store[member.id] = { code: inviteCode.trim(), at: new Date().toISOString() };
+          window.localStorage.setItem(key, JSON.stringify(store));
+        } catch {
+          /* storage unavailable: the code is non-critical, carry on */
+        }
+      }
       toast.success(`Welcome aboard. Opening your ${roleTitle} portal.`);
       signIn(member.id);
       navigate({ to: portalFor(role) });
