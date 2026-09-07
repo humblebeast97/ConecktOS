@@ -245,7 +245,7 @@ function SignUpPage() {
             <p className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <ShieldCheck className="size-3.5 shrink-0 text-success" />
               Already have an account?{" "}
-              <Link to="/" className="text-primary underline-offset-4 hover:underline">
+              <Link to="/login" className="text-primary underline-offset-4 hover:underline">
                 Sign in
               </Link>
               · Joining a team?{" "}

@@ -401,7 +401,7 @@ function JoinPage() {
               Create an owner account
             </Link>
             · Already registered?{" "}
-            <Link to="/" className="text-primary underline-offset-4 hover:underline">
+            <Link to="/login" className="text-primary underline-offset-4 hover:underline">
               Sign in
             </Link>
           </p>
