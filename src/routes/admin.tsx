@@ -4,7 +4,9 @@ import {
   AlertTriangle,
   BadgeCheck,
   Banknote,
+  Check,
   Clock,
+  Download,
   Flame,
   FileDown,
   Fuel,
@@ -81,7 +83,8 @@ import {
   type ExpenseCategory,
   type PaymentMethod,
 } from "@/lib/groompulse";
-import { buildAudit } from "@/lib/reports";
+import { buildAudit, buildPayroll } from "@/lib/reports";
+import { toCSV, downloadFile, stampName } from "@/lib/export-csv";
 import { usePaginated } from "@/lib/paginate";
 import { LoadMore } from "@/components/load-more";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
@@ -567,7 +570,8 @@ function AdminPage() {
 
         {tab === "reports" ? (
           <>
-            <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+            <PayrollSection />
+            <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
               <ExpenseForm onSubmit={addExpense} />
 
               <section className="card-lux overflow-hidden rounded-2xl">
@@ -879,6 +883,165 @@ function ExpenseForm({
 const toDateInput = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
+const monthRange = (offset: number) => {
+  const now = new Date();
+  const from = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+  const to = new Date(now.getFullYear(), now.getMonth() + offset + 1, 0);
+  return { from, to };
+};
+const monthLabel = (d: Date) => d.toLocaleDateString("en-NG", { month: "long", year: "numeric" });
+
+/**
+ * Payroll roll-up. Totals each commission-earning person's pay for the selected
+ * month (commission from paid tickets + monthly base salary), lets the owner
+ * mark a person paid (stamps salary_last_paid_at), and exports the run as CSV.
+ * All client-side; a formal payroll engine with payslips is Phase 1.
+ */
+function PayrollSection() {
+  const { staff, updateProfile } = useStaff();
+  const { tickets, ticketItems } = useTickets();
+  const { salon } = useSalon();
+  const [monthOffset, setMonthOffset] = useState(0);
+
+  const range = useMemo(() => monthRange(monthOffset), [monthOffset]);
+  const run = useMemo(
+    () => buildPayroll({ staff, tickets, ticketItems }, range),
+    [staff, tickets, ticketItems, range],
+  );
+
+  const unpaid = run.lines.filter((l) => !l.paid && l.total > 0);
+
+  const markPaid = (staffId: string) => {
+    updateProfile(staffId, { salary_last_paid_at: new Date().toISOString() });
+    toast.success("Marked paid", { description: monthLabel(range.from) });
+  };
+
+  const markAllPaid = () => {
+    if (unpaid.length === 0) return;
+    const stamp = new Date().toISOString();
+    unpaid.forEach((l) => updateProfile(l.staff_id, { salary_last_paid_at: stamp }));
+    toast.success(`${unpaid.length} marked paid`, { description: monthLabel(range.from) });
+  };
+
+  const exportCSV = () => {
+    const rows = run.lines.map((l) => [
+      l.name,
+      l.job_title ?? "",
+      l.jobs,
+      l.commission,
+      l.base_salary,
+      l.total,
+      l.paid ? "Paid" : "Unpaid",
+    ]);
+    rows.push(["TOTAL", "", "", run.commissionTotal, run.salaryTotal, run.total, ""]);
+    const csv = toCSV(
+      ["Name", "Role", "Jobs", "Commission", "Base salary", "Total due", "Status"],
+      rows,
+    );
+    downloadFile(stampName(salon.name, "payroll", range.from, range.to), csv);
+    toast.success("Payroll CSV downloaded");
+  };
+
+  return (
+    <section className="card-lux overflow-hidden rounded-2xl">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-3">
+        <div className="flex items-center gap-2">
+          <Wallet className="size-4 text-muted-foreground" />
+          <h2 className="text-lg font-bold">Payroll</h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <div
+            role="radiogroup"
+            aria-label="Payroll month"
+            className="inline-flex rounded-full border border-border bg-surface p-0.5"
+          >
+            {[
+              { off: 0, label: "This month" },
+              { off: -1, label: "Last month" },
+            ].map((o) => (
+              <button
+                key={o.off}
+                type="button"
+                role="radio"
+                aria-checked={monthOffset === o.off}
+                onClick={() => setMonthOffset(o.off)}
+                className={
+                  monthOffset === o.off
+                    ? "cursor-pointer rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-ink-foreground"
+                    : "cursor-pointer rounded-full px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                }
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+          <Button variant="outline" size="sm" className="h-9" onClick={exportCSV}>
+            <Download className="size-4" />
+            Export CSV
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 px-5 pb-3">
+        <p className="text-sm text-muted-foreground">
+          {monthLabel(range.from)} · {naira(run.total)} across {run.lines.filter((l) => l.total > 0).length}{" "}
+          {run.lines.filter((l) => l.total > 0).length === 1 ? "person" : "people"}
+        </p>
+        {unpaid.length > 0 ? (
+          <Button size="sm" className="h-9 font-semibold" onClick={markAllPaid}>
+            <Check className="size-4" />
+            Mark all paid ({unpaid.length})
+          </Button>
+        ) : run.total > 0 ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-success/12 px-3 py-1 text-xs font-semibold text-success">
+            <BadgeCheck className="size-3.5" />
+            All paid
+          </span>
+        ) : null}
+      </div>
+
+      {run.lines.filter((l) => l.total > 0).length === 0 ? (
+        <p className="px-5 py-6 text-center text-sm text-muted-foreground">
+          No commissions or salaries for {monthLabel(range.from)} yet.
+        </p>
+      ) : (
+        <ul className="divide-y divide-border">
+          {run.lines
+            .filter((l) => l.total > 0)
+            .map((l) => (
+              <li key={l.staff_id} className="flex items-center gap-3 px-5 py-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{l.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {l.jobs} {l.jobs === 1 ? "job" : "jobs"} · {naira(l.commission)} commission
+                    {l.base_salary > 0 ? ` · ${naira(l.base_salary)} salary` : ""}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="font-display font-bold tabular-nums">{naira(l.total)}</p>
+                  {l.paid ? (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-success">
+                      <Check className="size-3" />
+                      Paid
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => markPaid(l.staff_id)}
+                      className="text-[11px] font-semibold text-primary hover:underline"
+                    >
+                      Mark paid
+                    </button>
+                  )}
+                </div>
+              </li>
+            ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 function CloseDayDialog({
   open,
   onOpenChange,
@@ -1035,20 +1198,83 @@ function CloseDayDialog({
           </div>
         </details>
 
-        <Button
-          variant="outline"
-          disabled={overCap}
-          onClick={() => {
-            if (overCap) {
-              toast.error("Range is over 12 months. Narrow the dates before printing.");
-              return;
-            }
-            printHTML(`${salon.name} · ${heading}`, renderAuditHTML({ salon, audit, heading }));
-          }}
-        >
-          <Printer className="size-4" />
-          Print / save as PDF
-        </Button>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Button
+            variant="outline"
+            disabled={overCap}
+            onClick={() => {
+              if (overCap) {
+                toast.error("Range is over 12 months. Narrow the dates before printing.");
+                return;
+              }
+              printHTML(`${salon.name} · ${heading}`, renderAuditHTML({ salon, audit, heading }));
+            }}
+          >
+            <Printer className="size-4" />
+            Print / save as PDF
+          </Button>
+          <Button
+            variant="outline"
+            disabled={overCap}
+            onClick={() => {
+              if (overCap) {
+                toast.error("Range is over 12 months. Narrow the dates before exporting.");
+                return;
+              }
+              const commissionByTicket = new Map<string, number>();
+              ticketItems.forEach((i) =>
+                commissionByTicket.set(
+                  i.ticket_id,
+                  (commissionByTicket.get(i.ticket_id) ?? 0) + i.staff_commission_amount,
+                ),
+              );
+              const rows = tickets
+                .filter((t) => {
+                  const d = new Date(t.created_at);
+                  return d >= fromDate && d <= new Date(toDate.getTime() + 86_399_999);
+                })
+                .sort((a, b) => a.created_at.localeCompare(b.created_at))
+                .map((t) => {
+                  const d = new Date(t.created_at);
+                  const localDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+                  return [
+                    localDate,
+                    timeOf(t.created_at),
+                    t.client_name,
+                    t.client_phone,
+                    paymentLabel[t.payment_method],
+                    t.status === "paid" ? "Paid" : "Pending",
+                    t.total_amount,
+                    commissionByTicket.get(t.id) ?? 0,
+                    t.reference ?? "",
+                  ];
+                });
+              if (rows.length === 0) {
+                toast.error("No transactions in this range to export.");
+                return;
+              }
+              const csv = toCSV(
+                [
+                  "Date",
+                  "Time",
+                  "Client",
+                  "Phone",
+                  "Payment method",
+                  "Status",
+                  "Amount",
+                  "Commission",
+                  "Reference",
+                ],
+                rows,
+              );
+              downloadFile(stampName(salon.name, "transactions", fromDate, toDate), csv);
+              toast.success(`${rows.length} transactions exported`);
+            }}
+          >
+            <Download className="size-4" />
+            Export transactions (CSV)
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

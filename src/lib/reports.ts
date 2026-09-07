@@ -1,6 +1,7 @@
 import type {
   Expense,
   InventoryItem,
+  Profile,
   Ticket,
   TicketInventoryUsage,
   TicketItem,
@@ -210,6 +211,78 @@ export function staffDailyCommission(
     items: mine,
     earned: mine.reduce((s, i) => s + i.staff_commission_amount, 0),
     revenue: mine.reduce((s, i) => s + i.service_price, 0),
+  };
+}
+
+export interface PayrollLine {
+  staff_id: string;
+  name: string;
+  job_title: string | null;
+  commission: number;
+  jobs: number;
+  base_salary: number;
+  total: number;
+  paid: boolean;
+  paid_at: string | null;
+}
+
+export interface PayrollRun {
+  from: Date;
+  to: Date;
+  lines: PayrollLine[];
+  commissionTotal: number;
+  salaryTotal: number;
+  total: number;
+}
+
+/**
+ * Roll every commission-earning person's pay for a date range: commission from
+ * paid tickets in the window plus their monthly base salary. `paid` reflects
+ * whether their salary_last_paid_at falls inside this window, so a run can be
+ * marked paid and stay marked on re-open. Pure and client-side; no backend.
+ */
+export function buildPayroll(
+  args: {
+    staff: Profile[];
+    tickets: Ticket[];
+    ticketItems: TicketItem[];
+  },
+  range: AuditRange,
+): PayrollRun {
+  const from = startOfDay(range.from);
+  const to = endOfDay(range.to);
+
+  const paidIds = new Set(
+    args.tickets.filter((t) => t.status === "paid" && inRange(t.created_at, from, to)).map((t) => t.id),
+  );
+
+  const lines: PayrollLine[] = args.staff.map((p) => {
+    const mine = args.ticketItems.filter((i) => i.staff_id === p.id && paidIds.has(i.ticket_id));
+    const commission = mine.reduce((s, i) => s + i.staff_commission_amount, 0);
+    const base_salary = p.base_salary ?? 0;
+    const paid = p.salary_last_paid_at
+      ? inRange(p.salary_last_paid_at, from, to)
+      : false;
+    return {
+      staff_id: p.id,
+      name: p.full_name,
+      job_title: p.job_title,
+      commission,
+      jobs: mine.length,
+      base_salary,
+      total: commission + base_salary,
+      paid,
+      paid_at: p.salary_last_paid_at,
+    };
+  });
+
+  return {
+    from,
+    to,
+    lines,
+    commissionTotal: lines.reduce((s, l) => s + l.commission, 0),
+    salaryTotal: lines.reduce((s, l) => s + l.base_salary, 0),
+    total: lines.reduce((s, l) => s + l.total, 0),
   };
 }
 
