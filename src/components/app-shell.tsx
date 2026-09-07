@@ -67,9 +67,10 @@ export function AppShell({
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isSignedIn) navigate({ to: "/", replace: true });
+    // Hitting a portal without a session sends you to the sign-in page, not
+    // the marketing landing at "/".
+    if (!isSignedIn) navigate({ to: "/login", replace: true });
   }, [isSignedIn, navigate]);
-  if (!isSignedIn) return null;
 
   // Ops notifications. Only for owner / manager / front desk.
   const showOps = ["owner", "manager", "receptionist"].includes(currentUser.role);
@@ -167,6 +168,11 @@ export function AppShell({
       ),
     [profiles],
   );
+
+  // Signed-out visitors are redirected by the effect above. Render nothing
+  // meanwhile. This guard sits after every hook so the hook order never
+  // changes between renders (rules of hooks).
+  if (!isSignedIn) return null;
 
   return (
     <div className="min-h-dvh bg-background pb-10">
