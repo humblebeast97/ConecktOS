@@ -1538,7 +1538,7 @@ const LANDING_HTML = `<!-- NAV -->
 <nav class="nav">
   <div class="container">
     <div class="nav-shell">
-      <a class="brand" href="#">
+      <a class="brand" href="/">
         <span class="brand-mark">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/></svg>
         </span>
@@ -1560,7 +1560,7 @@ const LANDING_HTML = `<!-- NAV -->
 </nav>
 
 <!-- HERO -->
-<section class="hero">
+<section class="hero" id="main-content">
   <div class="container hero-inner">
     <h1 class="hero-h" style="margin-top:0">Run your business like <span>one shop,</span> not ten notebooks.</h1>
     <p class="hero-sub">The operating system for any business that runs on shifts, tickets and commissions. GPS attendance, instant commission splits, tips your team actually receives, and a signed audit at close. Set up in five minutes.</p>
