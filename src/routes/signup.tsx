@@ -137,7 +137,7 @@ function SignUpPage() {
         <p className="mt-3 max-w-md text-sm text-muted-foreground">
           {step === 1
             ? "One account runs your whole operation. Team, tickets, stock and payouts."
-            : "Your category tailors labels, tipping and stock tracking across the app."}
+            : "Name your business and set where you operate so clock-ins can be geofenced."}
         </p>
 
         {step === 1 ? (

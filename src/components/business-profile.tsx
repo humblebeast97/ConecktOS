@@ -79,7 +79,7 @@ export function BusinessProfilePanel() {
           id="biz-name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Central Studio"
+          placeholder="e.g. Marina Service Co."
           required
           minLength={2}
           maxLength={80}

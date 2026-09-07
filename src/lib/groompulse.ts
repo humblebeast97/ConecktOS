@@ -39,7 +39,7 @@ export interface Profile {
   salon_id: string;
   full_name: string;
   role: Role;
-  /** Free-text job title, e.g. "Technician", "Stylist", "Server". */
+  /** Free-text job title, e.g. "Technician", "Attendant", "Cashier". */
   job_title: string | null;
   commission_rate: number;
   /** Monthly base salary in the business's currency (nullable = commission-only). */
@@ -291,7 +291,7 @@ const today = (h: number, m = 0) => {
 
 export const seedSalon: Salon = {
   id: SALON_ID,
-  name: "Central Studio",
+  name: "Marina Service Co.",
   business_type: "beauty",
   latitude: 6.4318,
   longitude: 3.4271,
