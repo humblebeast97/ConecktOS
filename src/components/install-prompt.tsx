@@ -6,7 +6,7 @@ import { Download, X } from "lucide-react";
  * PWAs. We stash the event, then show a friendly install chip once the user
  * has visited a few times (VISIT_THRESHOLD). Dismissing hides it forever
  * (per browser localStorage). Safari doesn't fire the event so the chip
- * never appears there — iOS users use the share sheet instead.
+ * never appears there; iOS users use the share sheet instead.
  */
 const VISIT_KEY = "conecktos-visit-count";
 const DISMISS_KEY = "conecktos-install-dismissed";

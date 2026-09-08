@@ -1321,6 +1321,12 @@ const LANDING_CSS = `*, *::before, *::after{ box-sizing: border-box; }
     font-family: var(--sans); font-weight: 500;
     margin-left: 4px;
   }
+  .plan-annual{
+    margin-top: 6px;
+    font-size: 12.5px; font-weight: 600;
+    color: var(--primary);
+  }
+  .plan.featured .plan-annual{ color: oklch(0.85 0.11 40); }
   .plan-sub{
     margin-top: 12px;
     font-size: 13.5px; color: var(--muted);
@@ -1862,7 +1868,7 @@ const LANDING_HTML = `<!-- NAV -->
   </div>
 </section>
 
-<!-- SECTION 1 — COMMISSION -->
+<!-- SECTION 1: COMMISSION -->
 <section class="section" id="features">
   <div class="container section-inner">
     <div>
@@ -1916,7 +1922,7 @@ const LANDING_HTML = `<!-- NAV -->
   </div>
 </section>
 
-<!-- SECTION 2 — STAFF INSIGHT -->
+<!-- SECTION 2: STAFF INSIGHT -->
 <section class="section flip">
   <div class="container section-inner">
     <div>
@@ -1972,7 +1978,7 @@ const LANDING_HTML = `<!-- NAV -->
   </div>
 </section>
 
-<!-- SECTION 3 — ATTENDANCE -->
+<!-- SECTION 3: ATTENDANCE -->
 <section class="section" id="attendance">
   <div class="container section-inner">
     <div>
@@ -2155,7 +2161,8 @@ const LANDING_HTML = `<!-- NAV -->
       <div class="plan featured">
         <span class="plan-badge">Most popular</span>
         <div class="plan-name">Studio</div>
-        <div class="plan-price">₦20,000<small>/month</small></div>
+        <div class="plan-price">₦15,000<small>/month</small></div>
+        <div class="plan-annual">₦150k/yr · 2 months free</div>
         <div class="plan-sub">For businesses paying commissions and running a real roster.</div>
         <ul class="plan-list">
           <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Up to 12 staff</li>
@@ -2170,7 +2177,7 @@ const LANDING_HTML = `<!-- NAV -->
 
       <div class="plan">
         <div class="plan-name">Chain</div>
-        <div class="plan-price">₦100,000<small>/month</small></div>
+        <div class="plan-price">₦75,000<small>/month</small></div>
         <div class="plan-sub">For multi-branch operators consolidating locations.</div>
         <ul class="plan-list">
           <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Unlimited staff</li>

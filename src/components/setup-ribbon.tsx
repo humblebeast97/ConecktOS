@@ -23,7 +23,7 @@ export function SetupRibbon({ storageKey, message }: Props) {
   if (dismissed) return null;
 
   // Text uses the page foreground so it flips near-white in dark mode and
-  // near-black in light mode — always legible on the translucent mint fill.
+  // near-black in light mode, always legible on the translucent mint fill.
   // The check icon keeps the semantic success tone for at-a-glance meaning.
   return (
     <div

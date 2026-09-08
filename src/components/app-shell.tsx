@@ -36,7 +36,7 @@ const initialsOf = (name: string) =>
     .join("");
 
 // Demo-only role switcher targets. Hoisted so the useMemo below has a stable
-// identity — otherwise recreating the array each render bypasses memoisation.
+// identity. Otherwise recreating the array each render bypasses memoisation.
 const ROLES_FOR_SWITCHER: Role[] = ["owner", "manager", "receptionist", "staff"];
 const PORTAL_FOR: Record<Role, "/admin" | "/reception" | "/staff"> = {
   owner: "/admin",
