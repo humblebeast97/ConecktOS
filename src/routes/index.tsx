@@ -1425,30 +1425,65 @@ const LANDING_CSS = `*, *::before, *::after{ box-sizing: border-box; }
   /* ============ FOOTER ============ */
   footer{
     border-top: 1px solid var(--edge);
-    padding-block: 40px;
+    padding-block: 48px 32px;
     color: var(--muted);
     font-size: 13px;
     margin-top: 40px;
   }
-  .footer-inner{
-    display: flex; flex-wrap: wrap; gap: 20px;
-    justify-content: space-between; align-items: center;
+  .foot-top{
+    display: grid; gap: 40px;
+    grid-template-columns: 1fr;
+    padding-bottom: 36px;
   }
-  .footer-brand{
+  @media (min-width: 760px){
+    .foot-top{ grid-template-columns: minmax(0,1.4fr) repeat(2, minmax(0,1fr)); gap: 48px; }
+  }
+  .foot-brand{
     display: inline-flex; align-items: center; gap: 10px;
-    font-family: var(--display); font-size: 16px; font-weight: 700;
-    color: var(--ink);
+    font-family: var(--display); font-weight: 700; font-size: 19px;
+    letter-spacing: -0.02em; color: var(--ink);
   }
-  .footer-links{
-    display: flex; gap: 24px;
-    font-size: 13px;
+  .foot-tag{
+    margin-top: 16px; max-width: 34ch;
+    font-size: 14px; line-height: 1.55; color: var(--muted);
   }
-  .footer-links a:hover{ color: var(--ink); }
-  .footer-small{
-    color: var(--muted); font-family: var(--mono);
-    font-size: 11px; text-transform: uppercase;
-    letter-spacing: 0.08em;
+  .socials{ margin-top: 20px; display: flex; gap: 10px; }
+  .soc{
+    width: 38px; height: 38px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+    color: var(--ink-70);
+    box-shadow: 0 6px 16px -10px rgba(30,20,60,.2), inset 0 1px 0 rgba(255,255,255,.6);
+    transition: transform .15s ease, color .15s ease, box-shadow .15s ease;
   }
+  .soc:hover{
+    transform: translateY(-2px); color: #fff;
+    background: linear-gradient(135deg, var(--primary), oklch(0.62 0.22 320));
+    border-color: transparent;
+    box-shadow: 0 10px 22px -8px oklch(0.55 0.24 285 / .5);
+  }
+  .soc svg{ width: 17px; height: 17px; }
+  .foot-col h4{
+    margin: 0 0 14px;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+  }
+  .foot-col ul{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .foot-col a{ color: var(--ink-70); font-size: 14px; transition: color .15s ease; }
+  .foot-col a:hover{ color: var(--ink); }
+  .foot-bar{
+    border-top: 1px solid var(--edge); padding-top: 24px;
+    display: flex; flex-wrap: wrap; gap: 14px;
+    align-items: center; justify-content: space-between;
+  }
+  .foot-copy{
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .foot-legal{ display: flex; gap: 20px; }
+  .foot-legal a{ color: var(--muted); font-size: 12px; }
+  .foot-legal a:hover{ color: var(--ink); }
 
   /* ============ PM APPENDIX ============ */
   .pm{
@@ -2243,19 +2278,62 @@ const LANDING_HTML = `<!-- NAV -->
 
 <!-- FOOTER -->
 <footer>
-  <div class="container footer-inner">
-    <div class="footer-brand">
-      <span class="brand-mark">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/></svg>
-      </span>
-      ConecktOS
+  <div class="container">
+    <div class="foot-top">
+      <div>
+        <span class="foot-brand">
+          <span class="brand-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/></svg>
+          </span>
+          ConecktOS
+        </span>
+        <p class="foot-tag">The operating system for any business that runs on shifts, tickets and commissions.</p>
+        <div class="socials">
+          <a class="soc" href="#" aria-label="ConecktOS on Instagram">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a class="soc" href="#" aria-label="ConecktOS on TikTok">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3c.3 2 1.6 3.6 3.5 3.9V9.4c-1.3.1-2.5-.3-3.5-.9v6.2a5.7 5.7 0 1 1-5.7-5.7c.3 0 .6 0 .9.1v2.6a3.1 3.1 0 1 0 2.2 3V3h2.6z"/></svg>
+          </a>
+          <a class="soc" href="#" aria-label="ConecktOS on X">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2h3.3l-7.2 8.3L23.5 22h-6.6l-5.2-6.8L5.7 22H2.4l7.7-8.8L1.5 2h6.8l4.7 6.2L18.9 2zm-1.2 18h1.8L7.1 3.9H5.2L17.7 20z"/></svg>
+          </a>
+          <a class="soc" href="#" aria-label="ConecktOS on LinkedIn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05 4 0 4.75 2.65 4.75 6.1V21H17.5v-5.5c0-1.3 0-3-1.83-3s-2.1 1.43-2.1 2.9V21H9z"/></svg>
+          </a>
+          <a class="soc" href="#" aria-label="ConecktOS on WhatsApp">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2zm5.7 14.2c-.24.67-1.4 1.28-1.93 1.33-.5.05-1.13.07-1.82-.11-.42-.13-.96-.31-1.65-.6-2.9-1.26-4.8-4.2-4.94-4.4-.15-.2-1.2-1.6-1.2-3.05s.76-2.16 1.03-2.46a1.08 1.08 0 0 1 .78-.36c.2 0 .39 0 .56.01.18.01.42-.07.66.5.24.6.83 2.05.9 2.2.07.15.12.32.02.52-.09.2-.14.32-.28.5-.14.16-.3.37-.42.5-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.9 1.06.95 1.95 1.24 2.23 1.38.28.14.44.12.6-.07.17-.2.7-.8.88-1.08.18-.28.36-.23.6-.14.25.09 1.57.74 1.84.88.27.14.45.2.51.31.07.12.07.68-.17 1.35z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="foot-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#how">How it works</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="/signup">Get started</a></li>
+          <li><a href="/login">Log in</a></li>
+        </ul>
+      </div>
+
+      <div class="foot-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="mailto:hello@conecktos.com">Contact</a></li>
+          <li><a href="/privacy">Privacy</a></li>
+          <li><a href="/terms">Terms</a></li>
+        </ul>
+      </div>
     </div>
-    <div class="footer-links">
-      <a href="/privacy">Privacy</a>
-      <a href="/terms">Terms</a>
-      <a href="mailto:hello@conecktos.com">Contact</a>
+
+    <div class="foot-bar">
+      <div class="foot-copy">© 2026 ConecktOS</div>
+      <div class="foot-legal">
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+      </div>
     </div>
-    <div class="footer-small">© 2026 ConecktOS</div>
   </div>
 </footer>
 
