@@ -2289,13 +2289,13 @@ const LANDING_HTML = `<!-- NAV -->
         </span>
         <p class="foot-tag">The operating system for any business that runs on shifts, tickets and commissions.</p>
         <div class="socials">
-          <a class="soc" href="#" aria-label="ConecktOS on Instagram">
+          <a class="soc" href="https://www.instagram.com/conecktos" target="_blank" rel="noopener noreferrer" aria-label="ConecktOS on Instagram">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
           </a>
           <a class="soc" href="#" aria-label="ConecktOS on TikTok">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3c.3 2 1.6 3.6 3.5 3.9V9.4c-1.3.1-2.5-.3-3.5-.9v6.2a5.7 5.7 0 1 1-5.7-5.7c.3 0 .6 0 .9.1v2.6a3.1 3.1 0 1 0 2.2 3V3h2.6z"/></svg>
           </a>
-          <a class="soc" href="#" aria-label="ConecktOS on X">
+          <a class="soc" href="https://x.com/conecktos" target="_blank" rel="noopener noreferrer" aria-label="ConecktOS on X">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2h3.3l-7.2 8.3L23.5 22h-6.6l-5.2-6.8L5.7 22H2.4l7.7-8.8L1.5 2h6.8l4.7 6.2L18.9 2zm-1.2 18h1.8L7.1 3.9H5.2L17.7 20z"/></svg>
           </a>
           <a class="soc" href="#" aria-label="ConecktOS on LinkedIn">
