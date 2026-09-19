@@ -61,7 +61,7 @@ import {
 import {
   useAdminOps,
   useAttendance,
-  useAuth,
+  useSessionUser,
   useExpenses,
   useInventory,
   useBusiness,
@@ -147,7 +147,7 @@ function AdminPage() {
   const { tickets, ticketItems } = useTickets();
   const { attendance } = useAttendance();
   const { expenses, addExpense, voidExpense } = useExpenses();
-  const { currentUser } = useAuth();
+  const currentUser = useSessionUser();
 
   const audit = useMemo(
     () => buildAudit({ tickets, ticketItems, usage, inventory, expenses }),
@@ -398,7 +398,10 @@ function AdminPage() {
             )}
 
             <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-              <section id="attendance" className="card-lux scroll-mt-24 overflow-hidden rounded-2xl">
+              <section
+                id="attendance"
+                className="card-lux scroll-mt-24 overflow-hidden rounded-2xl"
+              >
                 <div className="flex items-center justify-between gap-3 p-5 pb-3">
                   <h2 className="text-lg font-bold">{config.staffPlural} attendance & earnings</h2>
                   <Clock className="size-4 text-muted-foreground" />
@@ -518,9 +521,7 @@ function AdminPage() {
                               <>
                                 <span className="tabular-nums">
                                   {timeOf(att.clock_in_time)}
-                                  {att.clock_out_time
-                                    ? ` → ${timeOf(att.clock_out_time)}`
-                                    : ""}
+                                  {att.clock_out_time ? ` → ${timeOf(att.clock_out_time)}` : ""}
                                 </span>
                                 {att.clock_out_time ? (
                                   <span className="text-muted-foreground">(signed off)</span>
@@ -682,7 +683,8 @@ function TeamTab() {
     <div>
       <div className="mb-5">
         <p className="text-sm text-muted-foreground">
-          {business.name} · {earners.length} on the team · {profiles.length - earners.length} at the desk
+          {business.name} · {earners.length} on the team · {profiles.length - earners.length} at the
+          desk
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
@@ -695,7 +697,8 @@ function TeamTab() {
         <MetricCard
           label="Avg. commission"
           value={`${Math.round(
-            (earners.reduce((s, p) => s + p.commission_rate, 0) / Math.max(1, earners.length)) * 100,
+            (earners.reduce((s, p) => s + p.commission_rate, 0) / Math.max(1, earners.length)) *
+              100,
           )}%`}
           hint="Across commission roles"
           icon={Percent}
@@ -984,7 +987,8 @@ function PayrollSection() {
 
       <div className="flex flex-wrap items-center justify-between gap-3 px-5 pb-3">
         <p className="text-sm text-muted-foreground">
-          {monthLabel(range.from)} · {naira(run.total)} across {run.lines.filter((l) => l.total > 0).length}{" "}
+          {monthLabel(range.from)} · {naira(run.total)} across{" "}
+          {run.lines.filter((l) => l.total > 0).length}{" "}
           {run.lines.filter((l) => l.total > 0).length === 1 ? "person" : "people"}
         </p>
         {unpaid.length > 0 ? (
@@ -1207,7 +1211,10 @@ function CloseDayDialog({
                 toast.error("Range is over 12 months. Narrow the dates before printing.");
                 return;
               }
-              printHTML(`${business.name} · ${heading}`, renderAuditHTML({ business, audit, heading }));
+              printHTML(
+                `${business.name} · ${heading}`,
+                renderAuditHTML({ business, audit, heading }),
+              );
             }}
           >
             <Printer className="size-4" />

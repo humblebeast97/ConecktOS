@@ -32,7 +32,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useAttendance, useAuth, useBusiness, useServices, useStaff, useTickets } from "@/api";
+import {
+  useAttendance,
+  useSessionUser,
+  useBusiness,
+  useServices,
+  useStaff,
+  useTickets,
+} from "@/api";
 import { haversineMeters, naira, timeOf, type Profile, type Business } from "@/lib/groompulse";
 import { copyText } from "@/lib/clipboard";
 import { staffDailyCommission } from "@/lib/reports";
@@ -71,7 +78,7 @@ export const Route = createFileRoute("/staff")({
 
 function StaffPortal() {
   const config = useIndustryConfig();
-  const { currentUser } = useAuth();
+  const currentUser = useSessionUser();
   const { staff } = useStaff();
   const { business } = useBusiness();
   const { tickets, ticketItems } = useTickets();
@@ -135,7 +142,12 @@ function StaffPortal() {
         });
         return;
       }
-      const distance = haversineMeters(coords.lat, coords.lng, business.latitude, business.longitude);
+      const distance = haversineMeters(
+        coords.lat,
+        coords.lng,
+        business.latitude,
+        business.longitude,
+      );
       if (distance <= business.geofence_radius_meters) {
         clockIn(me.id, coords);
         toast.success("Clocked in", {
@@ -367,8 +379,8 @@ function StaffPortal() {
               <DialogTitle>Use your location to clock in?</DialogTitle>
               <DialogDescription>
                 ConecktOS reads your device location once, only when you clock in, to confirm you're
-                at {business.name}. It's never tracked in the background. Clock-in only works on-site -
-                within {business.geofence_radius_meters}m of the business.
+                at {business.name}. It's never tracked in the background. Clock-in only works
+                on-site - within {business.geofence_radius_meters}m of the business.
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-2">
@@ -473,7 +485,7 @@ function TipQrDialog({
   onOpenChange?: (open: boolean) => void;
   trigger?: boolean;
 } = {}) {
-  const { currentUser } = useAuth();
+  const currentUser = useSessionUser();
   const { staff } = useStaff();
   const { business } = useBusiness();
   const me = currentUser.role === "staff" ? currentUser : staff[0];

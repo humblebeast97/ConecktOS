@@ -55,7 +55,7 @@ const portalFor = (role: Role) =>
 function JoinPage() {
   const navigate = useNavigate();
   const config = useIndustryConfig();
-  const { signIn } = useAuth();
+  const { mode, signIn } = useAuth();
   const { addStaff } = useStaff();
 
   const [role, setRole] = useState<Role>("staff");
@@ -93,8 +93,7 @@ function JoinPage() {
       ? "Enter a valid email address"
       : null;
   const bankPartial =
-    !isFrontDesk &&
-    (bankName.trim().length > 0 || accountNumber.trim().length > 0);
+    !isFrontDesk && (bankName.trim().length > 0 || accountNumber.trim().length > 0);
   const bankNameError =
     submitted && bankPartial && !bankName.trim() ? "Bank name is required" : null;
   const accountNumberError =
@@ -119,6 +118,13 @@ function JoinPage() {
     )
       return;
     submit(() => {
+      if (mode === "supabase") {
+        toast.info("Joining a team isn't enabled yet in this mode", {
+          description: "Ask your admin to add you, then sign in.",
+        });
+        navigate({ to: "/login" });
+        return;
+      }
       const member = addStaff({
         full_name: fullName.trim(),
         role,
@@ -145,7 +151,7 @@ function JoinPage() {
         }
       }
       toast.success(`Welcome aboard. Opening your ${roleTitle} portal.`);
-      signIn(member.id);
+      signIn!(member.id);
       navigate({ to: portalFor(role) });
     });
   };

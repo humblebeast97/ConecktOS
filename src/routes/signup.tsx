@@ -44,7 +44,7 @@ export const Route = createFileRoute("/signup")({
 
 function SignUpPage() {
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { mode, signIn } = useAuth();
   const [step, setStep] = useState<1 | 2>(1);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -263,7 +263,14 @@ function SignUpPage() {
               className="h-12 w-full text-base font-semibold"
               onClick={() =>
                 submitEnter(() => {
-                  signIn(defaultUserForRole.owner);
+                  if (mode === "supabase") {
+                    toast.info("Owner sign-up isn't enabled yet in this mode", {
+                      description: "Sign in with an existing account for now.",
+                    });
+                    navigate({ to: "/login" });
+                    return;
+                  }
+                  signIn!(defaultUserForRole.owner);
                   navigate({ to: "/admin" });
                   toast.success("You're all set. Welcome to ConecktOS");
                 })

@@ -11,6 +11,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { StoreProvider } from "../lib/store";
+import { AuthProvider } from "../lib/auth";
+import { AuthGate } from "../components/auth-gate";
 import { IndustryProvider } from "../config/industry-context";
 import { Toaster } from "../components/ui/sonner";
 import { RouteProgress } from "../components/route-progress";
@@ -164,19 +166,23 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <StoreProvider>
-        <IndustryProvider>
-          <a
-            href="#main-content"
-            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-foreground focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            Skip to main content
-          </a>
-          <RouteProgress />
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
-          <InstallPrompt />
-          <Toaster position="top-center" />
-        </IndustryProvider>
+        <AuthProvider>
+          <IndustryProvider>
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-foreground focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              Skip to main content
+            </a>
+            <RouteProgress />
+            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+            <AuthGate>
+              <Outlet />
+            </AuthGate>
+            <InstallPrompt />
+            <Toaster position="top-center" />
+          </IndustryProvider>
+        </AuthProvider>
       </StoreProvider>
     </QueryClientProvider>
   );

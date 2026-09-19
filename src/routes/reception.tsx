@@ -44,7 +44,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useAttendance, useAuth, useBusiness, useServices, useStaff, useTickets } from "@/api";
+import {
+  useAttendance,
+  useSessionUser,
+  useBusiness,
+  useServices,
+  useStaff,
+  useTickets,
+} from "@/api";
 import { useRoleGuard } from "@/lib/access";
 import {
   haversineMeters,
@@ -95,7 +102,7 @@ const RECEPTION_ROLES = ["owner", "manager", "receptionist"] as const;
 function ReceptionPage() {
   useRoleGuard(RECEPTION_ROLES);
   const config = useIndustryConfig();
-  const { currentUser } = useAuth();
+  const currentUser = useSessionUser();
   const { staff } = useStaff();
   const { business } = useBusiness();
   const { tickets, ticketItems, markPaid } = useTickets();
@@ -117,7 +124,12 @@ function ReceptionPage() {
         });
         return;
       }
-      const distance = haversineMeters(coords.lat, coords.lng, business.latitude, business.longitude);
+      const distance = haversineMeters(
+        coords.lat,
+        coords.lng,
+        business.latitude,
+        business.longitude,
+      );
       if (distance <= business.geofence_radius_meters) {
         clockIn(currentUser.id, coords);
         toast.success("Clocked in", {

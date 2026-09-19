@@ -100,20 +100,28 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { mode, signIn, signInWithPassword, signInWithOAuth, resetPassword } = useAuth();
   const { isSubmitting, submit } = useSubmit();
 
   const active = roles.find((r) => r.role === role)!;
 
-  // Real OAuth ships with Phase 1 (Supabase Auth). Until then the buttons
-  // wire into the same demo sign-in flow so the design is testable and the
-  // portals reachable, but a toast tells the user this is a stub.
+  // After a real sign-in we don't yet know the role, so we send the user to
+  // /admin and let the role guard fan them out to their own portal.
   const oauthSignIn = (provider: "Google" | "Apple") => {
+    if (mode === "supabase") {
+      submit(async () => {
+        const { error } = await signInWithOAuth!(provider.toLowerCase() as "google" | "apple");
+        if (error) toast.error(`${provider} sign-in failed`, { description: error });
+        // On success the browser is redirected to the provider; no navigate here.
+      });
+      return;
+    }
+    // Mock demo: the OAuth buttons run the same seeded sign-in.
     toast(`${provider} sign-in ships with Phase 1`, {
       description: "Signing you in as the demo account for now.",
     });
     submit(() => {
-      signIn(defaultUserForRole[role]);
+      signIn!(defaultUserForRole[role]);
       navigate({ to: active.to });
     });
   };
@@ -195,7 +203,9 @@ function LoginPage() {
             >
               <GoogleIcon />
               <span className="flex-1">Continue with Google</span>
-              <span className="text-xs text-muted-foreground transition-transform group-hover:translate-x-0.5">→</span>
+              <span className="text-xs text-muted-foreground transition-transform group-hover:translate-x-0.5">
+                →
+              </span>
             </button>
             <button
               type="button"
@@ -205,7 +215,9 @@ function LoginPage() {
             >
               <AppleIcon />
               <span className="flex-1">Continue with Apple</span>
-              <span className="text-xs text-muted-foreground transition-transform group-hover:translate-x-0.5">→</span>
+              <span className="text-xs text-muted-foreground transition-transform group-hover:translate-x-0.5">
+                →
+              </span>
             </button>
           </div>
 
@@ -221,8 +233,19 @@ function LoginPage() {
               e.preventDefault();
               setSignInSubmitted(true);
               if (!emailValid || password.length < 6) return;
+              if (mode === "supabase") {
+                submit(async () => {
+                  const { error } = await signInWithPassword!(email.trim(), password);
+                  if (error) {
+                    toast.error("Sign in failed", { description: error });
+                    return;
+                  }
+                  navigate({ to: "/admin" });
+                });
+                return;
+              }
               submit(() => {
-                signIn(defaultUserForRole[role]);
+                signIn!(defaultUserForRole[role]);
                 navigate({ to: active.to });
               });
             }}
@@ -365,17 +388,29 @@ function LoginPage() {
               Reset your password
             </DialogTitle>
             <DialogDescription>
-              Enter the email on your account. If it matches a workspace, a reset link lands in
-              your inbox within a minute.
+              Enter the email on your account. If it matches a workspace, a reset link lands in your
+              inbox within a minute.
             </DialogDescription>
           </DialogHeader>
           <form
             className="space-y-3"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
               const value = forgotEmail.trim();
               if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
                 setForgotSubmitted(true);
+                return;
+              }
+              if (mode === "supabase") {
+                setForgotSending(true);
+                const { error } = await resetPassword!(value);
+                setForgotSending(false);
+                setForgotOpen(false);
+                if (error) toast.error("Couldn't send reset link", { description: error });
+                else
+                  toast.success("Reset link sent", {
+                    description: `Check ${value} in a minute (spam folder counts).`,
+                  });
                 return;
               }
               setForgotSending(true);

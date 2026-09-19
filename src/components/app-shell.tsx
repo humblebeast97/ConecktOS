@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
-import { useAttendance, useAuth, useInventory, useStaff, useTickets } from "@/api";
+import { useAttendance, useAuth, useSessionUser, useInventory, useStaff, useTickets } from "@/api";
 import { useIndustryConfig } from "@/config/industry-context";
 import { personTitle, roleLabel, type Role } from "@/lib/groompulse";
 import { lowStock } from "@/lib/reports";
@@ -58,7 +58,8 @@ export function AppShell({
   children: ReactNode;
   actions?: ReactNode;
 }) {
-  const { currentUser, isSignedIn, signIn, signOut } = useAuth();
+  const { isSignedIn, signIn, signOut } = useAuth();
+  const currentUser = useSessionUser();
   const { profiles } = useStaff();
   const { inventory } = useInventory();
   const { tickets } = useTickets();
@@ -271,16 +272,13 @@ export function AppShell({
                   </span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onSelect={() => navigate({ to: "/settings" })}
-                  className="gap-2"
-                >
+                <DropdownMenuItem onSelect={() => navigate({ to: "/settings" })} className="gap-2">
                   <Settings className="size-4" />
                   {currentUser.role === "owner" || currentUser.role === "manager"
                     ? "Business settings"
                     : "Settings"}
                 </DropdownMenuItem>
-                {roleShortcuts.length > 1 ? (
+                {signIn && roleShortcuts.length > 1 ? (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuLabel className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">

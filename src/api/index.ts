@@ -36,11 +36,9 @@ function pick<T>(useRemote: boolean, remote: T | undefined, local: T): T {
   return useRemote && remote !== undefined ? remote : local;
 }
 
-export function useAuth() {
-  // Auth stays on the mock store this slice; real Supabase Auth is a later step.
-  const { currentUser, isSignedIn, signIn, signOut } = useStore();
-  return { currentUser, isSignedIn, signIn, signOut };
-}
+// Auth now lives in @/lib/auth (switchable mock vs Supabase Auth). Re-exported
+// here so callers keep importing it from the single @/api surface.
+export { useAuth, useSessionUser } from "@/lib/auth";
 
 export function useBusiness() {
   const { business, updateBusiness } = useStore();

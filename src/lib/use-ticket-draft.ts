@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useAuth, useServices, useStaff, useTickets } from "@/api";
+import { useSessionUser, useServices, useStaff, useTickets } from "@/api";
 import type { DraftLine, DraftUsage } from "@/lib/store";
 import { useIndustryConfig } from "@/config/industry-context";
 import { useFrontDeskPrefs } from "@/lib/front-desk-prefs";
@@ -27,7 +27,7 @@ export function useTicketDraft() {
   const { services } = useServices();
   const { staff, profiles } = useStaff();
   const { tickets, createTicket } = useTickets();
-  const { currentUser } = useAuth();
+  const currentUser = useSessionUser();
   const { prefs: frontDeskPrefs } = useFrontDeskPrefs();
 
   const [clientName, setClientName] = useState("");
