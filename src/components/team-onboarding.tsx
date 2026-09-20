@@ -20,7 +20,7 @@ import { EmptyState } from "@/components/app-shell";
 import { useSubmit } from "@/lib/use-submit";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useStaff, useTickets } from "@/api";
+import { useAuth, useStaff, useTickets } from "@/api";
 import {
   earnsCommission,
   naira,
@@ -46,6 +46,7 @@ const steps = ["Identity", "Role"] as const;
 /** Reusable onboarding wizard + roster. Embedded on /team, /admin and /reception. */
 export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
   const config = useIndustryConfig();
+  const { mode } = useAuth();
   const { profiles, addStaff, removeProfile } = useStaff();
   const { ticketItems } = useTickets();
   const industryRoleLabel = (role: Role) =>
@@ -94,6 +95,12 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
   };
 
   const submit = () => {
+    if (mode === "supabase") {
+      toast.info("Inviting staff lands with the invites step", {
+        description: "Staff need their own sign-in, so this comes next.",
+      });
+      return;
+    }
     guarded(() => {
       const name = form.full_name.trim();
       const salaryAmount = Number(form.base_salary) || 0;

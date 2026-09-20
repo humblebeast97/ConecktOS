@@ -48,7 +48,7 @@ export interface DraftUsage {
   quantity_used: number;
 }
 
-interface CreateTicketInput {
+export interface CreateTicketInput {
   client_name: string;
   client_phone: string;
   payment_method: PaymentMethod;
