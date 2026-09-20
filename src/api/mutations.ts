@@ -328,6 +328,56 @@ export function useSupabaseMutations() {
       resetAll: (): void => {
         fire(ALL_KEYS, () => call(requireSupabase().rpc("reset_business_data")), "Could not reset");
       },
+
+      // --- Onboarding (awaitable; callers navigate on success) ---
+
+      createOwnerBusiness: async (businessName: string, ownerName: string): Promise<void> => {
+        await call(
+          requireSupabase().rpc("create_owner_business", {
+            p_business_name: businessName,
+            p_owner_name: ownerName,
+          }),
+        );
+        qc.invalidateQueries({ queryKey: ["me"] });
+        qc.invalidateQueries({ queryKey: queryKeys.business });
+        qc.invalidateQueries({ queryKey: queryKeys.profiles });
+      },
+
+      acceptInvite: async (
+        code: string,
+        fullName: string,
+        jobTitle: string | null,
+        bankName: string | null,
+        accountNumber: string | null,
+        accountName: string | null,
+      ): Promise<void> => {
+        await call(
+          requireSupabase().rpc("accept_invite", {
+            p_code: code,
+            p_full_name: fullName,
+            p_job_title: jobTitle,
+            p_bank_name: bankName,
+            p_account_number: accountNumber,
+            p_account_name: accountName,
+          }),
+        );
+        qc.invalidateQueries({ queryKey: ["me"] });
+        qc.invalidateQueries({ queryKey: queryKeys.profiles });
+      },
+
+      createInvite: async (
+        role: string,
+        commissionRate: number,
+        email: string | null,
+      ): Promise<string> => {
+        return call<string>(
+          requireSupabase().rpc("create_invite", {
+            p_role: role,
+            p_commission_rate: commissionRate,
+            p_email: email,
+          }),
+        );
+      },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [qc],

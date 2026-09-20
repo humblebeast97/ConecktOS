@@ -44,7 +44,7 @@ export const Route = createFileRoute("/signup")({
 
 function SignUpPage() {
   const navigate = useNavigate();
-  const { mode, signIn } = useAuth();
+  const { mode, signIn, signUp } = useAuth();
   const [step, setStep] = useState<1 | 2>(1);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -80,6 +80,20 @@ function SignUpPage() {
     e.preventDefault();
     setSubmitted(true);
     if (!fullName.trim() || emailError || !email.trim() || !passwordStrong) return;
+    if (mode === "supabase") {
+      submitCreate(async () => {
+        const { error } = await signUp!(email.trim(), password);
+        if (error) {
+          toast.error("Sign up failed", { description: error });
+          return;
+        }
+        toast.success("Account created", {
+          description: "If asked, confirm your email, then finish setting up your business.",
+        });
+        navigate({ to: "/admin" });
+      });
+      return;
+    }
     submitCreate(() => {
       toast.success("Account created. Now set up your business.");
       setStep(2);

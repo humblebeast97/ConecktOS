@@ -20,7 +20,7 @@ import { EmptyState } from "@/components/app-shell";
 import { useSubmit } from "@/lib/use-submit";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth, useStaff, useTickets } from "@/api";
+import { useAuth, useOnboarding, useStaff, useTickets } from "@/api";
 import {
   earnsCommission,
   naira,
@@ -47,6 +47,7 @@ const steps = ["Identity", "Role"] as const;
 export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
   const config = useIndustryConfig();
   const { mode } = useAuth();
+  const { createInvite } = useOnboarding();
   const { profiles, addStaff, removeProfile } = useStaff();
   const { ticketItems } = useTickets();
   const industryRoleLabel = (role: Role) =>
@@ -96,8 +97,26 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
 
   const submit = () => {
     if (mode === "supabase") {
-      toast.info("Inviting staff lands with the invites step", {
-        description: "Staff need their own sign-in, so this comes next.",
+      // Staff sign in with their own account, so we generate an invite code the
+      // owner shares. The member enters it at /join to create their profile.
+      guarded(async () => {
+        try {
+          const code = await createInvite(
+            form.role,
+            isEarner ? form.commission_rate / 100 : 0,
+            null,
+          );
+          toast.success(`Invite code: ${code}`, {
+            description: `Share it. ${industryRoleLabel(form.role)} signs up at /join and enters this code.`,
+            duration: 15000,
+          });
+          setForm(emptyForm);
+          setStep(0);
+        } catch (e) {
+          toast.error("Could not create the invite", {
+            description: e instanceof Error ? e.message : String(e),
+          });
+        }
       });
       return;
     }

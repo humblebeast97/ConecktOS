@@ -1,8 +1,8 @@
 import { useEffect, type ReactNode } from "react";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
+import { OnboardingSetup } from "@/components/onboarding-setup";
 
 /**
  * Route-level auth gate for Supabase mode. It guarantees that protected portal
@@ -45,20 +45,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
       );
     }
     if (!currentUser) {
-      return (
-        <FullScreen>
-          <div className="max-w-sm space-y-3">
-            <h1 className="font-display text-xl font-bold">We couldn&apos;t load your profile</h1>
-            <p className="text-sm text-muted-foreground">
-              Your account is signed in but has no workspace profile yet. Ask your admin to add you,
-              or sign out and try a different account.
-            </p>
-            <Button onClick={() => void signOut?.()} className="font-semibold">
-              Sign out
-            </Button>
-          </div>
-        </FullScreen>
-      );
+      // Signed in but not yet onboarded: create a business or accept an invite.
+      return <OnboardingSetup onSignOut={() => void signOut?.()} />;
     }
   }
 

@@ -194,3 +194,14 @@ export function useAdminOps() {
   const m = useSupabaseMutations();
   return { resetAll: useSupabaseData ? m.resetAll : resetAll };
 }
+
+/** Onboarding writes (Supabase only): bootstrap a business, or generate/accept
+ * an invite. Callers await these and navigate on success. */
+export function useOnboarding() {
+  const m = useSupabaseMutations();
+  return {
+    createOwnerBusiness: m.createOwnerBusiness,
+    acceptInvite: m.acceptInvite,
+    createInvite: m.createInvite,
+  };
+}

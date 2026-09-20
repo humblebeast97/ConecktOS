@@ -55,7 +55,7 @@ const portalFor = (role: Role) =>
 function JoinPage() {
   const navigate = useNavigate();
   const config = useIndustryConfig();
-  const { mode, signIn } = useAuth();
+  const { mode, signIn, signUp } = useAuth();
   const { addStaff } = useStaff();
 
   const [role, setRole] = useState<Role>("staff");
@@ -117,14 +117,28 @@ function JoinPage() {
       accountNumberError
     )
       return;
-    submit(() => {
-      if (mode === "supabase") {
-        toast.info("Joining a team isn't enabled yet in this mode", {
-          description: "Ask your admin to add you, then sign in.",
+    if (mode === "supabase") {
+      submit(async () => {
+        const { error } = await signUp!(email.trim(), password);
+        if (error) {
+          toast.error("Sign up failed", { description: error });
+          return;
+        }
+        if (inviteCode.trim() && typeof window !== "undefined") {
+          try {
+            window.localStorage.setItem("conecktos-invite-code", inviteCode.trim());
+          } catch {
+            /* storage unavailable: they can re-enter the code on the setup screen */
+          }
+        }
+        toast.success("Account created", {
+          description: "If asked, confirm your email, then enter your invite code to join.",
         });
-        navigate({ to: "/login" });
-        return;
-      }
+        navigate({ to: "/admin" });
+      });
+      return;
+    }
+    submit(() => {
       const member = addStaff({
         full_name: fullName.trim(),
         role,
