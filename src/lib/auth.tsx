@@ -15,7 +15,7 @@ import type { Profile } from "@/lib/groompulse";
  * the other mode.
  */
 export type AuthMode = "mock" | "supabase";
-export type OAuthProvider = "google" | "apple";
+export type OAuthProvider = "google";
 type AuthResult = { error: string | null };
 
 export interface AuthApi {

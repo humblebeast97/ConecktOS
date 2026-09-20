@@ -2142,7 +2142,7 @@ const LANDING_HTML = `<!-- NAV -->
       <div class="step-card">
         <div class="step-num">1</div>
         <div class="step-h">Create your account</div>
-        <p class="step-body">Sign up with email, Google or Apple. Name the business, drop a pin on your location, and set how far the geofence reaches.</p>
+        <p class="step-body">Sign up with email or Google. Name the business, drop a pin on your location, and set how far the geofence reaches.</p>
         <span class="step-time">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
           About 90 seconds
