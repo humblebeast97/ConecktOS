@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, X } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { useSupabaseMutations } from "@/api/mutations";
 
 interface Props {
-  /** Unique per-role id so each role's dismissal is tracked separately. */
+  /** Unique per-role id so each role's dismissal is tracked separately. Doubles
+   * as the key in the user's server-side prefs. */
   storageKey: string;
   message: string;
 }
@@ -10,17 +13,36 @@ interface Props {
 /**
  * One-line green ribbon that replaces a completed onboarding checklist so
  * finished setup does not keep taking up half the first fold. Dismissal is
- * persisted per user in localStorage.
+ * persisted per user: in the profile's prefs (Supabase mode, so it follows the
+ * user across devices) or localStorage (mock mode).
  */
 export function SetupRibbon({ storageKey, message }: Props) {
+  const { mode, currentUser } = useAuth();
+  const m = useSupabaseMutations();
   const [dismissed, setDismissed] = useState<boolean>(() => false);
 
   useEffect(() => {
+    if (mode === "supabase") {
+      setDismissed(Boolean(currentUser?.prefs?.[storageKey]));
+      return;
+    }
     if (typeof window === "undefined") return;
     setDismissed(window.localStorage.getItem(storageKey) === "1");
-  }, [storageKey]);
+  }, [storageKey, mode, currentUser]);
 
   if (dismissed) return null;
+
+  const dismiss = () => {
+    setDismissed(true);
+    if (mode === "supabase") {
+      if (currentUser) {
+        const prefs = (currentUser.prefs ?? {}) as Record<string, unknown>;
+        void m.updateMyPrefs(currentUser.id, { ...prefs, [storageKey]: true });
+      }
+      return;
+    }
+    if (typeof window !== "undefined") window.localStorage.setItem(storageKey, "1");
+  };
 
   // Text uses the page foreground so it flips near-white in dark mode and
   // near-black in light mode, always legible on the translucent mint fill.
@@ -36,10 +58,7 @@ export function SetupRibbon({ storageKey, message }: Props) {
       </span>
       <button
         type="button"
-        onClick={() => {
-          setDismissed(true);
-          if (typeof window !== "undefined") window.localStorage.setItem(storageKey, "1");
-        }}
+        onClick={dismiss}
         aria-label="Dismiss setup notice"
         className="text-foreground/60 hover:text-foreground"
       >

@@ -53,6 +53,9 @@ export interface Profile {
   account_number: string | null;
   account_name: string | null;
   avatar_url: string | null;
+  /** Per-user UI state (ribbon dismissals, location consent). Server-backed in
+   * Phase 1; optional so the mock seed and older rows stay valid. */
+  prefs?: Record<string, unknown> | null;
 }
 
 export interface Attendance {

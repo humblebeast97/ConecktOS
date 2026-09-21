@@ -413,6 +413,13 @@ export function useSupabaseMutations() {
           }),
         );
       },
+
+      // Replace the caller's whole prefs bag (the hook merges before calling).
+      updateMyPrefs: async (userId: string, prefs: Record<string, unknown>): Promise<void> => {
+        await call(requireSupabase().from("profiles").update({ prefs }).eq("id", userId));
+        qc.invalidateQueries({ queryKey: ["me"] });
+        qc.invalidateQueries({ queryKey: queryKeys.profiles });
+      },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [qc],

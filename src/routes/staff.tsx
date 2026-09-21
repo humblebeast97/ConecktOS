@@ -34,12 +34,14 @@ import {
 } from "@/components/ui/dialog";
 import {
   useAttendance,
+  useAuth,
   useSessionUser,
   useBusiness,
   useServices,
   useStaff,
   useTickets,
 } from "@/api";
+import { useSupabaseMutations } from "@/api/mutations";
 import { haversineMeters, naira, timeOf, type Profile, type Business } from "@/lib/groompulse";
 import { copyText } from "@/lib/clipboard";
 import { staffDailyCommission } from "@/lib/reports";
@@ -79,6 +81,8 @@ export const Route = createFileRoute("/staff")({
 function StaffPortal() {
   const config = useIndustryConfig();
   const currentUser = useSessionUser();
+  const { mode } = useAuth();
+  const sbm = useSupabaseMutations();
   const { staff } = useStaff();
   const { business } = useBusiness();
   const { tickets, ticketItems } = useTickets();
@@ -114,9 +118,13 @@ function StaffPortal() {
     [me.id, tickets, ticketItems],
   );
 
-  const hasLocationConsent = () =>
-    typeof window !== "undefined" &&
-    window.localStorage.getItem("conecktos-location-consent") === "granted";
+  const hasLocationConsent = () => {
+    if (mode === "supabase") return Boolean(currentUser.prefs?.["location-consent"]);
+    return (
+      typeof window !== "undefined" &&
+      window.localStorage.getItem("conecktos-location-consent") === "granted"
+    );
+  };
 
   const startClockIn = () => {
     if (hasLocationConsent()) requestClockIn();
@@ -124,7 +132,10 @@ function StaffPortal() {
   };
 
   const grantAndClockIn = () => {
-    if (typeof window !== "undefined") {
+    if (mode === "supabase") {
+      const prefs = (currentUser.prefs ?? {}) as Record<string, unknown>;
+      void sbm.updateMyPrefs(currentUser.id, { ...prefs, "location-consent": true });
+    } else if (typeof window !== "undefined") {
       window.localStorage.setItem("conecktos-location-consent", "granted");
     }
     setConsentOpen(false);
