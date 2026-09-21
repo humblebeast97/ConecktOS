@@ -137,11 +137,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 // "system" clears the attribute so prefers-color-scheme takes over.
 const THEME_BOOT = `(function(){try{var t=localStorage.getItem('conecktos-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}else if(t!=='system'){document.documentElement.setAttribute('data-theme','light');}}catch(e){document.documentElement.setAttribute('data-theme','light');}})();`;
 
+// Decide the landing redirect BEFORE the body paints, so returning users and
+// the installed app never see the marketing page flash. The client-side effect
+// in routes/index.tsx runs only after first paint (too late on a hard load);
+// this blocking <head> script beats the paint. Only acts on "/", so SEO
+// crawlers and signed-out browser visitors still get the full landing.
+const ENTRY_BOOT = `(function(){try{if(location.pathname!=='/')return;var hasToken=false;try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.slice(-11)==='-auth-token'){hasToken=true;break;}}}catch(e){}var standalone=false;try{standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;}catch(e){}if(hasToken){location.replace('/admin');}else if(standalone){location.replace('/login');}}catch(e){}})();`;
+
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: ENTRY_BOOT }} />
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
       </head>
       <body>
