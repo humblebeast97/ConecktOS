@@ -1,15 +1,9 @@
 /*
- * Minimal wrapper around OpenStreetMap Nominatim so the UI never touches raw
- * coordinates and never hardcodes an API key.
- *
- * Nominatim is unauthenticated but rate-limited (1 req/sec) and expects a
- * User-Agent identifying the app. Browsers can't set User-Agent, so we send a
- * Referer via the browser default and identify via the `email` param.
- *
- * All functions cache in-session to keep repeat searches quiet.
+ * Address search + reverse geocoding via the Google Maps JS Geocoder. Uses the
+ * same Maps key as the map preview (see google-maps.ts); the UI never touches
+ * raw coordinates. Results cache in-session to keep repeat lookups quiet.
  */
-const ENDPOINT = "https://nominatim.openstreetmap.org";
-const CONTACT = "conecktos@ehigiatorpowell1";
+import { loadGoogleMaps } from "./google-maps";
 
 export interface GeocodeMatch {
   lat: number;
@@ -26,23 +20,21 @@ const searchCache = new Map<string, GeocodeMatch[]>();
 const reverseCache = new Map<string, GeocodeMatch>();
 
 /** Search addresses by free text. Returns up to 5 matches. */
-export async function searchAddress(query: string, signal?: AbortSignal): Promise<GeocodeMatch[]> {
+export async function searchAddress(query: string, _signal?: AbortSignal): Promise<GeocodeMatch[]> {
   const q = query.trim();
   if (q.length < 3) return [];
   const cached = searchCache.get(q);
   if (cached) return cached;
 
-  const url = new URL(`${ENDPOINT}/search`);
-  url.searchParams.set("q", q);
-  url.searchParams.set("format", "jsonv2");
-  url.searchParams.set("limit", "5");
-  url.searchParams.set("addressdetails", "1");
-  url.searchParams.set("email", CONTACT);
-
-  const res = await fetch(url.toString(), { signal, headers: { Accept: "application/json" } });
-  if (!res.ok) throw new Error(`Search failed: ${res.status}`);
-  const data = (await res.json()) as NominatimHit[];
-  const matches = data.map(toMatch);
+  const maps = await loadGoogleMaps();
+  const geocoder = new maps.Geocoder();
+  let matches: GeocodeMatch[] = [];
+  try {
+    const { results } = await geocoder.geocode({ address: q, region: "NG" });
+    matches = results.slice(0, 5).map(toMatch);
+  } catch {
+    matches = [];
+  }
   searchCache.set(q, matches);
   return matches;
 }
@@ -51,51 +43,41 @@ export async function searchAddress(query: string, signal?: AbortSignal): Promis
 export async function reverseGeocode(
   lat: number,
   lng: number,
-  signal?: AbortSignal,
+  _signal?: AbortSignal,
 ): Promise<GeocodeMatch | null> {
   const key = `${lat.toFixed(5)},${lng.toFixed(5)}`;
   const cached = reverseCache.get(key);
   if (cached) return cached;
 
-  const url = new URL(`${ENDPOINT}/reverse`);
-  url.searchParams.set("lat", String(lat));
-  url.searchParams.set("lon", String(lng));
-  url.searchParams.set("format", "jsonv2");
-  url.searchParams.set("addressdetails", "1");
-  url.searchParams.set("zoom", "18");
-  url.searchParams.set("email", CONTACT);
-
-  const res = await fetch(url.toString(), { signal, headers: { Accept: "application/json" } });
-  if (!res.ok) return null;
-  const data = (await res.json()) as NominatimHit;
-  if (!data || !data.lat) return null;
-  const match = toMatch(data);
-  reverseCache.set(key, match);
-  return match;
+  const maps = await loadGoogleMaps();
+  const geocoder = new maps.Geocoder();
+  try {
+    const { results } = await geocoder.geocode({ location: { lat, lng } });
+    if (!results.length) return null;
+    const match = toMatch(results[0]);
+    reverseCache.set(key, match);
+    return match;
+  } catch {
+    return null;
+  }
 }
 
-interface NominatimHit {
-  lat: string;
-  lon: string;
-  display_name: string;
-  address?: Record<string, string | undefined>;
-}
-
-function toMatch(hit: NominatimHit): GeocodeMatch {
-  const a = hit.address ?? {};
-  // Build "12 Marina Street" if we can; fall back to first display_name segment.
-  const parts = hit.display_name.split(",").map((s) => s.trim());
-  const houseNumber = a.house_number;
-  const street = a.road ?? a.pedestrian ?? a.footway ?? a.path ?? a.neighbourhood;
-  const primary =
-    (houseNumber && street ? `${houseNumber} ${street}` : (street ?? parts[0])) ?? parts[0];
-  // Region: everything after the primary component, trimmed to 3 useful bits.
-  const rest = parts.filter((p) => p !== primary).slice(0, 3);
+function toMatch(r: google.maps.GeocoderResult): GeocodeMatch {
+  const comp = (type: string) =>
+    r.address_components.find((c) => c.types.includes(type))?.long_name;
+  const number = comp("street_number");
+  const route = comp("route");
+  const parts = r.formatted_address.split(",").map((s) => s.trim());
+  const primary = (number && route ? `${number} ${route}` : (route ?? parts[0])) ?? parts[0];
+  const region = parts
+    .filter((p) => p !== primary)
+    .slice(0, 3)
+    .join(", ");
   return {
-    lat: Number(hit.lat),
-    lng: Number(hit.lon),
+    lat: r.geometry.location.lat(),
+    lng: r.geometry.location.lng(),
     label: primary,
-    region: rest.join(", "),
-    fullAddress: hit.display_name,
+    region,
+    fullAddress: r.formatted_address,
   };
 }

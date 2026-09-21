@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, MapPin, Navigation, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { reverseGeocode, searchAddress, type GeocodeMatch } from "@/lib/geocode";
-import "leaflet/dist/leaflet.css";
+import { hasGoogleMaps, loadGoogleMaps } from "@/lib/google-maps";
 
 export interface LocationValue {
   latitude: number;
@@ -165,7 +165,7 @@ export function LocationPicker({ value, radiusMeters, onChange }: Props) {
               ))
             )}
             <div className="border-t border-border bg-background/50 px-4 py-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
-              Search via OpenStreetMap
+              Powered by Google
             </div>
           </div>
         ) : null}
@@ -197,7 +197,7 @@ export function LocationPicker({ value, radiusMeters, onChange }: Props) {
         </div>
       ) : null}
 
-      <MapPreview value={value} radiusMeters={radiusMeters} />
+      <MapPreview value={value} radiusMeters={radiusMeters} onChange={onChange} />
     </div>
   );
 }
@@ -214,81 +214,97 @@ function StatusHint({ status }: { status: string }) {
   return null;
 }
 
-/** Leaflet map with a marker + radius circle. Rendered client-side only. */
+const PIN_COLOR = "#6845E8";
+
+/** Google map with a draggable marker + radius circle. Dragging the pin
+ * fine-tunes the location and reverse-geocodes a fresh label. Client-side only. */
 function MapPreview({
   value,
   radiusMeters,
+  onChange,
 }: {
   value: LocationValue | null;
   radiusMeters: number;
+  onChange: (next: LocationValue) => void;
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const state = useRef<{
-    map: import("leaflet").Map;
-    marker: import("leaflet").Marker;
-    circle: import("leaflet").Circle;
+    map: google.maps.Map;
+    marker: google.maps.Marker;
+    circle: google.maps.Circle;
   } | null>(null);
+  const [failed, setFailed] = useState(false);
 
-  const center = useMemo<[number, number] | null>(
-    () => (value ? [value.latitude, value.longitude] : null),
+  const center = useMemo(
+    () => (value ? { lat: value.latitude, lng: value.longitude } : null),
     [value],
   );
 
   useEffect(() => {
-    if (!ref.current || !center) return;
+    if (!ref.current || !center || !hasGoogleMaps) return;
     let cancelled = false;
     (async () => {
-      const L = (await import("leaflet")).default;
+      let maps: typeof google.maps;
+      try {
+        maps = await loadGoogleMaps();
+      } catch {
+        if (!cancelled) setFailed(true);
+        return;
+      }
       if (cancelled || !ref.current) return;
       if (!state.current) {
-        const map = L.map(ref.current, {
-          zoomControl: false,
-          attributionControl: false,
-        }).setView(center, 16);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          maxZoom: 19,
-        }).addTo(map);
-        L.control.attribution({ prefix: false }).addAttribution("© OpenStreetMap").addTo(map);
-        const marker = L.circleMarker(center, {
-          radius: 6,
-          color: "#6845E8",
-          weight: 3,
-          fillColor: "#6845E8",
-          fillOpacity: 1,
-        }).addTo(map);
-        const circle = L.circle(center, {
+        const map = new maps.Map(ref.current, {
+          center,
+          zoom: 16,
+          disableDefaultUI: true,
+          gestureHandling: "cooperative",
+        });
+        const marker = new maps.Marker({ position: center, map, draggable: true });
+        const circle = new maps.Circle({
+          map,
+          center,
           radius: radiusMeters,
-          color: "#6845E8",
-          weight: 1.5,
-          dashArray: "4 4",
-          fillColor: "#6845E8",
+          strokeColor: PIN_COLOR,
+          strokeWeight: 1.5,
+          fillColor: PIN_COLOR,
           fillOpacity: 0.1,
-        }).addTo(map);
-        state.current = { map, marker: marker as unknown as import("leaflet").Marker, circle };
+        });
+        marker.addListener("dragend", () => {
+          const pos = marker.getPosition();
+          if (!pos) return;
+          const lat = pos.lat();
+          const lng = pos.lng();
+          circle.setCenter({ lat, lng });
+          void reverseGeocode(lat, lng).then((m) =>
+            onChange({
+              latitude: lat,
+              longitude: lng,
+              address_label: m
+                ? m.region
+                  ? `${m.label}, ${m.region}`
+                  : m.label
+                : "Pinned location",
+            }),
+          );
+        });
+        state.current = { map, marker, circle };
       } else {
-        state.current.map.setView(center, state.current.map.getZoom());
-        (state.current.marker as unknown as import("leaflet").CircleMarker).setLatLng(center);
-        state.current.circle.setLatLng(center);
+        state.current.map.setCenter(center);
+        state.current.marker.setPosition(center);
+        state.current.circle.setCenter(center);
       }
     })();
     return () => {
       cancelled = true;
     };
+    // onChange is stable enough for this effect; re-running on it would rebuild the map.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [center, radiusMeters]);
 
   // Keep the circle radius in sync when the slider changes.
   useEffect(() => {
-    if (state.current) state.current.circle.setRadius(radiusMeters);
+    state.current?.circle.setRadius(radiusMeters);
   }, [radiusMeters]);
-
-  // Tear down when unmounted so the DOM slot can be reused.
-  useEffect(
-    () => () => {
-      state.current?.map.remove();
-      state.current = null;
-    },
-    [],
-  );
 
   if (!center) {
     return (
@@ -299,11 +315,27 @@ function MapPreview({
       </div>
     );
   }
+
+  if (!hasGoogleMaps || failed) {
+    return (
+      <div className="mt-1 flex aspect-[16/9] items-center justify-center rounded-xl border border-dashed border-border bg-surface/60 text-center">
+        <p className="max-w-[20rem] px-4 text-xs text-muted-foreground">
+          Location set to{" "}
+          <span className="font-medium text-foreground tabular-nums">
+            {value?.latitude.toFixed(5)}, {value?.longitude.toFixed(5)}
+          </span>
+          . Add a Google Maps API key to preview the geofence map.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="relative overflow-hidden rounded-xl border border-border">
       <div ref={ref} className="aspect-[16/9] w-full" />
       <div className="pointer-events-none absolute bottom-2 left-2 rounded-full bg-background/80 px-2.5 py-1 text-[11px] font-medium backdrop-blur">
-        Geofence · <span className="text-primary tabular-nums">{radiusMeters} m</span>
+        Drag the pin to adjust · Geofence{" "}
+        <span className="text-primary tabular-nums">{radiusMeters} m</span>
       </div>
     </div>
   );
