@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { BusinessProfilePanel } from "@/components/business-profile";
 import { defaultUserForRole } from "@/lib/store";
 import { useAuth } from "@/api";
+import { useRedirectSignedIn } from "@/lib/use-portal-redirect";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -45,6 +46,7 @@ export const Route = createFileRoute("/signup")({
 function SignUpPage() {
   const navigate = useNavigate();
   const { mode, signIn, signUp } = useAuth();
+  useRedirectSignedIn();
   const [step, setStep] = useState<1 | 2>(1);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");

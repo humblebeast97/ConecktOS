@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { RouteError } from "@/components/route-error";
+import { useRedirectSignedIn } from "@/lib/use-portal-redirect";
 
 // Marketing landing page. The design is a self-contained, approved static
 // layout that already uses the app's Sora/Manrope + Nova tokens, so it ships
@@ -2361,6 +2362,8 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  useRedirectSignedIn();
+
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: LANDING_CSS }} />

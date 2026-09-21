@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { defaultUserForRole } from "@/lib/store";
 import { useAuth } from "@/api";
+import { useRedirectSignedIn } from "@/lib/use-portal-redirect";
 import type { Role } from "@/lib/groompulse";
 
 export const Route = createFileRoute("/login")({
@@ -101,6 +102,7 @@ function LoginPage() {
   const [remember, setRemember] = useState(true);
   const navigate = useNavigate();
   const { mode, signIn, signInWithPassword, signInWithOAuth, resetPassword } = useAuth();
+  useRedirectSignedIn();
   const { isSubmitting, submit } = useSubmit();
 
   const active = roles.find((r) => r.role === role)!;
