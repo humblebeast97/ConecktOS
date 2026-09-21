@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
+import { LocationPicker } from "@/components/location-picker";
 import { RouteError } from "@/components/route-error";
 import { FieldError } from "@/components/field-error";
 import { useSubmit } from "@/lib/use-submit";
@@ -64,14 +65,14 @@ function SettingsPage() {
   const { business, updateBusiness } = useBusiness();
   const [personalName, setPersonalName] = useState(currentUser?.full_name ?? "");
   const [personalSubmitted, setPersonalSubmitted] = useState(false);
-  const personalNameError =
-    personalSubmitted && !personalName.trim() ? "Name is required" : null;
+  const personalNameError = personalSubmitted && !personalName.trim() ? "Name is required" : null;
 
   const [name, setName] = useState(business.name);
   const [currency, setCurrency] = useState(business.currency);
   const [radius, setRadius] = useState(String(business.geofence_radius_meters));
   const [lat, setLat] = useState(business.latitude?.toString() ?? "");
   const [lng, setLng] = useState(business.longitude?.toString() ?? "");
+  const [addressLabel, setAddressLabel] = useState(business.address_label ?? "");
   const [open, setOpen] = useState(business.open_time);
   const [close, setClose] = useState(business.close_time);
   const [payrollReminder, setPayrollReminder] = useState<PayrollReminderDays>(
@@ -117,6 +118,7 @@ function SettingsPage() {
         payroll_reminder_days: payrollReminder,
         ...(lat ? { latitude: Number(lat) } : {}),
         ...(lng ? { longitude: Number(lng) } : {}),
+        ...(addressLabel ? { address_label: addressLabel } : {}),
       });
       toast.success("Settings saved");
     });
@@ -141,8 +143,7 @@ function SettingsPage() {
           const nextName = personalName.trim();
           const nameDirty = currentUser && nextName && nextName !== currentUser.full_name;
           if (canEditBusiness) {
-            if (nameDirty && currentUser)
-              updateProfile(currentUser.id, { full_name: nextName });
+            if (nameDirty && currentUser) updateProfile(currentUser.id, { full_name: nextName });
             save();
             return;
           }
@@ -162,125 +163,131 @@ function SettingsPage() {
         />
 
         {canEditBusiness ? (
-        <section className="card-lux rounded-2xl p-5 sm:p-6">
-          <div className="flex items-start gap-3">
-            <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
-              <Building2 className="size-5" />
+          <section className="card-lux rounded-2xl p-5 sm:p-6">
+            <div className="flex items-start gap-3">
+              <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
+                <Building2 className="size-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold">Business profile</h2>
+                <p className="text-sm text-muted-foreground">Your business name and currency.</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-lg font-semibold">Business profile</h2>
-              <p className="text-sm text-muted-foreground">Your business name and currency.</p>
-            </div>
-          </div>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="s-name">
-                Business name <span className="text-primary">*</span>
-              </Label>
-              <Input
-                id="s-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="h-11 bg-surface"
-                required
-                minLength={2}
-                maxLength={80}
-                aria-invalid={Boolean(nameError)}
-                aria-describedby="s-name-error"
-              />
-              <FieldError id="s-name-error" message={nameError} />
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="s-name">
+                  Business name <span className="text-primary">*</span>
+                </Label>
+                <Input
+                  id="s-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="h-11 bg-surface"
+                  required
+                  minLength={2}
+                  maxLength={80}
+                  aria-invalid={Boolean(nameError)}
+                  aria-describedby="s-name-error"
+                />
+                <FieldError id="s-name-error" message={nameError} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="s-cur">Currency</Label>
+                <Select value={currency} onValueChange={setCurrency}>
+                  <SelectTrigger id="s-cur" className="h-11 bg-surface">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currencyOptions.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>
+                        {c.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="s-cur">Currency</Label>
-              <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger id="s-cur" className="h-11 bg-surface">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {currencyOptions.map((c) => (
-                    <SelectItem key={c.code} value={c.code}>
-                      {c.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </section>
+          </section>
         ) : null}
 
         {canEditBusiness ? (
-        <section className="card-lux rounded-2xl p-5 sm:p-6">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-semibold">Location &amp; hours</h2>
-              <p className="text-sm text-muted-foreground">Used for geofenced clock-ins.</p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={useMyLocation}
-              disabled={locating}
-              className="h-9"
-            >
-              {locating ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <MapPin className="size-4" />
-              )}
-              Use my location
-            </Button>
-          </div>
-
-          <div className="mt-5 space-y-4">
-            <div className="rounded-xl border border-border bg-surface px-4 py-3 text-sm">
-              {lat && lng ? (
-                <span className="flex items-center gap-2 text-success">
-                  <MapPin className="size-4 shrink-0" />
-                  Location set · {Number(lat).toFixed(4)}, {Number(lng).toFixed(4)}
-                </span>
-              ) : (
-                <span className="text-muted-foreground">
-                  No location set. Tap “Use my location” while you're at the business.
-                </span>
-              )}
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="s-radius">Geofence radius (metres)</Label>
-                <Input
-                  id="s-radius"
-                  type="number"
-                  inputMode="numeric"
-                  min={10}
-                  max={500}
-                  step={5}
-                  value={radius}
-                  onChange={(e) => setRadius(e.target.value)}
-                  placeholder="50"
-                  className="h-11 bg-surface"
-                />
+          <section className="card-lux rounded-2xl p-5 sm:p-6">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold">Location &amp; hours</h2>
+                <p className="text-sm text-muted-foreground">Used for geofenced clock-ins.</p>
               </div>
-              <div className="grid grid-cols-2 gap-5">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={useMyLocation}
+                disabled={locating}
+                className="h-9"
+              >
+                {locating ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <MapPin className="size-4" />
+                )}
+                Use my location
+              </Button>
+            </div>
+
+            <div className="mt-5 space-y-4">
+              <LocationPicker
+                value={
+                  lat && lng
+                    ? { latitude: Number(lat), longitude: Number(lng), address_label: addressLabel }
+                    : null
+                }
+                radiusMeters={Number(radius) || 100}
+                onChange={(v) => {
+                  setLat(String(v.latitude));
+                  setLng(String(v.longitude));
+                  setAddressLabel(v.address_label);
+                }}
+              />
+
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="s-open">Opens</Label>
-                  <TimeInput id="s-open" value={open} onChange={setOpen} ariaLabel="Opening time" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="s-close">Closes</Label>
-                  <TimeInput
-                    id="s-close"
-                    value={close}
-                    onChange={setClose}
-                    ariaLabel="Closing time"
+                  <Label htmlFor="s-radius">Geofence radius (metres)</Label>
+                  <Input
+                    id="s-radius"
+                    type="number"
+                    inputMode="numeric"
+                    min={10}
+                    max={500}
+                    step={5}
+                    value={radius}
+                    onChange={(e) => setRadius(e.target.value)}
+                    placeholder="50"
+                    className="h-11 bg-surface"
                   />
                 </div>
+                <div className="grid grid-cols-2 gap-5">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="s-open">Opens</Label>
+                    <TimeInput
+                      id="s-open"
+                      value={open}
+                      onChange={setOpen}
+                      ariaLabel="Opening time"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="s-close">Closes</Label>
+                    <TimeInput
+                      id="s-close"
+                      value={close}
+                      onChange={setClose}
+                      ariaLabel="Closing time"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
         ) : null}
 
         {!canEditBusiness ? <ReadOnlyLocationSection /> : null}
@@ -298,59 +305,51 @@ function SettingsPage() {
         {isFrontDesk ? <FrontDeskSection /> : null}
 
         {canEditBusiness ? (
-        <section className="card-lux rounded-2xl p-5 sm:p-6">
-          <div>
-            <h2 className="text-lg font-semibold">Payroll reminder</h2>
-            <p className="text-sm text-muted-foreground">
-              When to show the "Payroll due" card on the Owner dashboard. Overdue paydays are always
-              highlighted, regardless of setting.
-            </p>
-          </div>
-          <div
-            className="mt-4 flex flex-wrap gap-2"
-            role="radiogroup"
-            aria-label="Payroll reminder cadence"
-          >
-            {(
-              [
-                { value: 0, label: "Off" },
-                { value: 3, label: "3 days before" },
-                { value: 7, label: "7 days before" },
-                { value: -1, label: "Always" },
-              ] as const
-            ).map((opt) => {
-              const active = payrollReminder === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  role="radio"
-                  aria-checked={active}
-                  onClick={() => setPayrollReminder(opt.value)}
-                  className={
-                    active
-                      ? "cursor-pointer rounded-full bg-gradient-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      : "cursor-pointer rounded-full border border-border bg-surface px-4 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  }
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-        </section>
+          <section className="card-lux rounded-2xl p-5 sm:p-6">
+            <div>
+              <h2 className="text-lg font-semibold">Payroll reminder</h2>
+              <p className="text-sm text-muted-foreground">
+                When to show the "Payroll due" card on the Owner dashboard. Overdue paydays are
+                always highlighted, regardless of setting.
+              </p>
+            </div>
+            <div
+              className="mt-4 flex flex-wrap gap-2"
+              role="radiogroup"
+              aria-label="Payroll reminder cadence"
+            >
+              {(
+                [
+                  { value: 0, label: "Off" },
+                  { value: 3, label: "3 days before" },
+                  { value: 7, label: "7 days before" },
+                  { value: -1, label: "Always" },
+                ] as const
+              ).map((opt) => {
+                const active = payrollReminder === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setPayrollReminder(opt.value)}
+                    className={
+                      active
+                        ? "cursor-pointer rounded-full bg-gradient-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        : "cursor-pointer rounded-full border border-border bg-surface px-4 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    }
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
         ) : null}
 
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          className="h-12 w-full font-semibold"
-        >
-          {isSubmitting ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Save className="size-4" />
-          )}
+        <Button type="submit" disabled={isSubmitting} className="h-12 w-full font-semibold">
+          {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
           {isSubmitting ? "Saving…" : "Save settings"}
         </Button>
         <p className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
@@ -557,20 +556,31 @@ function ReadOnlyLocationSection() {
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label>Geofence radius</Label>
-          <Input readOnly value={`${business.geofence_radius_meters} metres`} className="h-11 bg-muted/40 text-muted-foreground" />
+          <Input
+            readOnly
+            value={`${business.geofence_radius_meters} metres`}
+            className="h-11 bg-muted/40 text-muted-foreground"
+          />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label>Opens</Label>
-            <Input readOnly value={business.open_time} className="h-11 bg-muted/40 text-muted-foreground" />
+            <Input
+              readOnly
+              value={business.open_time}
+              className="h-11 bg-muted/40 text-muted-foreground"
+            />
           </div>
           <div className="space-y-1.5">
             <Label>Closes</Label>
-            <Input readOnly value={business.close_time} className="h-11 bg-muted/40 text-muted-foreground" />
+            <Input
+              readOnly
+              value={business.close_time}
+              className="h-11 bg-muted/40 text-muted-foreground"
+            />
           </div>
         </div>
       </div>
-
     </section>
   );
 }
