@@ -17,6 +17,21 @@ function hasStoredSession(): boolean {
   }
 }
 
+/** True when running as an installed PWA (Android/desktop standalone or iOS
+ * home-screen launch). Such users have already chosen the app, so the
+ * marketing landing is the wrong entry point: send them to sign in. */
+function isInstalledApp(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return (
+      window.matchMedia?.("(display-mode: standalone)").matches ||
+      (window.navigator as unknown as { standalone?: boolean }).standalone === true
+    );
+  } catch {
+    return false;
+  }
+}
+
 // Marketing landing page. The design is a self-contained, approved static
 // layout that already uses the app's Sora/Manrope + Nova tokens, so it ships
 // as raw HTML + a co-located style block rather than a re-derived JSX port
@@ -2390,7 +2405,11 @@ function Landing() {
   // guard on /admin then routes to the exact portal. SEO crawlers and signed-out
   // visitors have no token, so they still get the full marketing page.
   useIsomorphicLayoutEffect(() => {
-    if (hasStoredSession()) navigate({ to: "/admin", replace: true });
+    if (hasStoredSession()) {
+      navigate({ to: "/admin", replace: true });
+    } else if (isInstalledApp()) {
+      navigate({ to: "/login", replace: true });
+    }
   }, [navigate]);
 
   return (
