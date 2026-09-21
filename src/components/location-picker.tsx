@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, MapPin, Navigation, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { reverseGeocode, searchAddress, type GeocodeMatch } from "@/lib/geocode";
-import { hasGoogleMaps, loadGoogleMaps } from "@/lib/google-maps";
+import { hasMap, mapStyleUrl } from "@/lib/maptiler";
 
 export interface LocationValue {
   latitude: number;
@@ -165,7 +167,7 @@ export function LocationPicker({ value, radiusMeters, onChange }: Props) {
               ))
             )}
             <div className="border-t border-border bg-background/50 px-4 py-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
-              Powered by Google
+              Powered by MapTiler
             </div>
           </div>
         ) : null}
@@ -216,8 +218,26 @@ function StatusHint({ status }: { status: string }) {
 
 const PIN_COLOR = "#6845E8";
 
-/** Google map with a draggable marker + radius circle. Dragging the pin
- * fine-tunes the location and reverse-geocodes a fresh label. Client-side only. */
+/** GeoJSON polygon approximating a circle of `radiusMeters` around a point. */
+function circleFeature(lng: number, lat: number, radiusMeters: number) {
+  const points = 64;
+  const earth = 6378137;
+  const dLat = (radiusMeters / earth) * (180 / Math.PI);
+  const dLng = dLat / Math.cos((lat * Math.PI) / 180);
+  const ring: [number, number][] = [];
+  for (let i = 0; i <= points; i++) {
+    const theta = (i / points) * 2 * Math.PI;
+    ring.push([lng + dLng * Math.cos(theta), lat + dLat * Math.sin(theta)]);
+  }
+  return {
+    type: "Feature" as const,
+    properties: {},
+    geometry: { type: "Polygon" as const, coordinates: [ring] },
+  };
+}
+
+/** MapLibre (MapTiler tiles) map with a draggable marker + geofence circle.
+ * Dragging the pin fine-tunes the location and reverse-geocodes a fresh label. */
 function MapPreview({
   value,
   radiusMeters,
@@ -228,11 +248,7 @@ function MapPreview({
   onChange: (next: LocationValue) => void;
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
-  const state = useRef<{
-    map: google.maps.Map;
-    marker: google.maps.Marker;
-    circle: google.maps.Circle;
-  } | null>(null);
+  const state = useRef<{ map: maplibregl.Map; marker: maplibregl.Marker } | null>(null);
   const [failed, setFailed] = useState(false);
 
   const center = useMemo(
@@ -240,71 +256,86 @@ function MapPreview({
     [value],
   );
 
+  const setCircle = (map: maplibregl.Map, lng: number, lat: number, radius: number) => {
+    const src = map.getSource("geofence") as maplibregl.GeoJSONSource | undefined;
+    src?.setData(circleFeature(lng, lat, radius));
+  };
+
   useEffect(() => {
-    if (!ref.current || !center || !hasGoogleMaps) return;
-    let cancelled = false;
-    (async () => {
-      let maps: typeof google.maps;
+    if (!ref.current || !center || !hasMap) return;
+    if (!state.current) {
+      let map: maplibregl.Map;
       try {
-        maps = await loadGoogleMaps();
+        map = new maplibregl.Map({
+          container: ref.current,
+          style: mapStyleUrl,
+          center: [center.lng, center.lat],
+          zoom: 15,
+        });
       } catch {
-        if (!cancelled) setFailed(true);
+        setFailed(true);
         return;
       }
-      if (cancelled || !ref.current) return;
-      if (!state.current) {
-        const map = new maps.Map(ref.current, {
-          center,
-          zoom: 16,
-          disableDefaultUI: true,
-          gestureHandling: "cooperative",
+      map.on("error", () => setFailed(true));
+      const marker = new maplibregl.Marker({ color: PIN_COLOR, draggable: true })
+        .setLngLat([center.lng, center.lat])
+        .addTo(map);
+
+      map.on("load", () => {
+        map.addSource("geofence", {
+          type: "geojson",
+          data: circleFeature(center.lng, center.lat, radiusMeters),
         });
-        const marker = new maps.Marker({ position: center, map, draggable: true });
-        const circle = new maps.Circle({
-          map,
-          center,
-          radius: radiusMeters,
-          strokeColor: PIN_COLOR,
-          strokeWeight: 1.5,
-          fillColor: PIN_COLOR,
-          fillOpacity: 0.1,
+        map.addLayer({
+          id: "geofence-fill",
+          type: "fill",
+          source: "geofence",
+          paint: { "fill-color": PIN_COLOR, "fill-opacity": 0.1 },
         });
-        marker.addListener("dragend", () => {
-          const pos = marker.getPosition();
-          if (!pos) return;
-          const lat = pos.lat();
-          const lng = pos.lng();
-          circle.setCenter({ lat, lng });
-          void reverseGeocode(lat, lng).then((m) =>
-            onChange({
-              latitude: lat,
-              longitude: lng,
-              address_label: m
-                ? m.region
-                  ? `${m.label}, ${m.region}`
-                  : m.label
-                : "Pinned location",
-            }),
-          );
+        map.addLayer({
+          id: "geofence-line",
+          type: "line",
+          source: "geofence",
+          paint: { "line-color": PIN_COLOR, "line-width": 1.5, "line-dasharray": [2, 2] },
         });
-        state.current = { map, marker, circle };
-      } else {
-        state.current.map.setCenter(center);
-        state.current.marker.setPosition(center);
-        state.current.circle.setCenter(center);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-    // onChange is stable enough for this effect; re-running on it would rebuild the map.
+      });
+
+      marker.on("dragend", () => {
+        const { lat, lng } = marker.getLngLat();
+        setCircle(map, lng, lat, radiusMeters);
+        void reverseGeocode(lat, lng).then((m) =>
+          onChange({
+            latitude: lat,
+            longitude: lng,
+            address_label: m ? (m.region ? `${m.label}, ${m.region}` : m.label) : "Pinned location",
+          }),
+        );
+      });
+
+      state.current = { map, marker };
+    } else {
+      state.current.map.setCenter([center.lng, center.lat]);
+      state.current.marker.setLngLat([center.lng, center.lat]);
+      setCircle(state.current.map, center.lng, center.lat, radiusMeters);
+    }
+    // onChange is stable enough here; re-running on it would rebuild the map.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [center, radiusMeters]);
 
   // Keep the circle radius in sync when the slider changes.
   useEffect(() => {
-    state.current?.circle.setRadius(radiusMeters);
+    if (state.current && center) setCircle(state.current.map, center.lng, center.lat, radiusMeters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [radiusMeters]);
+
+  // Tear down when unmounted so the DOM slot can be reused.
+  useEffect(
+    () => () => {
+      state.current?.map.remove();
+      state.current = null;
+    },
+    [],
+  );
 
   if (!center) {
     return (
@@ -316,7 +347,7 @@ function MapPreview({
     );
   }
 
-  if (!hasGoogleMaps || failed) {
+  if (!hasMap || failed) {
     return (
       <div className="mt-1 flex aspect-[16/9] items-center justify-center rounded-xl border border-dashed border-border bg-surface/60 text-center">
         <p className="max-w-[20rem] px-4 text-xs text-muted-foreground">
@@ -324,7 +355,7 @@ function MapPreview({
           <span className="font-medium text-foreground tabular-nums">
             {value?.latitude.toFixed(5)}, {value?.longitude.toFixed(5)}
           </span>
-          . Add a Google Maps API key to preview the geofence map.
+          . Add a MapTiler key to preview the geofence map.
         </p>
       </div>
     );
@@ -333,7 +364,7 @@ function MapPreview({
   return (
     <div className="relative overflow-hidden rounded-xl border border-border">
       <div ref={ref} className="aspect-[16/9] w-full" />
-      <div className="pointer-events-none absolute bottom-2 left-2 rounded-full bg-background/80 px-2.5 py-1 text-[11px] font-medium backdrop-blur">
+      <div className="pointer-events-none absolute bottom-2 left-2 z-10 rounded-full bg-background/80 px-2.5 py-1 text-[11px] font-medium backdrop-blur">
         Drag the pin to adjust · Geofence{" "}
         <span className="text-primary tabular-nums">{radiusMeters} m</span>
       </div>

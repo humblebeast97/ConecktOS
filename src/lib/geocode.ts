@@ -1,14 +1,15 @@
 /*
- * Address search + reverse geocoding via the Google Maps JS Geocoder. Uses the
- * same Maps key as the map preview (see google-maps.ts); the UI never touches
- * raw coordinates. Results cache in-session to keep repeat lookups quiet.
+ * Address search + reverse geocoding via MapTiler's geocoding API (same key as
+ * the map preview, see maptiler.ts). The UI never touches raw coordinates.
+ * Results cache in-session to keep repeat lookups quiet. Degrades to no results
+ * when no key is configured.
  */
-import { loadGoogleMaps } from "./google-maps";
+import { geocodeBase, hasMap, maptilerKey } from "./maptiler";
 
 export interface GeocodeMatch {
   lat: number;
   lng: number;
-  /** Compact primary label: "12 Marina Street". */
+  /** Compact primary label: "Marina Street". */
   label: string;
   /** Rest of the address: "Lagos Island, Lagos, Nigeria". */
   region: string;
@@ -16,25 +17,27 @@ export interface GeocodeMatch {
   fullAddress: string;
 }
 
+interface MapTilerFeature {
+  center: [number, number];
+  text?: string;
+  place_name?: string;
+}
+
 const searchCache = new Map<string, GeocodeMatch[]>();
 const reverseCache = new Map<string, GeocodeMatch>();
 
 /** Search addresses by free text. Returns up to 5 matches. */
-export async function searchAddress(query: string, _signal?: AbortSignal): Promise<GeocodeMatch[]> {
+export async function searchAddress(query: string, signal?: AbortSignal): Promise<GeocodeMatch[]> {
   const q = query.trim();
-  if (q.length < 3) return [];
+  if (q.length < 3 || !hasMap) return [];
   const cached = searchCache.get(q);
   if (cached) return cached;
 
-  const maps = await loadGoogleMaps();
-  const geocoder = new maps.Geocoder();
-  let matches: GeocodeMatch[] = [];
-  try {
-    const { results } = await geocoder.geocode({ address: q, region: "NG" });
-    matches = results.slice(0, 5).map(toMatch);
-  } catch {
-    matches = [];
-  }
+  const url = `${geocodeBase}/${encodeURIComponent(q)}.json?key=${encodeURIComponent(maptilerKey)}&limit=5&country=ng`;
+  const res = await fetch(url, { signal });
+  if (!res.ok) throw new Error(`Search failed: ${res.status}`);
+  const data = (await res.json()) as { features?: MapTilerFeature[] };
+  const matches = (data.features ?? []).map(toMatch);
   searchCache.set(q, matches);
   return matches;
 }
@@ -43,41 +46,37 @@ export async function searchAddress(query: string, _signal?: AbortSignal): Promi
 export async function reverseGeocode(
   lat: number,
   lng: number,
-  _signal?: AbortSignal,
+  signal?: AbortSignal,
 ): Promise<GeocodeMatch | null> {
+  if (!hasMap) return null;
   const key = `${lat.toFixed(5)},${lng.toFixed(5)}`;
   const cached = reverseCache.get(key);
   if (cached) return cached;
 
-  const maps = await loadGoogleMaps();
-  const geocoder = new maps.Geocoder();
-  try {
-    const { results } = await geocoder.geocode({ location: { lat, lng } });
-    if (!results.length) return null;
-    const match = toMatch(results[0]);
-    reverseCache.set(key, match);
-    return match;
-  } catch {
-    return null;
-  }
+  const url = `${geocodeBase}/${lng},${lat}.json?key=${encodeURIComponent(maptilerKey)}&limit=1`;
+  const res = await fetch(url, { signal });
+  if (!res.ok) return null;
+  const data = (await res.json()) as { features?: MapTilerFeature[] };
+  const first = data.features?.[0];
+  if (!first) return null;
+  const match = toMatch(first);
+  reverseCache.set(key, match);
+  return match;
 }
 
-function toMatch(r: google.maps.GeocoderResult): GeocodeMatch {
-  const comp = (type: string) =>
-    r.address_components.find((c) => c.types.includes(type))?.long_name;
-  const number = comp("street_number");
-  const route = comp("route");
-  const parts = r.formatted_address.split(",").map((s) => s.trim());
-  const primary = (number && route ? `${number} ${route}` : (route ?? parts[0])) ?? parts[0];
+function toMatch(f: MapTilerFeature): GeocodeMatch {
+  const full = f.place_name ?? f.text ?? "";
+  const parts = full.split(",").map((s) => s.trim());
+  const label = f.text ?? parts[0] ?? "";
   const region = parts
-    .filter((p) => p !== primary)
+    .filter((p) => p !== label)
     .slice(0, 3)
     .join(", ");
   return {
-    lat: r.geometry.location.lat(),
-    lng: r.geometry.location.lng(),
-    label: primary,
+    lat: f.center[1],
+    lng: f.center[0],
+    label,
     region,
-    fullAddress: r.formatted_address,
+    fullAddress: full,
   };
 }
