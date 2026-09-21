@@ -1,6 +1,21 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useLayoutEffect } from "react";
 import { RouteError } from "@/components/route-error";
 import { useRedirectSignedIn } from "@/lib/use-portal-redirect";
+
+// Layout effect on the client (runs before paint), plain effect on the server
+// (avoids React's useLayoutEffect-on-server warning).
+const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
+/** Synchronously true when a Supabase session token is stored locally. */
+function hasStoredSession(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return Object.keys(window.localStorage).some((k) => k.endsWith("-auth-token"));
+  } catch {
+    return false;
+  }
+}
 
 // Marketing landing page. The design is a self-contained, approved static
 // layout that already uses the app's Sora/Manrope + Nova tokens, so it ships
@@ -13,8 +28,13 @@ import { useRedirectSignedIn } from "@/lib/use-portal-redirect";
 const LANDING_CSS = `*, *::before, *::after{ box-sizing: border-box; }
 
   /* Tokens lifted verbatim from the ConecktOS app design system
-     (src/styles.css). Same palette, same glass, same type stack. */
-  :root{
+     (src/styles.css). Same palette, same glass, same type stack. The marketing
+     page is a bespoke light design, so we pin these light values under every
+     theme (the app's :root[data-theme="dark"] would otherwise flip --ink /
+     --surface and make the dark CTA buttons show dark, unreadable text). */
+  :root,
+  :root[data-theme="light"],
+  :root[data-theme="dark"]{
     --bg: oklch(0.85 0.07 305);
     --bg-2: oklch(0.88 0.06 305);
     --surface: oklch(1 0 0);
@@ -2362,7 +2382,16 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const navigate = useNavigate();
   useRedirectSignedIn();
+
+  // Pre-paint redirect for the installed PWA / returning users: if a session
+  // token exists, jump into the app before the marketing page paints. The role
+  // guard on /admin then routes to the exact portal. SEO crawlers and signed-out
+  // visitors have no token, so they still get the full marketing page.
+  useIsomorphicLayoutEffect(() => {
+    if (hasStoredSession()) navigate({ to: "/admin", replace: true });
+  }, [navigate]);
 
   return (
     <>
