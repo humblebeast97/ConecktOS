@@ -311,7 +311,7 @@ export function AppShell({
                 <DropdownMenuItem
                   onSelect={() => {
                     signOut();
-                    navigate({ to: "/", replace: true });
+                    navigate({ to: "/login", replace: true });
                     toast.success("Signed out");
                   }}
                   className="gap-2 text-destructive focus:text-destructive"
