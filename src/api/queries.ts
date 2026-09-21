@@ -10,6 +10,7 @@ import type {
   TicketInventoryUsage,
   TicketItem,
 } from "@/lib/groompulse";
+import type { Subscription } from "@/lib/plans";
 
 /**
  * Supabase read layer for the api slice hooks. Every fetcher relies on RLS to
@@ -28,6 +29,7 @@ export const queryKeys = {
   ticketItems: ["ticketItems"] as const,
   attendance: ["attendance"] as const,
   expenses: ["expenses"] as const,
+  subscription: ["subscription"] as const,
 };
 
 async function selectAll<T>(table: string, orderBy?: { column: string; ascending?: boolean }) {
@@ -61,3 +63,14 @@ export const fetchAttendance = () =>
   selectAll<Attendance>("attendance", { column: "clock_in_time", ascending: false });
 export const fetchExpenses = () =>
   selectAll<Expense>("expenses", { column: "logged_at", ascending: false });
+
+/** The caller's subscription row (RLS returns only their business's). */
+export async function fetchSubscription(): Promise<Subscription | null> {
+  const { data, error } = await requireSupabase()
+    .from("subscriptions")
+    .select("*")
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as Subscription) ?? null;
+}

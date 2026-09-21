@@ -10,6 +10,7 @@ import {
   fetchInventory,
   fetchProfiles,
   fetchServices,
+  fetchSubscription,
   fetchTicketItems,
   fetchTickets,
   fetchUsage,
@@ -193,6 +194,17 @@ export function useAdminOps() {
   const { resetAll } = useStore();
   const m = useSupabaseMutations();
   return { resetAll: useSupabaseData ? m.resetAll : resetAll };
+}
+
+/** The current business's subscription (plan + staff cap). Null in mock mode or
+ * while loading. Reads only; plan changes come from billing (a later slice). */
+export function useSubscription() {
+  const q = useQuery({
+    queryKey: queryKeys.subscription,
+    queryFn: fetchSubscription,
+    enabled: useSupabaseData,
+  });
+  return { subscription: useSupabaseData ? (q.data ?? null) : null, isLoading: q.isLoading };
 }
 
 /** Onboarding writes (Supabase only): bootstrap a business, or generate/accept

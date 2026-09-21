@@ -20,7 +20,7 @@ import { EmptyState } from "@/components/app-shell";
 import { useSubmit } from "@/lib/use-submit";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth, useOnboarding, useStaff, useTickets } from "@/api";
+import { useAuth, useOnboarding, useStaff, useSubscription, useTickets } from "@/api";
 import {
   earnsCommission,
   naira,
@@ -30,6 +30,7 @@ import {
   roleLabel,
   type Role,
 } from "@/lib/groompulse";
+import { NEXT_PLAN, PLAN_LIMITS, isAtStaffCap, planLabel } from "@/lib/plans";
 import { useIndustryConfig } from "@/config/industry-context";
 
 const emptyForm = {
@@ -50,6 +51,13 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
   const { createInvite } = useOnboarding();
   const { profiles, addStaff, removeProfile } = useStaff();
   const { ticketItems } = useTickets();
+  const { subscription } = useSubscription();
+
+  // Plan staff cap (non-owner members). Only meaningful in Supabase mode.
+  const teamCount = profiles.filter((p) => p.role !== "owner").length;
+  const plan = subscription?.plan ?? null;
+  const staffCap = plan ? PLAN_LIMITS[plan].staffCap : null;
+  const atStaffCap = plan ? isAtStaffCap(plan, teamCount) : false;
   const industryRoleLabel = (role: Role) =>
     role === "staff" ? config.staffTitle : roleLabel[role];
   const [form, setForm] = useState(emptyForm);
@@ -97,6 +105,15 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
 
   const submit = () => {
     if (mode === "supabase") {
+      if (atStaffCap) {
+        const up = plan ? NEXT_PLAN[plan] : null;
+        toast.error(`You're at your ${plan ? planLabel(plan) : ""} staff limit (${staffCap})`, {
+          description: up
+            ? `Upgrade to ${planLabel(up)} to add more team members.`
+            : "Remove a member to free up a seat.",
+        });
+        return;
+      }
       // Staff sign in with their own account, so we generate an invite code the
       // owner shares. The member enters it at /join to create their profile.
       guarded(async () => {
@@ -163,6 +180,25 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
         }}
         className="card-lux h-fit rounded-2xl p-5"
       >
+        {subscription ? (
+          <div
+            className={
+              atStaffCap
+                ? "mb-4 rounded-xl border border-warning/40 bg-warning/10 px-3 py-2 text-xs"
+                : "mb-4 rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground"
+            }
+          >
+            <span className="font-semibold text-foreground">{planLabel(subscription.plan)}</span>{" "}
+            plan · {teamCount}
+            {staffCap === null ? "" : ` / ${staffCap}`} staff
+            {atStaffCap
+              ? (() => {
+                  const up = NEXT_PLAN[subscription.plan];
+                  return up ? ` · limit reached, upgrade to ${planLabel(up)} for more` : "";
+                })()
+              : ""}
+          </div>
+        ) : null}
         <div className="flex items-center gap-2">
           {steps.map((label, i) => {
             const shown = i <= lastStep;
