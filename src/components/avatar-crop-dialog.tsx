@@ -88,7 +88,7 @@ export function AvatarCropDialog({
         if (!open) onCancel();
       }}
     >
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="flex h-[100dvh] w-screen max-w-none flex-col gap-4 rounded-none border-0 p-4 pt-[max(1rem,env(safe-area-inset-top))] sm:h-auto sm:max-w-md sm:rounded-lg sm:border sm:p-6">
         <DialogHeader>
           <DialogTitle>Adjust your photo</DialogTitle>
           <DialogDescription>
@@ -96,7 +96,7 @@ export function AvatarCropDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="relative h-64 w-full overflow-hidden rounded-xl bg-muted">
+        <div className="relative w-full flex-1 overflow-hidden rounded-xl bg-muted sm:h-72 sm:flex-none">
           {src ? (
             <Cropper
               image={src}

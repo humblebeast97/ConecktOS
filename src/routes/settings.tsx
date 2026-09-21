@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import {
   Building2,
@@ -6,17 +6,21 @@ import {
   Clock,
   CreditCard,
   FileText,
+  Home,
   Lock,
   Loader2,
   MapPin,
   Monitor,
   Moon,
   Save,
+  Settings2,
   Sun,
+  Users,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
+import { BottomNav, BottomNavSpacer, type BottomNavItem } from "@/components/bottom-nav";
 import { LocationPicker } from "@/components/location-picker";
 import { AvatarCropDialog } from "@/components/avatar-crop-dialog";
 import { RouteError } from "@/components/route-error";
@@ -59,10 +63,56 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsPage() {
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { updateProfile } = useStaff();
   const canEditBusiness = currentUser?.role === "owner" || currentUser?.role === "manager";
   const isFrontDesk = currentUser?.role === "receptionist";
+  const role = currentUser?.role;
+  // Keep the portal's bottom nav on the Settings screen so tapping "Settings"
+  // does not strand the user without a way back to their dashboard.
+  const navItems: BottomNavItem[] =
+    role === "owner"
+      ? [
+          {
+            key: "overview",
+            label: "Home",
+            icon: Home,
+            onClick: () => navigate({ to: "/admin", search: { tab: "overview" } }),
+          },
+          {
+            key: "team",
+            label: "Team",
+            icon: Users,
+            onClick: () => navigate({ to: "/admin", search: { tab: "team" } }),
+          },
+          {
+            key: "reports",
+            label: "Reports",
+            icon: FileText,
+            onClick: () => navigate({ to: "/admin", search: { tab: "reports" } }),
+          },
+          { key: "settings", label: "Settings", icon: Settings2, onClick: () => {} },
+        ]
+      : role === "staff"
+        ? [
+            {
+              key: "today",
+              label: "Today",
+              icon: Home,
+              onClick: () => navigate({ to: "/staff", search: { view: "today" } }),
+            },
+            { key: "settings", label: "Settings", icon: Settings2, onClick: () => {} },
+          ]
+        : [
+            {
+              key: "front-desk",
+              label: "Front desk",
+              icon: Home,
+              onClick: () => navigate({ to: "/reception" }),
+            },
+            { key: "settings", label: "Settings", icon: Settings2, onClick: () => {} },
+          ];
   const { business, updateBusiness } = useBusiness();
   const [personalName, setPersonalName] = useState(currentUser?.full_name ?? "");
   const [personalSubmitted, setPersonalSubmitted] = useState(false);
@@ -136,234 +186,247 @@ function SettingsPage() {
             : "Appearance and account preferences"
       }
     >
-      <form
-        className="mx-auto max-w-2xl space-y-5"
-        onSubmit={(e) => {
-          e.preventDefault();
-          setPersonalSubmitted(true);
-          const nextName = personalName.trim();
-          const nameDirty = currentUser && nextName && nextName !== currentUser.full_name;
-          if (canEditBusiness) {
-            if (nameDirty && currentUser) updateProfile(currentUser.id, { full_name: nextName });
-            save();
-            return;
-          }
-          if (personalName.trim().length === 0) return;
-          if (nameDirty && currentUser) {
-            updateProfile(currentUser.id, { full_name: nextName });
-            toast.success("Settings saved");
-          } else {
-            toast.info("Nothing to save");
-          }
-        }}
-      >
-        <PersonalProfileSection
-          name={personalName}
-          onNameChange={setPersonalName}
-          nameError={personalNameError}
-        />
+      <BottomNavSpacer>
+        <form
+          className="mx-auto max-w-2xl space-y-5"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setPersonalSubmitted(true);
+            const nextName = personalName.trim();
+            const nameDirty = currentUser && nextName && nextName !== currentUser.full_name;
+            if (canEditBusiness) {
+              if (nameDirty && currentUser) updateProfile(currentUser.id, { full_name: nextName });
+              save();
+              return;
+            }
+            if (personalName.trim().length === 0) return;
+            if (nameDirty && currentUser) {
+              updateProfile(currentUser.id, { full_name: nextName });
+              toast.success("Settings saved");
+            } else {
+              toast.info("Nothing to save");
+            }
+          }}
+        >
+          <PersonalProfileSection
+            name={personalName}
+            onNameChange={setPersonalName}
+            nameError={personalNameError}
+          />
 
-        {canEditBusiness ? (
-          <section className="card-lux rounded-2xl p-5 sm:p-6">
-            <div className="flex items-start gap-3">
-              <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
-                <Building2 className="size-5" />
+          {canEditBusiness ? (
+            <section className="card-lux rounded-2xl p-5 sm:p-6">
+              <div className="flex items-start gap-3">
+                <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
+                  <Building2 className="size-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold">Business profile</h2>
+                  <p className="text-sm text-muted-foreground">Your business name and currency.</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-lg font-semibold">Business profile</h2>
-                <p className="text-sm text-muted-foreground">Your business name and currency.</p>
-              </div>
-            </div>
 
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="s-name">
-                  Business name <span className="text-primary">*</span>
-                </Label>
-                <Input
-                  id="s-name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="h-11 bg-surface"
-                  required
-                  minLength={2}
-                  maxLength={80}
-                  aria-invalid={Boolean(nameError)}
-                  aria-describedby="s-name-error"
-                />
-                <FieldError id="s-name-error" message={nameError} />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="s-cur">Currency</Label>
-                <Select value={currency} onValueChange={setCurrency}>
-                  <SelectTrigger id="s-cur" className="h-11 bg-surface">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {currencyOptions.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>
-                        {c.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </section>
-        ) : null}
-
-        {canEditBusiness ? (
-          <section className="card-lux rounded-2xl p-5 sm:p-6">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-semibold">Location &amp; hours</h2>
-                <p className="text-sm text-muted-foreground">Used for geofenced clock-ins.</p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={useMyLocation}
-                disabled={locating}
-                className="h-9"
-              >
-                {locating ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <MapPin className="size-4" />
-                )}
-                Use my location
-              </Button>
-            </div>
-
-            <div className="mt-5 space-y-4">
-              <LocationPicker
-                value={
-                  lat && lng
-                    ? { latitude: Number(lat), longitude: Number(lng), address_label: addressLabel }
-                    : null
-                }
-                radiusMeters={Number(radius) || 100}
-                onChange={(v) => {
-                  setLat(String(v.latitude));
-                  setLng(String(v.longitude));
-                  setAddressLabel(v.address_label);
-                }}
-              />
-
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="s-radius">Geofence radius (metres)</Label>
+                  <Label htmlFor="s-name">
+                    Business name <span className="text-primary">*</span>
+                  </Label>
                   <Input
-                    id="s-radius"
-                    type="number"
-                    inputMode="numeric"
-                    min={10}
-                    max={500}
-                    step={5}
-                    value={radius}
-                    onChange={(e) => setRadius(e.target.value)}
-                    placeholder="50"
+                    id="s-name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     className="h-11 bg-surface"
+                    required
+                    minLength={2}
+                    maxLength={80}
+                    aria-invalid={Boolean(nameError)}
+                    aria-describedby="s-name-error"
                   />
+                  <FieldError id="s-name-error" message={nameError} />
                 </div>
-                <div className="grid grid-cols-2 gap-5">
+                <div className="space-y-1.5">
+                  <Label htmlFor="s-cur">Currency</Label>
+                  <Select value={currency} onValueChange={setCurrency}>
+                    <SelectTrigger id="s-cur" className="h-11 bg-surface">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {currencyOptions.map((c) => (
+                        <SelectItem key={c.code} value={c.code}>
+                          {c.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </section>
+          ) : null}
+
+          {canEditBusiness ? (
+            <section className="card-lux rounded-2xl p-5 sm:p-6">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold">Location &amp; hours</h2>
+                  <p className="text-sm text-muted-foreground">Used for geofenced clock-ins.</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={useMyLocation}
+                  disabled={locating}
+                  className="h-9"
+                >
+                  {locating ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <MapPin className="size-4" />
+                  )}
+                  Use my location
+                </Button>
+              </div>
+
+              <div className="mt-5 space-y-4">
+                <LocationPicker
+                  value={
+                    lat && lng
+                      ? {
+                          latitude: Number(lat),
+                          longitude: Number(lng),
+                          address_label: addressLabel,
+                        }
+                      : null
+                  }
+                  radiusMeters={Number(radius) || 100}
+                  onChange={(v) => {
+                    setLat(String(v.latitude));
+                    setLng(String(v.longitude));
+                    setAddressLabel(v.address_label);
+                  }}
+                />
+
+                <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <Label htmlFor="s-open">Opens</Label>
-                    <TimeInput
-                      id="s-open"
-                      value={open}
-                      onChange={setOpen}
-                      ariaLabel="Opening time"
+                    <Label htmlFor="s-radius">Geofence radius (metres)</Label>
+                    <Input
+                      id="s-radius"
+                      type="number"
+                      inputMode="numeric"
+                      min={10}
+                      max={500}
+                      step={5}
+                      value={radius}
+                      onChange={(e) => setRadius(e.target.value)}
+                      placeholder="50"
+                      className="h-11 bg-surface"
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="s-close">Closes</Label>
-                    <TimeInput
-                      id="s-close"
-                      value={close}
-                      onChange={setClose}
-                      ariaLabel="Closing time"
-                    />
+                  <div className="grid grid-cols-2 gap-5">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="s-open">Opens</Label>
+                      <TimeInput
+                        id="s-open"
+                        value={open}
+                        onChange={setOpen}
+                        ariaLabel="Opening time"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="s-close">Closes</Label>
+                      <TimeInput
+                        id="s-close"
+                        value={close}
+                        onChange={setClose}
+                        ariaLabel="Closing time"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </section>
-        ) : null}
+            </section>
+          ) : null}
 
-        {!canEditBusiness ? <ReadOnlyLocationSection /> : null}
+          {!canEditBusiness ? <ReadOnlyLocationSection /> : null}
 
-        <section className="card-lux rounded-2xl p-5 sm:p-6">
-          <div>
-            <h2 className="text-lg font-semibold">Appearance</h2>
-            <p className="text-sm text-muted-foreground">
-              Match the app to your device or pick a side. Applied instantly, saved to this browser.
-            </p>
-          </div>
-          <ThemePicker />
-        </section>
-
-        {isFrontDesk ? <FrontDeskSection /> : null}
-
-        {canEditBusiness ? (
           <section className="card-lux rounded-2xl p-5 sm:p-6">
             <div>
-              <h2 className="text-lg font-semibold">Payroll reminder</h2>
+              <h2 className="text-lg font-semibold">Appearance</h2>
               <p className="text-sm text-muted-foreground">
-                When to show the "Payroll due" card on the Owner dashboard. Overdue paydays are
-                always highlighted, regardless of setting.
+                Match the app to your device or pick a side. Applied instantly, saved to this
+                browser.
               </p>
             </div>
-            <div
-              className="mt-4 flex flex-wrap gap-2"
-              role="radiogroup"
-              aria-label="Payroll reminder cadence"
-            >
-              {(
-                [
-                  { value: 0, label: "Off" },
-                  { value: 3, label: "3 days before" },
-                  { value: 7, label: "7 days before" },
-                  { value: -1, label: "Always" },
-                ] as const
-              ).map((opt) => {
-                const active = payrollReminder === opt.value;
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    role="radio"
-                    aria-checked={active}
-                    onClick={() => setPayrollReminder(opt.value)}
-                    className={
-                      active
-                        ? "cursor-pointer rounded-full bg-gradient-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        : "cursor-pointer rounded-full border border-border bg-surface px-4 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    }
-                  >
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
+            <ThemePicker />
           </section>
-        ) : null}
 
-        <Button type="submit" disabled={isSubmitting} className="h-12 w-full font-semibold">
-          {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-          {isSubmitting ? "Saving…" : "Save settings"}
-        </Button>
-        <p className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-          <FileText className="size-3.5" />
-          <Link to="/privacy" className="text-primary underline-offset-4 hover:underline">
-            Privacy
-          </Link>
-          <span>·</span>
-          <Link to="/terms" className="text-primary underline-offset-4 hover:underline">
-            Terms
-          </Link>
-        </p>
-      </form>
+          {isFrontDesk ? <FrontDeskSection /> : null}
+
+          {canEditBusiness ? (
+            <section className="card-lux rounded-2xl p-5 sm:p-6">
+              <div>
+                <h2 className="text-lg font-semibold">Payroll reminder</h2>
+                <p className="text-sm text-muted-foreground">
+                  When to show the "Payroll due" card on the Owner dashboard. Overdue paydays are
+                  always highlighted, regardless of setting.
+                </p>
+              </div>
+              <div
+                className="mt-4 flex flex-wrap gap-2"
+                role="radiogroup"
+                aria-label="Payroll reminder cadence"
+              >
+                {(
+                  [
+                    { value: 0, label: "Off" },
+                    { value: 3, label: "3 days before" },
+                    { value: 7, label: "7 days before" },
+                    { value: -1, label: "Always" },
+                  ] as const
+                ).map((opt) => {
+                  const active = payrollReminder === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => setPayrollReminder(opt.value)}
+                      className={
+                        active
+                          ? "cursor-pointer rounded-full bg-gradient-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          : "cursor-pointer rounded-full border border-border bg-surface px-4 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      }
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+
+          <Button type="submit" disabled={isSubmitting} className="h-12 w-full font-semibold">
+            {isSubmitting ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Save className="size-4" />
+            )}
+            {isSubmitting ? "Saving…" : "Save settings"}
+          </Button>
+          <p className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+            <FileText className="size-3.5" />
+            <Link to="/privacy" className="text-primary underline-offset-4 hover:underline">
+              Privacy
+            </Link>
+            <span>·</span>
+            <Link to="/terms" className="text-primary underline-offset-4 hover:underline">
+              Terms
+            </Link>
+          </p>
+        </form>
+      </BottomNavSpacer>
+
+      <BottomNav items={navItems} activeKey="settings" />
     </AppShell>
   );
 }
