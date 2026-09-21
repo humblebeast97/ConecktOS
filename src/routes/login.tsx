@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { defaultUserForRole } from "@/lib/store";
 import { useAuth } from "@/api";
+import { setRememberMe } from "@/lib/supabase";
 import { useRedirectSignedIn } from "@/lib/use-portal-redirect";
 import type { Role } from "@/lib/groompulse";
 
@@ -111,6 +112,7 @@ function LoginPage() {
   // /admin and let the role guard fan them out to their own portal.
   const oauthSignIn = (provider: "Google") => {
     if (mode === "supabase") {
+      setRememberMe(remember);
       submit(async () => {
         const { error } = await signInWithOAuth!("google");
         if (error) toast.error(`${provider} sign-in failed`, { description: error });
@@ -224,6 +226,7 @@ function LoginPage() {
               setSignInSubmitted(true);
               if (!emailValid || password.length < 6) return;
               if (mode === "supabase") {
+                setRememberMe(remember);
                 submit(async () => {
                   const { error } = await signInWithPassword!(email.trim(), password);
                   if (error) {
