@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { LocationPicker } from "@/components/location-picker";
+import { AvatarCropDialog } from "@/components/avatar-crop-dialog";
 import { RouteError } from "@/components/route-error";
 import { FieldError } from "@/components/field-error";
 import { useSubmit } from "@/lib/use-submit";
@@ -408,36 +409,8 @@ const initialsOf = (name: string) =>
     .map((w) => w[0]?.toUpperCase() ?? "")
     .join("");
 
-// Generous raw limit; the picked photo is downscaled client-side before saving,
-// so the stored image is small regardless of the original size.
+// Generous raw limit; the cropper downscales to a small JPEG before saving.
 const MAX_AVATAR_BYTES = 15 * 1024 * 1024;
-const AVATAR_MAX_PX = 256;
-
-/** Downscale + compress an image file to a small square-ish JPEG data URL. */
-function downscaleImage(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      const scale = Math.min(1, AVATAR_MAX_PX / Math.max(img.width, img.height));
-      const w = Math.max(1, Math.round(img.width * scale));
-      const h = Math.max(1, Math.round(img.height * scale));
-      const canvas = document.createElement("canvas");
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return reject(new Error("Canvas unavailable"));
-      ctx.drawImage(img, 0, 0, w, h);
-      resolve(canvas.toDataURL("image/jpeg", 0.85));
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Couldn't read that photo"));
-    };
-    img.src = url;
-  });
-}
 
 function PersonalProfileSection({
   name,
@@ -451,12 +424,13 @@ function PersonalProfileSection({
   const { currentUser } = useAuth();
   const { updateProfile } = useStaff();
   const fileRef = useRef<HTMLInputElement>(null);
-  // Instant local preview so the photo shows immediately, before the save round-trip.
+  // The picked file opens the cropper; the cropped result previews instantly.
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
 
   if (!currentUser) return null;
 
-  const onPhotoPicked = async (file: File) => {
+  const pickFile = (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Pick an image file");
       return;
@@ -465,14 +439,19 @@ function PersonalProfileSection({
       toast.error("Photo must be 15 MB or smaller");
       return;
     }
-    try {
-      const dataUrl = await downscaleImage(file);
-      setPreview(dataUrl); // show it right away
-      updateProfile(currentUser.id, { avatar_url: dataUrl });
-      toast.success("Photo updated");
-    } catch {
-      toast.error("Couldn't process that photo");
-    }
+    setCropFile(file);
+  };
+
+  const resetInput = () => {
+    setCropFile(null);
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  const onCropped = (dataUrl: string) => {
+    setPreview(dataUrl); // show it right away
+    updateProfile(currentUser.id, { avatar_url: dataUrl });
+    resetInput();
+    toast.success("Photo updated");
   };
 
   const clearPhoto = () => {
@@ -525,9 +504,10 @@ function PersonalProfileSection({
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) void onPhotoPicked(file);
+              if (file) pickFile(file);
             }}
           />
+          <AvatarCropDialog file={cropFile} onCancel={resetInput} onCropped={onCropped} />
         </div>
         <div className="min-w-0 flex-1 space-y-1.5">
           <Label htmlFor="p-name">Full name</Label>
