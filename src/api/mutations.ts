@@ -378,6 +378,41 @@ export function useSupabaseMutations() {
           }),
         );
       },
+
+      // --- Payroll + close-day (awaitable) ---
+
+      recordPayrollPayment: async (
+        staffId: string,
+        periodStart: string,
+        periodEnd: string,
+        commission: number,
+        baseSalary: number,
+      ): Promise<void> => {
+        await call(
+          requireSupabase().rpc("record_payroll_payment", {
+            p_staff_id: staffId,
+            p_period_start: periodStart,
+            p_period_end: periodEnd,
+            p_commission: commission,
+            p_base_salary: baseSalary,
+          }),
+        );
+        qc.invalidateQueries({ queryKey: queryKeys.profiles });
+      },
+
+      closeDay: async (
+        periodStart: string,
+        periodEnd: string,
+        totals: Record<string, unknown>,
+      ): Promise<void> => {
+        await call(
+          requireSupabase().rpc("close_day", {
+            p_period_start: periodStart,
+            p_period_end: periodEnd,
+            p_totals: totals,
+          }),
+        );
+      },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [qc],

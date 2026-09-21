@@ -193,7 +193,12 @@ export function useExpenses() {
 export function useAdminOps() {
   const { resetAll } = useStore();
   const m = useSupabaseMutations();
-  return { resetAll: useSupabaseData ? m.resetAll : resetAll };
+  return {
+    resetAll: useSupabaseData ? m.resetAll : resetAll,
+    // Supabase-only server ops; components call these behind a mode check.
+    recordPayrollPayment: m.recordPayrollPayment,
+    closeDay: m.closeDay,
+  };
 }
 
 /** The current business's subscription (plan + staff cap). Null in mock mode or

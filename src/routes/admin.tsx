@@ -11,6 +11,7 @@ import {
   FileDown,
   Fuel,
   Home,
+  Loader2,
   Lock,
   Percent,
   Plus,
@@ -61,6 +62,7 @@ import {
 import {
   useAdminOps,
   useAttendance,
+  useAuth,
   useSessionUser,
   useExpenses,
   useInventory,
@@ -904,6 +906,8 @@ function PayrollSection() {
   const { staff, updateProfile } = useStaff();
   const { tickets, ticketItems } = useTickets();
   const { business } = useBusiness();
+  const { mode } = useAuth();
+  const { recordPayrollPayment } = useAdminOps();
   const [monthOffset, setMonthOffset] = useState(0);
 
   const range = useMemo(() => monthRange(monthOffset), [monthOffset]);
@@ -914,16 +918,39 @@ function PayrollSection() {
 
   const unpaid = run.lines.filter((l) => !l.paid && l.total > 0);
 
+  // Local YYYY-MM-DD (avoids the UTC day-shift a toISOString slice would cause).
+  const ymd = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+  // In Supabase mode a payment records an immutable payroll_line + payments row
+  // (and still stamps salary_last_paid_at). Mock mode keeps the timestamp stamp.
+  const payLine = (l: (typeof run.lines)[number]) => {
+    if (mode === "supabase") {
+      return recordPayrollPayment(
+        l.staff_id,
+        ymd(range.from),
+        ymd(range.to),
+        l.commission,
+        l.base_salary,
+      );
+    }
+    updateProfile(l.staff_id, { salary_last_paid_at: new Date().toISOString() });
+    return Promise.resolve();
+  };
+
   const markPaid = (staffId: string) => {
-    updateProfile(staffId, { salary_last_paid_at: new Date().toISOString() });
-    toast.success("Marked paid", { description: monthLabel(range.from) });
+    const l = run.lines.find((x) => x.staff_id === staffId);
+    if (!l) return;
+    void payLine(l).then(() =>
+      toast.success("Marked paid", { description: monthLabel(range.from) }),
+    );
   };
 
   const markAllPaid = () => {
     if (unpaid.length === 0) return;
-    const stamp = new Date().toISOString();
-    unpaid.forEach((l) => updateProfile(l.staff_id, { salary_last_paid_at: stamp }));
-    toast.success(`${unpaid.length} marked paid`, { description: monthLabel(range.from) });
+    void Promise.all(unpaid.map((l) => payLine(l))).then(() =>
+      toast.success(`${unpaid.length} marked paid`, { description: monthLabel(range.from) }),
+    );
   };
 
   const exportCSV = () => {
@@ -1061,6 +1088,9 @@ function CloseDayDialog({
   const { tickets, ticketItems } = useTickets();
   const { inventory, usage } = useInventory();
   const { expenses } = useExpenses();
+  const { mode } = useAuth();
+  const { closeDay } = useAdminOps();
+  const [closing, setClosing] = useState(false);
   const today = toDateInput(new Date());
   const [fromStr, setFromStr] = useState(today);
   const [toStr, setToStr] = useState(today);
@@ -1281,6 +1311,36 @@ function CloseDayDialog({
             <Download className="size-4" />
             Export transactions (CSV)
           </Button>
+          {mode === "supabase" ? (
+            <Button
+              variant="outline"
+              disabled={closing || noActivity}
+              onClick={() => {
+                setClosing(true);
+                void closeDay(fromDate.toISOString(), toDate.toISOString(), {
+                  gross: audit.gross,
+                  commissions_payable: audit.commissionsPayable,
+                  total_expenses: audit.totalExpenses,
+                  net_position: audit.netPosition,
+                  pending_count: audit.pendingCount,
+                })
+                  .then(() =>
+                    toast.success("Period closed and snapshot saved", {
+                      description: formatRange(fromDate, toDate),
+                    }),
+                  )
+                  .catch((e: unknown) =>
+                    toast.error("Could not close the period", {
+                      description: e instanceof Error ? e.message : String(e),
+                    }),
+                  )
+                  .finally(() => setClosing(false));
+              }}
+            >
+              {closing ? <Loader2 className="size-4 animate-spin" /> : <Lock className="size-4" />}
+              Close &amp; lock period
+            </Button>
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>
