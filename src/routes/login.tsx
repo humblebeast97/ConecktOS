@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ConciergeBell,
   Eye,
@@ -29,7 +29,13 @@ import {
 import { defaultUserForRole } from "@/lib/store";
 import { useAuth } from "@/api";
 import { setRememberMe } from "@/lib/supabase";
-import { clearExpectedRole, setExpectedRole, useRedirectSignedIn } from "@/lib/use-portal-redirect";
+import {
+  clearExpectedRole,
+  readLoginEmail,
+  rememberLoginEmail,
+  setExpectedRole,
+  useRedirectSignedIn,
+} from "@/lib/use-portal-redirect";
 import type { Role } from "@/lib/groompulse";
 
 export const Route = createFileRoute("/login")({
@@ -90,6 +96,12 @@ function LoginPage() {
   const [role, setRole] = useState<Role>("owner");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  // Refill the email after a wrong-tab refusal (set after mount, not in the
+  // initial state, so the server and client first renders match).
+  useEffect(() => {
+    const saved = readLoginEmail();
+    if (saved) setEmail(saved);
+  }, []);
   const [signInSubmitted, setSignInSubmitted] = useState(false);
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const emailError = signInSubmitted && !emailValid ? "Enter a valid email address" : null;
@@ -234,6 +246,7 @@ function LoginPage() {
               if (mode === "supabase") {
                 setRememberMe(remember);
                 setExpectedRole(role);
+                rememberLoginEmail(email.trim());
                 submit(async () => {
                   const { error } = await signInWithPassword!(email.trim(), password);
                   if (error) {

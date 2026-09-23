@@ -6,6 +6,7 @@ import { useAuth } from "@/api";
 import { roleLabel } from "@/lib/groompulse";
 import {
   clearExpectedRole,
+  clearLoginEmail,
   portalFor,
   readExpectedRole,
   roleMatchesTab,
@@ -49,10 +50,12 @@ function PortalEntry() {
       toast.error("Wrong sign-in tab for this account", {
         description: `These are ${roleLabel[currentUser.role]} credentials, so they can't sign in on the ${tabLabel(tab)} tab. Pick the ${tabLabel(currentUser.role)} tab and try again.`,
       });
+      // The typed email is kept, so the login screen refills it.
       void Promise.resolve(signOut()).finally(() => navigate({ to: "/login", replace: true }));
       return;
     }
 
+    clearLoginEmail();
     navigate({ to: portalFor(currentUser.role), replace: true });
   }, [currentUser, isLoading, navigate, signOut]);
 

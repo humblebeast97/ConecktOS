@@ -63,6 +63,38 @@ export function roleMatchesTab(tab: Role, role: Role): boolean {
   return tab === role;
 }
 
+// The email typed at sign-in, kept so a wrong-tab refusal (which signs the user
+// out and reloads the login screen) doesn't make them retype it. sessionStorage
+// only: scoped to this tab, gone when it closes. Cleared on a successful sign-in.
+const LOGIN_EMAIL_KEY = "conecktos-login-email";
+
+export function rememberLoginEmail(email: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(LOGIN_EMAIL_KEY, email);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function readLoginEmail(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    return window.sessionStorage.getItem(LOGIN_EMAIL_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+export function clearLoginEmail(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.removeItem(LOGIN_EMAIL_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 /** User-facing tab name for the wrong-tab error, exactly as the login tabs read. */
 export function tabLabel(tab: Role): string {
   if (tab === "owner") return "Owner";
