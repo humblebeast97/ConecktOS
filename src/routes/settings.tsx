@@ -489,7 +489,10 @@ function PersonalProfileSection({
   const fileRef = useRef<HTMLInputElement>(null);
   // The picked file opens the cropper; the cropped result previews instantly.
   const [cropFile, setCropFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  // Local override so add/remove reflect immediately, before the profile query
+  // refetches: undefined = follow the server value, null = just removed, string
+  // = just set.
+  const [preview, setPreview] = useState<string | null | undefined>(undefined);
 
   if (!currentUser) return null;
 
@@ -524,7 +527,7 @@ function PersonalProfileSection({
     toast.success("Photo removed");
   };
 
-  const shownAvatar = preview ?? currentUser.avatar_url;
+  const shownAvatar = preview === undefined ? currentUser.avatar_url : preview;
 
   return (
     <section className="card-lux rounded-2xl p-5 sm:p-6">

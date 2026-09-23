@@ -299,8 +299,11 @@ export function useSupabaseMutations() {
           >
         >,
       ): void => {
+        // Invalidate "me" too: the signed-in user's own avatar/name is read from
+        // that query (header + settings), so without it an avatar add/remove
+        // would not reflect until some other refetch happened.
         fire(
-          [queryKeys.profiles],
+          [queryKeys.profiles, ["me"]],
           () => call(requireSupabase().from("profiles").update(patch).eq("id", profileId)),
           "Could not update the profile",
         );
