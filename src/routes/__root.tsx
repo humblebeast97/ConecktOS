@@ -166,9 +166,20 @@ function RootComponent() {
   // Register the PWA service worker (production only) so the app is installable
   // and works offline. Dev is skipped to avoid stale-cache surprises while coding.
   useEffect(() => {
-    if (import.meta.env.PROD && "serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
-    }
+    if (!import.meta.env.PROD || !("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+    // When a new service worker version takes control (e.g. after a deploy that
+    // bumped the cache version), reload once so the installed app drops the old
+    // cached bundle and runs the fresh build instead of a stale one.
+    let refreshing = false;
+    const onControllerChange = () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    };
+    navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
+    return () =>
+      navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
   }, []);
 
   return (
