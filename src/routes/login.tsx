@@ -29,7 +29,7 @@ import {
 import { defaultUserForRole } from "@/lib/store";
 import { useAuth } from "@/api";
 import { setRememberMe } from "@/lib/supabase";
-import { useRedirectSignedIn } from "@/lib/use-portal-redirect";
+import { clearExpectedRole, setExpectedRole, useRedirectSignedIn } from "@/lib/use-portal-redirect";
 import type { Role } from "@/lib/groompulse";
 
 export const Route = createFileRoute("/login")({
@@ -109,13 +109,18 @@ function LoginPage() {
   const active = roles.find((r) => r.role === role)!;
 
   // After a real sign-in we don't yet know the role, so we send the user to
-  // /portal, which forwards them to their own portal once the profile loads.
+  // /portal. It checks the account's role against the tab they signed in on
+  // (refusing a mismatch) and forwards them to their own portal.
   const oauthSignIn = (provider: "Google") => {
     if (mode === "supabase") {
       setRememberMe(remember);
+      setExpectedRole(role);
       submit(async () => {
         const { error } = await signInWithOAuth!("google");
-        if (error) toast.error(`${provider} sign-in failed`, { description: error });
+        if (error) {
+          clearExpectedRole();
+          toast.error(`${provider} sign-in failed`, { description: error });
+        }
         // On success the browser is redirected to the provider; no navigate here.
       });
       return;
@@ -161,8 +166,9 @@ function LoginPage() {
           <h2 className="font-display text-2xl font-bold tracking-tight">Welcome back</h2>
           <p className="mt-1 text-sm text-muted-foreground">Sign in to run your day.</p>
 
-          {/* Role chips: demo helper. Removed once Supabase invites give each
-           * user their role at sign-up. */}
+          {/* Role tabs. Enforced: credentials only work on the tab matching the
+           * account's role (checked in /portal after sign-in). The Front desk
+           * tab covers receptionists and managers. */}
           <div
             className="mt-5 grid grid-cols-3 gap-1.5 rounded-full border border-border bg-muted p-1"
             role="radiogroup"
@@ -227,9 +233,11 @@ function LoginPage() {
               if (!emailValid || password.length < 6) return;
               if (mode === "supabase") {
                 setRememberMe(remember);
+                setExpectedRole(role);
                 submit(async () => {
                   const { error } = await signInWithPassword!(email.trim(), password);
                   if (error) {
+                    clearExpectedRole();
                     toast.error("Sign in failed", { description: error });
                     return;
                   }
