@@ -51,7 +51,11 @@ export async function fetchBusiness(): Promise<Business | null> {
   return (data as Business) ?? null;
 }
 
-export const fetchProfiles = () => selectAll<Profile>("profiles", { column: "full_name" });
+// Read the roster through profiles_secure: peers' payout/salary columns come
+// back NULL unless the caller is the row owner or an owner/manager (see the
+// 20260923120000_profiles_payout_privacy migration). Writes still target the
+// base `profiles` table.
+export const fetchProfiles = () => selectAll<Profile>("profiles_secure", { column: "full_name" });
 export const fetchServices = () => selectAll<Service>("services", { column: "name" });
 export const fetchInventory = () =>
   selectAll<InventoryItem>("inventory_items", { column: "item_name" });

@@ -39,8 +39,11 @@ const AuthContext = createContext<AuthApi | null>(null);
 
 async function fetchMyProfile(userId: string): Promise<Profile | null> {
   if (!supabase) return null;
+  // Read own profile through profiles_secure so the base-table SELECT revoke on
+  // sensitive columns does not block it; the view returns the caller's own
+  // payout in full (see the 20260923120000_profiles_payout_privacy migration).
   const { data, error } = await supabase
-    .from("profiles")
+    .from("profiles_secure")
     .select("*")
     .eq("id", userId)
     .maybeSingle();
