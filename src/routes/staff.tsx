@@ -38,10 +38,10 @@ import {
   useSessionUser,
   useBusiness,
   useServices,
-  useStaff,
   useTickets,
 } from "@/api";
 import { useSupabaseMutations } from "@/api/mutations";
+import { useRoleGuard } from "@/lib/access";
 import { haversineMeters, naira, timeOf, type Profile, type Business } from "@/lib/groompulse";
 import { copyText } from "@/lib/clipboard";
 import { staffDailyCommission } from "@/lib/reports";
@@ -54,6 +54,10 @@ const QRCode = lazy(() => import("react-qr-code"));
 
 type StaffView = "today" | "profile";
 const STAFF_VIEWS: readonly StaffView[] = ["today", "profile"] as const;
+
+// Only staff belong in the staff portal. Owners see the team from /admin; they
+// must not be shown (or act as) another employee here.
+const STAFF_ROLES = ["staff"] as const;
 
 export const Route = createFileRoute("/staff")({
   validateSearch: (search: Record<string, unknown>): { view?: StaffView } => ({
@@ -79,11 +83,11 @@ export const Route = createFileRoute("/staff")({
 });
 
 function StaffPortal() {
+  useRoleGuard(STAFF_ROLES);
   const config = useIndustryConfig();
   const currentUser = useSessionUser();
   const { mode } = useAuth();
   const sbm = useSupabaseMutations();
-  const { staff } = useStaff();
   const { business } = useBusiness();
   const { tickets, ticketItems } = useTickets();
   const { services } = useServices();
@@ -107,8 +111,9 @@ function StaffPortal() {
     },
   ];
 
-  // Owners/receptionists previewing this portal see the first staff member's view.
-  const me = currentUser.role === "staff" ? currentUser : staff[0];
+  // Staff-only screen: a staff member always views themselves, never another
+  // employee. Non-staff are bounced by useRoleGuard and never rendered.
+  const me = currentUser;
   const [locating, setLocating] = useState(false);
 
   const open = openAttendanceFor(me.id);
@@ -182,6 +187,10 @@ function StaffPortal() {
       { enableHighAccuracy: true, timeout: 8000 },
     );
   };
+
+  // Redirecting (useRoleGuard). Render nothing so a non-staff user never sees a
+  // staff member's data, even for the frame before the redirect lands.
+  if (currentUser.role !== "staff") return null;
 
   return (
     <AppShell>
@@ -497,9 +506,10 @@ function TipQrDialog({
   trigger?: boolean;
 } = {}) {
   const currentUser = useSessionUser();
-  const { staff } = useStaff();
   const { business } = useBusiness();
-  const me = currentUser.role === "staff" ? currentUser : staff[0];
+  // Rendered only inside the staff-only portal, so this is always the signed-in
+  // staff member. Their own tip QR / payout, never another employee's.
+  const me = currentUser;
   const hasBank = Boolean(me.account_number);
   const accountName = me.account_name ?? me.full_name;
   const first = me.full_name.split(" ")[0];
