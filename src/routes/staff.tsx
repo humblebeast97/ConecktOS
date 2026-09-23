@@ -47,6 +47,7 @@ import {
 } from "@/api";
 import { useSupabaseMutations } from "@/api/mutations";
 import { useRoleGuard } from "@/lib/access";
+import { AccessDenied } from "@/components/access-denied";
 import { haversineMeters, naira, timeOf, type Profile, type Business } from "@/lib/groompulse";
 import { copyText } from "@/lib/clipboard";
 import { staffDailyCommission } from "@/lib/reports";
@@ -88,7 +89,7 @@ export const Route = createFileRoute("/staff")({
 });
 
 function StaffPortal() {
-  useRoleGuard(STAFF_ROLES);
+  const allowed = useRoleGuard(STAFF_ROLES);
   const config = useIndustryConfig();
   const currentUser = useSessionUser();
   const { mode } = useAuth();
@@ -193,9 +194,9 @@ function StaffPortal() {
     );
   };
 
-  // Redirecting (useRoleGuard). Render nothing so a non-staff user never sees a
-  // staff member's data, even for the frame before the redirect lands.
-  if (currentUser.role !== "staff") return null;
+  // Not a staff member: show the access-denied screen instead of an employee's
+  // data (the guard has already raised the error toast).
+  if (!allowed) return <AccessDenied allowed={STAFF_ROLES} />;
 
   return (
     <AppShell>

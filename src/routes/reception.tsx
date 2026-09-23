@@ -53,6 +53,7 @@ import {
   useTickets,
 } from "@/api";
 import { useRoleGuard } from "@/lib/access";
+import { AccessDenied } from "@/components/access-denied";
 import {
   haversineMeters,
   naira,
@@ -100,7 +101,7 @@ export const Route = createFileRoute("/reception")({
 const RECEPTION_ROLES = ["owner", "manager", "receptionist"] as const;
 
 function ReceptionPage() {
-  useRoleGuard(RECEPTION_ROLES);
+  const allowed = useRoleGuard(RECEPTION_ROLES);
   const config = useIndustryConfig();
   const currentUser = useSessionUser();
   const { staff } = useStaff();
@@ -191,6 +192,9 @@ function ReceptionPage() {
       el?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
   };
+
+  // Not front-desk/owner: show the access-denied screen (guard raised the toast).
+  if (!allowed) return <AccessDenied allowed={RECEPTION_ROLES} />;
 
   return (
     <AppShell>

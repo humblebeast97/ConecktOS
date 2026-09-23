@@ -72,6 +72,7 @@ import {
   useTickets,
 } from "@/api";
 import { useRoleGuard } from "@/lib/access";
+import { AccessDenied } from "@/components/access-denied";
 import {
   compensationLabel,
   compensationType,
@@ -126,7 +127,7 @@ export const Route = createFileRoute("/admin")({
 const ADMIN_ROLES = ["owner"] as const;
 
 function AdminPage() {
-  useRoleGuard(ADMIN_ROLES);
+  const allowed = useRoleGuard(ADMIN_ROLES);
   const config = useIndustryConfig();
   const { tab = "overview" } = Route.useSearch();
   const navigate = useNavigate();
@@ -230,6 +231,9 @@ function AdminPage() {
     shown: shownExpenses,
     total: totalExpenses,
   } = usePaginated(filteredExpenses, 10);
+
+  // Non-owner: show the access-denied screen (the guard raised the error toast).
+  if (!allowed) return <AccessDenied allowed={ADMIN_ROLES} />;
 
   return (
     <AppShell
