@@ -10,10 +10,10 @@ import { OnboardingSetup } from "@/components/onboarding-setup";
  * keep dereferencing `currentUser` directly. In the default mock mode this is a
  * pure pass-through and changes nothing.
  *
- * Protected areas: /admin, /reception, /staff, /settings. Everything else
- * (landing, /login, /signup, /join, /privacy, /terms, /tip) is public.
+ * Protected areas: /admin, /reception, /staff, /settings, /portal. Everything
+ * else (landing, /login, /signup, /join, /privacy, /terms, /tip) is public.
  */
-const PROTECTED_PREFIXES = ["/admin", "/reception", "/staff", "/settings"];
+const PROTECTED_PREFIXES = ["/admin", "/reception", "/staff", "/settings", "/portal"];
 
 function FullScreen({ children }: { children: ReactNode }) {
   return <div className="grid min-h-dvh place-items-center px-6 text-center">{children}</div>;

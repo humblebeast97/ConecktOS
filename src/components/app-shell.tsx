@@ -73,11 +73,15 @@ export function AppShell({
     if (!isSignedIn) navigate({ to: "/login", replace: true });
   }, [isSignedIn, navigate]);
 
-  // Ops notifications. Only for owner / manager / front desk.
+  // Ops notifications. Pending tickets link to /reception, which owner /
+  // manager / front desk can all open. Low stock and off-site clock-ins link to
+  // the owner-only /admin, so only the owner gets those (anyone else would land
+  // on the Access denied screen).
   const showOps = ["owner", "manager", "receptionist"].includes(currentUser.role);
-  const low = showOps ? lowStock(inventory) : [];
+  const isOwner = currentUser.role === "owner";
+  const low = isOwner ? lowStock(inventory) : [];
   const pending = showOps ? tickets.filter((t) => t.status === "pending") : [];
-  const offSite = showOps
+  const offSite = isOwner
     ? attendance.filter((a) => a.clock_out_time === null && !a.is_within_geofence)
     : [];
 

@@ -2401,12 +2401,12 @@ function Landing() {
   useRedirectSignedIn();
 
   // Pre-paint redirect for the installed PWA / returning users: if a session
-  // token exists, jump into the app before the marketing page paints. The role
-  // guard on /admin then routes to the exact portal. SEO crawlers and signed-out
+  // token exists, jump into the app before the marketing page paints. /portal
+  // then forwards to the user's own portal by role. SEO crawlers and signed-out
   // visitors have no token, so they still get the full marketing page.
   useIsomorphicLayoutEffect(() => {
     if (hasStoredSession()) {
-      navigate({ to: "/admin", replace: true });
+      navigate({ to: "/portal", replace: true });
     } else if (isInstalledApp()) {
       navigate({ to: "/login", replace: true });
     }

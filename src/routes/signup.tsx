@@ -92,7 +92,7 @@ function SignUpPage() {
         toast.success("Account created", {
           description: "If asked, confirm your email, then finish setting up your business.",
         });
-        navigate({ to: "/admin" });
+        navigate({ to: "/portal" });
       });
       return;
     }

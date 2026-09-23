@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as JoinRouteImport } from './routes/join'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as PortalRouteImport } from './routes/portal'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ReceptionRouteImport } from './routes/reception'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -41,6 +42,11 @@ const JoinRoute = JoinRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalRoute = PortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/join': typeof JoinRoute
   '/login': typeof LoginRoute
+  '/portal': typeof PortalRoute
   '/privacy': typeof PrivacyRoute
   '/reception': typeof ReceptionRoute
   '/settings': typeof SettingsRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/join': typeof JoinRoute
   '/login': typeof LoginRoute
+  '/portal': typeof PortalRoute
   '/privacy': typeof PrivacyRoute
   '/reception': typeof ReceptionRoute
   '/settings': typeof SettingsRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/join': typeof JoinRoute
   '/login': typeof LoginRoute
+  '/portal': typeof PortalRoute
   '/privacy': typeof PrivacyRoute
   '/reception': typeof ReceptionRoute
   '/settings': typeof SettingsRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/join'
     | '/login'
+    | '/portal'
     | '/privacy'
     | '/reception'
     | '/settings'
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/join'
     | '/login'
+    | '/portal'
     | '/privacy'
     | '/reception'
     | '/settings'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/join'
     | '/login'
+    | '/portal'
     | '/privacy'
     | '/reception'
     | '/settings'
@@ -188,6 +200,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   JoinRoute: typeof JoinRoute
   LoginRoute: typeof LoginRoute
+  PortalRoute: typeof PortalRoute
   PrivacyRoute: typeof PrivacyRoute
   ReceptionRoute: typeof ReceptionRoute
   SettingsRoute: typeof SettingsRoute
@@ -227,6 +240,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal': {
+      id: '/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof PortalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -300,6 +320,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   JoinRoute: JoinRoute,
   LoginRoute: LoginRoute,
+  PortalRoute: PortalRoute,
   PrivacyRoute: PrivacyRoute,
   ReceptionRoute: ReceptionRoute,
   SettingsRoute: SettingsRoute,

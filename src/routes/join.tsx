@@ -150,7 +150,7 @@ function JoinPage() {
         toast.success("Account created", {
           description: "If asked, confirm your email, then enter your invite code to join.",
         });
-        navigate({ to: "/admin" });
+        navigate({ to: "/portal" });
       });
       return;
     }

@@ -142,7 +142,7 @@ const THEME_BOOT = `(function(){try{var t=localStorage.getItem('conecktos-theme'
 // in routes/index.tsx runs only after first paint (too late on a hard load);
 // this blocking <head> script beats the paint. Only acts on "/", so SEO
 // crawlers and signed-out browser visitors still get the full landing.
-const ENTRY_BOOT = `(function(){try{if(location.pathname!=='/')return;var hasToken=false;try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.slice(-11)==='-auth-token'){hasToken=true;break;}}}catch(e){}var standalone=false;try{standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;}catch(e){}if(hasToken){location.replace('/admin');}else if(standalone){location.replace('/login');}}catch(e){}})();`;
+const ENTRY_BOOT = `(function(){try{if(location.pathname!=='/')return;var hasToken=false;try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.slice(-11)==='-auth-token'){hasToken=true;break;}}}catch(e){}var standalone=false;try{standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;}catch(e){}if(hasToken){location.replace('/portal');}else if(standalone){location.replace('/login');}}catch(e){}})();`;
 
 function RootShell({ children }: { children: ReactNode }) {
   return (

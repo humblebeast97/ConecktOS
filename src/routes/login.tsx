@@ -109,7 +109,7 @@ function LoginPage() {
   const active = roles.find((r) => r.role === role)!;
 
   // After a real sign-in we don't yet know the role, so we send the user to
-  // /admin and let the role guard fan them out to their own portal.
+  // /portal, which forwards them to their own portal once the profile loads.
   const oauthSignIn = (provider: "Google") => {
     if (mode === "supabase") {
       setRememberMe(remember);
@@ -233,7 +233,7 @@ function LoginPage() {
                     toast.error("Sign in failed", { description: error });
                     return;
                   }
-                  navigate({ to: "/admin" });
+                  navigate({ to: "/portal" });
                 });
                 return;
               }
