@@ -124,11 +124,27 @@ function JoinPage() {
           toast.error("Sign up failed", { description: error });
           return;
         }
-        if (inviteCode.trim() && typeof window !== "undefined") {
+        // Carry what the staff member entered about THEMSELVES through to the
+        // invite-acceptance step (OnboardingSetup), which creates their profile.
+        // The invite code links them to a business; the role + commission come
+        // from the owner's invite, everything here is the member's own.
+        if (typeof window !== "undefined") {
           try {
-            window.localStorage.setItem("conecktos-invite-code", inviteCode.trim());
+            if (inviteCode.trim()) {
+              window.localStorage.setItem("conecktos-invite-code", inviteCode.trim());
+            }
+            window.localStorage.setItem(
+              "conecktos-join-profile",
+              JSON.stringify({
+                full_name: fullName.trim(),
+                job_title: jobTitle.trim() || null,
+                bank_name: isFrontDesk ? null : bankName.trim() || null,
+                account_number: isFrontDesk ? null : accountNumber.trim() || null,
+                account_name: isFrontDesk ? null : accountName.trim() || fullName.trim(),
+              }),
+            );
           } catch {
-            /* storage unavailable: they can re-enter the code on the setup screen */
+            /* storage unavailable: they can re-enter details on the setup screen */
           }
         }
         toast.success("Account created", {

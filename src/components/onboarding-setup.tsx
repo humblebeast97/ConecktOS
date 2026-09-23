@@ -12,6 +12,15 @@ import { useOnboarding } from "@/api";
  * On success the `me` profile query refetches and AuthGate renders their portal.
  */
 const INVITE_KEY = "conecktos-invite-code";
+const JOIN_PROFILE_KEY = "conecktos-join-profile";
+
+type JoinProfile = {
+  full_name?: string;
+  job_title?: string | null;
+  bank_name?: string | null;
+  account_number?: string | null;
+  account_name?: string | null;
+};
 
 function readInviteCode() {
   if (typeof window === "undefined") return "";
@@ -22,14 +31,27 @@ function readInviteCode() {
   }
 }
 
+/** Details the member entered about themselves at /join, carried over so their
+ * profile is created with their own name, job title and payout (never the
+ * owner's). Empty when they reached setup without going through /join. */
+function readJoinProfile(): JoinProfile {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(window.localStorage.getItem(JOIN_PROFILE_KEY) ?? "{}") as JoinProfile;
+  } catch {
+    return {};
+  }
+}
+
 export function OnboardingSetup({ onSignOut }: { onSignOut: () => void | Promise<void> }) {
   const { createOwnerBusiness, acceptInvite } = useOnboarding();
   const pendingCode = readInviteCode();
+  const joinProfile = readJoinProfile();
   const [tab, setTab] = useState<"create" | "join">(pendingCode ? "join" : "create");
   const [businessName, setBusinessName] = useState("");
   const [ownerName, setOwnerName] = useState("");
   const [code, setCode] = useState(pendingCode);
-  const [fullName, setFullName] = useState("");
+  const [fullName, setFullName] = useState(joinProfile.full_name ?? "");
   const [busy, setBusy] = useState(false);
 
   const createBusiness = async () => {
@@ -57,9 +79,17 @@ export function OnboardingSetup({ onSignOut }: { onSignOut: () => void | Promise
     }
     setBusy(true);
     try {
-      await acceptInvite!(code.trim(), fullName.trim(), null, null, null, null);
+      await acceptInvite!(
+        code.trim(),
+        fullName.trim(),
+        joinProfile.job_title ?? null,
+        joinProfile.bank_name ?? null,
+        joinProfile.account_number ?? null,
+        joinProfile.account_name ?? fullName.trim(),
+      );
       try {
         window.localStorage.removeItem(INVITE_KEY);
+        window.localStorage.removeItem(JOIN_PROFILE_KEY);
       } catch {
         /* ignore */
       }

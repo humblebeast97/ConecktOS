@@ -84,15 +84,20 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
     );
   }, [profiles, filter, rosterQuery]);
 
+  // In Supabase mode staff create their own login and enter their own name,
+  // job title and payout details when they accept the invite. So the owner only
+  // sets the terms here (role + commission) and shares an invite code. The mock
+  // demo keeps the full add-a-person wizard.
+  const inviteMode = mode === "supabase";
   const isEarner = earnsCommission(form.role);
   const nameValid = form.full_name.trim().length >= 3;
-  const lastStep = 1;
+  const lastStep = inviteMode ? 0 : 1;
   const [nameTouched, setNameTouched] = useState(false);
   const { isSubmitting, submit: guarded } = useSubmit();
   const nameError = nameTouched && !nameValid ? "Full name must be at least 3 characters" : null;
 
   const next = () => {
-    if (step === 0 && !nameValid) {
+    if (!inviteMode && step === 0 && !nameValid) {
       setNameTouched(true);
       return;
     }
@@ -199,7 +204,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
               : ""}
           </div>
         ) : null}
-        <div className="flex items-center gap-2">
+        <div className={inviteMode ? "hidden" : "flex items-center gap-2"}>
           {steps.map((label, i) => {
             const shown = i <= lastStep;
             if (!shown) return null;
@@ -224,7 +229,13 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
         </div>
 
         <div className="mt-5 min-h-[13rem] space-y-4">
-          {step === 0 ? (
+          {inviteMode ? (
+            <p className="rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+              Set the role and commission, then share the invite code. Your teammate signs up at
+              /join and enters their own name, job title and payout details.
+            </p>
+          ) : null}
+          {!inviteMode && step === 0 ? (
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="full_name">
@@ -267,7 +278,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
             </div>
           ) : null}
 
-          {step === 1 ? (
+          {inviteMode || step === 1 ? (
             <div className="space-y-4">
               {roleGroups.map((group) => (
                 <div key={group.label} className="space-y-2">
@@ -324,7 +335,7 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
                 </div>
               ) : null}
 
-              <div className="space-y-3 border-t border-border pt-4">
+              <div className={inviteMode ? "hidden" : "space-y-3 border-t border-border pt-4"}>
                 <div className="flex items-center justify-between">
                   <Label htmlFor="onb-salary">Monthly base salary</Label>
                   <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -393,12 +404,12 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
               isSubmitting ? (
                 <>
                   <Loader2 className="size-5 animate-spin" />
-                  Adding…
+                  {inviteMode ? "Creating invite…" : "Adding…"}
                 </>
               ) : (
                 <>
                   <UserPlus className="size-5" />
-                  Add to team
+                  {inviteMode ? "Create invite code" : "Add to team"}
                 </>
               )
             ) : (
