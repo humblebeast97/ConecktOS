@@ -24,6 +24,10 @@ import { RouteError } from "@/components/route-error";
 import { Skeleton } from "@/components/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { FieldError } from "@/components/field-error";
+import { useSubmit } from "@/lib/use-submit";
 import {
   Dialog,
   DialogContent,
@@ -38,6 +42,7 @@ import {
   useSessionUser,
   useBusiness,
   useServices,
+  useStaff,
   useTickets,
 } from "@/api";
 import { useSupabaseMutations } from "@/api/mutations";
@@ -367,29 +372,7 @@ function StaffPortal() {
               </div>
             </div>
 
-            <div className="grid gap-3 border-t border-border pt-4 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Bank</span>
-                <span className="font-medium">{me.bank_name ?? "Not set"}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Account number</span>
-                <span className="font-display tabular-nums font-semibold">
-                  {me.account_number ?? "Not set"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Account name</span>
-                <span className="font-medium">{me.account_name ?? me.full_name}</span>
-              </div>
-            </div>
-
-            {!me.account_number ? (
-              <p className="rounded-xl border border-warning/50 bg-surface p-3 text-xs text-warning-foreground">
-                Ask your manager to add your bank details from the team roster so clients can tip
-                you.
-              </p>
-            ) : null}
+            <PayoutSection me={me} />
           </section>
         ) : null}
 
@@ -421,6 +404,103 @@ function StaffPortal() {
       ) : null}
       <BottomNav items={navItems} activeKey={view === "profile" ? "profile" : "today"} />
     </AppShell>
+  );
+}
+
+/** The staff member enters and edits their OWN payout details. Writes go to
+ * their own profile row (self-update is allowed by RLS); only they and the
+ * owner can read these back. Owners never type an employee's bank details. */
+function PayoutSection({ me }: { me: Profile }) {
+  const { updateProfile } = useStaff();
+  const [bankName, setBankName] = useState(me.bank_name ?? "");
+  const [accountNumber, setAccountNumber] = useState(me.account_number ?? "");
+  const [accountName, setAccountName] = useState(me.account_name ?? me.full_name);
+  const [submitted, setSubmitted] = useState(false);
+  const { isSubmitting, submit } = useSubmit();
+
+  const acct = accountNumber.trim();
+  const acctError =
+    submitted && acct && !/^\d{10}$/.test(acct) ? "Account number must be exactly 10 digits" : null;
+  const bankError = submitted && acct && !bankName.trim() ? "Bank name is required" : null;
+
+  const save = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitted(true);
+    if (acct && !/^\d{10}$/.test(acct)) return;
+    if (acct && !bankName.trim()) return;
+    submit(() => {
+      updateProfile(me.id, {
+        bank_name: bankName.trim() || null,
+        account_number: acct || null,
+        account_name: accountName.trim() || me.full_name,
+      });
+      toast.success("Payout details saved");
+    });
+  };
+
+  return (
+    <form onSubmit={save} className="space-y-4 border-t border-border pt-4">
+      <div>
+        <p className="text-sm font-semibold">Your payout details</p>
+        <p className="text-xs text-muted-foreground">
+          Where your tips are sent. Only you and the owner can see these.
+        </p>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="pf-bank">Bank name</Label>
+          <Input
+            id="pf-bank"
+            value={bankName}
+            onChange={(e) => setBankName(e.target.value)}
+            placeholder="e.g. GTBank"
+            className="h-11 bg-surface"
+            maxLength={60}
+            aria-invalid={Boolean(bankError)}
+            aria-describedby="pf-bank-error"
+          />
+          <FieldError id="pf-bank-error" message={bankError} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="pf-acct">Account number</Label>
+          <Input
+            id="pf-acct"
+            inputMode="numeric"
+            pattern="\d{10}"
+            maxLength={10}
+            value={accountNumber}
+            onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
+            placeholder="10-digit NUBAN"
+            className="h-11 bg-surface"
+            aria-invalid={Boolean(acctError)}
+            aria-describedby="pf-acct-error"
+          />
+          <FieldError id="pf-acct-error" message={acctError} />
+        </div>
+        <div className="space-y-1.5 sm:col-span-2">
+          <Label htmlFor="pf-acctname">Account name</Label>
+          <Input
+            id="pf-acctname"
+            value={accountName}
+            onChange={(e) => setAccountName(e.target.value)}
+            placeholder="Defaults to your full name"
+            className="h-11 bg-surface"
+            maxLength={80}
+          />
+        </div>
+      </div>
+      <Button type="submit" disabled={isSubmitting} className="h-11 w-full font-semibold">
+        {isSubmitting ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <Banknote className="size-4" />
+        )}
+        {isSubmitting ? "Saving…" : "Save payout details"}
+      </Button>
+      <p className="text-xs text-muted-foreground">
+        Your tip QR won't work until your account number is set.
+      </p>
+    </form>
   );
 }
 
@@ -555,7 +635,7 @@ function TipQrDialog({
           <DialogDescription>
             {hasBank
               ? "Clients scan or copy your bank details to transfer a tip directly."
-              : "No payout account yet. Ask your manager to add your bank details."}
+              : "No payout account yet. Add your bank details on the Profile tab."}
           </DialogDescription>
         </DialogHeader>
 
@@ -650,7 +730,7 @@ function TipQrDialog({
           </>
         ) : (
           <div className="rounded-2xl border border-warning/50 bg-surface p-5 text-center text-sm text-warning-foreground">
-            Your bank details aren't set up yet. Ask your manager to add them from the team roster.
+            Your bank details aren't set up yet. Add them on the Profile tab so clients can tip you.
           </div>
         )}
       </DialogContent>
