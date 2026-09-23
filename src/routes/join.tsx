@@ -25,6 +25,10 @@ import type { Role } from "@/lib/groompulse";
 import { useIndustryConfig } from "@/config/industry-context";
 
 export const Route = createFileRoute("/join")({
+  // Invite links arrive as /join?code=XXXX; the code pre-fills the form.
+  validateSearch: (search: Record<string, unknown>): { code?: string } => ({
+    code: typeof search.code === "string" && search.code.trim() ? search.code.trim() : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Team sign-up · ConecktOS" },
@@ -64,7 +68,8 @@ function JoinPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [inviteCode, setInviteCode] = useState("");
+  const { code: linkCode } = Route.useSearch();
+  const [inviteCode, setInviteCode] = useState(linkCode ?? "");
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");

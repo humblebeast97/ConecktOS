@@ -373,13 +373,27 @@ export function useSupabaseMutations() {
         commissionRate: number,
         email: string | null,
       ): Promise<string> => {
-        return call<string>(
+        const code = await call<string>(
           requireSupabase().rpc("create_invite", {
             p_role: role,
             p_commission_rate: commissionRate,
             p_email: email,
           }),
         );
+        qc.invalidateQueries({ queryKey: queryKeys.invites });
+        return code;
+      },
+
+      // Cancel an unused invite so its link/code stops working.
+      revokeInvite: async (inviteId: string): Promise<void> => {
+        await call(
+          requireSupabase()
+            .from("invites")
+            .update({ status: "revoked" })
+            .eq("id", inviteId)
+            .eq("status", "pending"),
+        );
+        qc.invalidateQueries({ queryKey: queryKeys.invites });
       },
 
       // --- Payroll + close-day (awaitable) ---

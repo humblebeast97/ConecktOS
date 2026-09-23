@@ -11,6 +11,7 @@ import type {
   TicketItem,
 } from "@/lib/groompulse";
 import type { Subscription } from "@/lib/plans";
+import type { Invite } from "@/lib/invites";
 
 /**
  * Supabase read layer for the api slice hooks. Every fetcher relies on RLS to
@@ -30,6 +31,7 @@ export const queryKeys = {
   attendance: ["attendance"] as const,
   expenses: ["expenses"] as const,
   subscription: ["subscription"] as const,
+  invites: ["invites"] as const,
 };
 
 async function selectAll<T>(table: string, orderBy?: { column: string; ascending?: boolean }) {
@@ -67,6 +69,19 @@ export const fetchAttendance = () =>
   selectAll<Attendance>("attendance", { column: "clock_in_time", ascending: false });
 export const fetchExpenses = () =>
   selectAll<Expense>("expenses", { column: "logged_at", ascending: false });
+
+/** Unused, unexpired invites for the caller's business, newest first. RLS
+ * limits invites to owners/managers of that business. */
+export async function fetchPendingInvites(): Promise<Invite[]> {
+  const { data, error } = await requireSupabase()
+    .from("invites")
+    .select("id,business_id,code,role,preset_commission_rate,email,status,created_at,expires_at")
+    .eq("status", "pending")
+    .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data as Invite[]) ?? [];
+}
 
 /** The caller's subscription row (RLS returns only their business's). */
 export async function fetchSubscription(): Promise<Subscription | null> {

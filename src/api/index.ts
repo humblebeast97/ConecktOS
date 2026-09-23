@@ -10,6 +10,7 @@ import {
   fetchInventory,
   fetchProfiles,
   fetchServices,
+  fetchPendingInvites,
   fetchSubscription,
   fetchTicketItems,
   fetchTickets,
@@ -220,5 +221,16 @@ export function useOnboarding() {
     createOwnerBusiness: m.createOwnerBusiness,
     acceptInvite: m.acceptInvite,
     createInvite: m.createInvite,
+    revokeInvite: m.revokeInvite,
   };
+}
+
+/** Pending invites the owner/manager can share or revoke (Supabase only). */
+export function useInvites() {
+  const q = useQuery({
+    queryKey: queryKeys.invites,
+    queryFn: fetchPendingInvites,
+    enabled: useSupabaseData,
+  });
+  return { invites: q.data ?? [], isLoading: q.isLoading };
 }
