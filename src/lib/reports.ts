@@ -50,6 +50,8 @@ export interface AuditReport {
   commissionsPayable: number;
   fuelExpense: number;
   totalExpenses: number;
+  /** Non-voided expenses logged in the range, all categories. */
+  expenseCount: number;
   generatorHours: number;
   billedServices: number;
   overheadPerService: number;
@@ -130,6 +132,7 @@ export function buildAudit(
     commissionsPayable,
     fuelExpense,
     totalExpenses,
+    expenseCount: rangeExpenses.length,
     generatorHours,
     billedServices,
     overheadPerService: billedServices ? Math.round(fuelExpense / billedServices) : 0,
@@ -253,16 +256,16 @@ export function buildPayroll(
   const to = endOfDay(range.to);
 
   const paidIds = new Set(
-    args.tickets.filter((t) => t.status === "paid" && inRange(t.created_at, from, to)).map((t) => t.id),
+    args.tickets
+      .filter((t) => t.status === "paid" && inRange(t.created_at, from, to))
+      .map((t) => t.id),
   );
 
   const lines: PayrollLine[] = args.staff.map((p) => {
     const mine = args.ticketItems.filter((i) => i.staff_id === p.id && paidIds.has(i.ticket_id));
     const commission = mine.reduce((s, i) => s + i.staff_commission_amount, 0);
     const base_salary = p.base_salary ?? 0;
-    const paid = p.salary_last_paid_at
-      ? inRange(p.salary_last_paid_at, from, to)
-      : false;
+    const paid = p.salary_last_paid_at ? inRange(p.salary_last_paid_at, from, to) : false;
     return {
       staff_id: p.id,
       name: p.full_name,

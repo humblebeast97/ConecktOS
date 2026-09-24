@@ -17,6 +17,7 @@ import {
   Plus,
   RotateCcw,
   Printer,
+  Receipt,
   Search,
   Settings2,
   TrendingUp,
@@ -320,6 +321,19 @@ function AdminPage() {
                     hint: `${audit.generatorHours}h run`,
                     icon: Fuel,
                     tone: audit.fuelExpense > 0 ? "danger" : "default",
+                  },
+                  {
+                    // Every category (maintenance, supplies, rent...), not just
+                    // generator fuel, so any expense logged today is visible here.
+                    key: "expenses",
+                    label: "Expenses",
+                    value: naira(audit.totalExpenses),
+                    hint:
+                      audit.expenseCount === 0
+                        ? "none logged today"
+                        : `${audit.expenseCount} logged today`,
+                    icon: Receipt,
+                    tone: audit.totalExpenses > 0 ? "warning" : "default",
                   },
                   {
                     key: "commissions",
@@ -853,7 +867,7 @@ function ExpenseForm({
               step={1}
               value={amount}
               onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ""))}
-              placeholder="18000"
+              placeholder="e.g. 18000"
               className="h-11 bg-surface"
             />
           </div>
@@ -865,7 +879,7 @@ function ExpenseForm({
               value={hours}
               disabled={category !== "generator_fuel"}
               onChange={(e) => setHours(e.target.value)}
-              placeholder="6"
+              placeholder="e.g. 6"
               className="h-11 bg-surface"
             />
           </div>
@@ -876,7 +890,7 @@ function ExpenseForm({
             id="notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Diesel top-up. 20 litres"
+            placeholder="e.g. Diesel top-up, 20 litres"
             className="h-11 bg-surface"
           />
         </div>
@@ -1435,6 +1449,17 @@ function ExpenseRow({
           <p className="mt-0.5 truncate text-xs text-muted-foreground">
             {expense.notes || "No notes"}
             {expense.generator_hours_run != null ? ` · ${expense.generator_hours_run}h run` : ""}
+          </p>
+          {/* The log spans every day while the dashboard shows today only, so
+           * the date makes it clear which day an expense counts toward. */}
+          <p className="mt-0.5 text-[11px] text-muted-foreground/80">
+            {new Date(expense.logged_at).toLocaleString("en-NG", {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+              hour: "numeric",
+              minute: "2-digit",
+            })}
           </p>
           {isVoided ? (
             <p className="mt-1 text-xs text-destructive">
