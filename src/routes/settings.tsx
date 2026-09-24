@@ -309,7 +309,11 @@ function SettingsPage() {
                   <h2 className="text-lg font-semibold">Location &amp; hours</h2>
                   <p className="text-sm text-muted-foreground">Used for geofenced clock-ins.</p>
                 </div>
+                {/* type="button": it sits inside the settings form, and a bare
+                 * button would submit (save) the form on tap, then the reload of
+                 * the saved data would wipe the location it just captured. */}
                 <Button
+                  type="button"
                   variant="outline"
                   size="sm"
                   onClick={useMyLocation}

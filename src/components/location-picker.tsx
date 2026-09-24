@@ -271,6 +271,14 @@ function MapPreview({
 
   useEffect(() => {
     if (!ref.current || !center || !hasMap) return;
+    // The map container unmounts whenever the location is cleared (the "pick an
+    // address" placeholder renders instead) and a new one mounts when a location
+    // is set again. A map left attached to the old, detached container is
+    // invisible, so discard it and build a fresh one in the current container.
+    if (state.current && state.current.map.getContainer() !== ref.current) {
+      state.current.map.remove();
+      state.current = null;
+    }
     if (!state.current) {
       let map: maplibregl.Map;
       try {
