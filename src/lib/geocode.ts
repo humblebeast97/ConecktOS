@@ -67,9 +67,14 @@ export async function reverseGeocode(
 function toMatch(f: MapTilerFeature): GeocodeMatch {
   const full = f.place_name ?? f.text ?? "";
   const parts = full.split(",").map((s) => s.trim());
-  const label = f.text ?? parts[0] ?? "";
+  const name = f.text ?? parts[0] ?? "";
+  // place_name often repeats the name with a house number first
+  // ("Adetokunbo Ademola Street 1415, 500001 Eti Osa, Nigeria"). Prefer that more
+  // specific form as the label, and drop any part that just repeats the name.
+  const first = parts[0] ?? "";
+  const label = name && first.startsWith(name) ? first : name;
   const region = parts
-    .filter((p) => p !== label)
+    .filter((p) => p !== label && !(name && p.startsWith(name)))
     .slice(0, 3)
     .join(", ");
   return {

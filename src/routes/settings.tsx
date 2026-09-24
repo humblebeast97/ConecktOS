@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { BottomNav, BottomNavSpacer, type BottomNavItem } from "@/components/bottom-nav";
 import { LocationPicker } from "@/components/location-picker";
+import { reverseGeocode } from "@/lib/geocode";
 import { AvatarCropDialog } from "@/components/avatar-crop-dialog";
 import { RouteError } from "@/components/route-error";
 import { FieldError } from "@/components/field-error";
@@ -162,9 +163,20 @@ function SettingsPage() {
     }
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLat(pos.coords.latitude.toFixed(5));
-        setLng(pos.coords.longitude.toFixed(5));
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setLat(latitude.toFixed(5));
+        setLng(longitude.toFixed(5));
+        // Look up the address for these coordinates, like the map picker's own
+        // "Use my current location" link does, so the address bar isn't left empty.
+        const match = await reverseGeocode(latitude, longitude);
+        setAddressLabel(
+          match
+            ? match.region
+              ? `${match.label}, ${match.region}`
+              : match.label
+            : "Pinned location",
+        );
         setLocating(false);
         toast.success("Location captured");
       },
