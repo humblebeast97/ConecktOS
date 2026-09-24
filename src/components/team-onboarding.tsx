@@ -21,7 +21,7 @@ import { InvitesPanel } from "@/components/invites-panel";
 import { useSubmit } from "@/lib/use-submit";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth, useOnboarding, useStaff, useSubscription, useTickets } from "@/api";
+import { useAuth, useInvites, useOnboarding, useStaff, useSubscription, useTickets } from "@/api";
 import {
   earnsCommission,
   naira,
@@ -54,11 +54,16 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
   const { ticketItems } = useTickets();
   const { subscription } = useSubscription();
 
-  // Plan staff cap (non-owner members). Only meaningful in Supabase mode.
+  // Plan staff cap: non-owner members plus pending invites. Supabase mode only.
   const teamCount = profiles.filter((p) => p.role !== "owner").length;
+  // Pending invites hold a seat too (the server counts them the same way), so a
+  // plan can't be oversold with links that would fail when people try to join.
+  const { invites } = useInvites();
+  const pendingInvites = invites.length;
+  const seatsUsed = teamCount + pendingInvites;
   const plan = subscription?.plan ?? null;
   const staffCap = plan ? PLAN_LIMITS[plan].staffCap : null;
-  const atStaffCap = plan ? isAtStaffCap(plan, teamCount) : false;
+  const atStaffCap = plan ? isAtStaffCap(plan, seatsUsed) : false;
   const industryRoleLabel = (role: Role) =>
     role === "staff" ? config.staffTitle : roleLabel[role];
   const [form, setForm] = useState(emptyForm);
@@ -116,9 +121,12 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
       if (atStaffCap) {
         const up = plan ? NEXT_PLAN[plan] : null;
         toast.error(`You're at your ${plan ? planLabel(plan) : ""} staff limit (${staffCap})`, {
-          description: up
-            ? `Upgrade to ${planLabel(up)} to add more team members.`
-            : "Remove a member to free up a seat.",
+          description:
+            pendingInvites > 0
+              ? `${pendingInvites} unused invite${pendingInvites > 1 ? "s" : ""} hold${pendingInvites > 1 ? "" : "s"} a seat. Revoke one${up ? ` or upgrade to ${planLabel(up)}` : ""} to invite someone new.`
+              : up
+                ? `Upgrade to ${planLabel(up)} to add more team members.`
+                : "Remove a member to free up a seat.",
         });
         return;
       }
@@ -198,8 +206,11 @@ export function TeamOnboarding({ compact = false }: { compact?: boolean }) {
               }
             >
               <span className="font-semibold text-foreground">{planLabel(subscription.plan)}</span>{" "}
-              plan · {teamCount}
-              {staffCap === null ? "" : ` / ${staffCap}`} staff
+              plan · {seatsUsed}
+              {staffCap === null ? "" : ` / ${staffCap}`} seats
+              {pendingInvites > 0
+                ? ` (${teamCount} staff + ${pendingInvites} pending invite${pendingInvites > 1 ? "s" : ""})`
+                : ""}
               {atStaffCap
                 ? (() => {
                     const up = NEXT_PLAN[subscription.plan];
