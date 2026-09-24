@@ -256,6 +256,14 @@ function MapPreview({
     [value],
   );
 
+  // Latest centre + radius, read by the map's async callbacks ("load", marker
+  // "dragend"). Those callbacks are registered once, so without this they would
+  // draw with the values from when the map was first created: if the location
+  // changes before the style finishes loading (e.g. Settings swapping in the
+  // saved business), the circle would land on the stale spot, away from the pin.
+  const latest = useRef({ center, radiusMeters });
+  latest.current = { center, radiusMeters };
+
   const setCircle = (map: maplibregl.Map, lng: number, lat: number, radius: number) => {
     const src = map.getSource("geofence") as maplibregl.GeoJSONSource | undefined;
     src?.setData(circleFeature(lng, lat, radius));
@@ -282,10 +290,15 @@ function MapPreview({
         .addTo(map);
 
       map.on("load", () => {
+        const now = latest.current;
+        const c = now.center ?? center;
         map.addSource("geofence", {
           type: "geojson",
-          data: circleFeature(center.lng, center.lat, radiusMeters),
+          data: circleFeature(c.lng, c.lat, now.radiusMeters),
         });
+        // The marker may also have been created at the stale spot.
+        marker.setLngLat([c.lng, c.lat]);
+        map.setCenter([c.lng, c.lat]);
         map.addLayer({
           id: "geofence-fill",
           type: "fill",
@@ -302,7 +315,7 @@ function MapPreview({
 
       marker.on("dragend", () => {
         const { lat, lng } = marker.getLngLat();
-        setCircle(map, lng, lat, radiusMeters);
+        setCircle(map, lng, lat, latest.current.radiusMeters);
         void reverseGeocode(lat, lng).then((m) =>
           onChange({
             latitude: lat,
