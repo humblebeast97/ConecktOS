@@ -137,7 +137,7 @@ interface StoreValue {
     >,
   ) => void;
   removeProfile: (profileId: string) => void;
-  updateBusiness: (patch: Partial<Business>) => void;
+  updateBusiness: (patch: Partial<Business>) => void | Promise<void>;
   /** Clears tickets, commissions, usage, attendance, expenses and zeroes stock on hand. */
   resetAll: () => void;
 }

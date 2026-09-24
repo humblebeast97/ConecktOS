@@ -34,20 +34,26 @@ export function BusinessProfilePanel() {
   const onSave = () => {
     setSubmitted(true);
     if (!name.trim()) return;
-    submit(() => {
+    submit(async () => {
       const clampedRadius = Math.min(RADIUS_MAX, Math.max(RADIUS_MIN, radius));
-      updateBusiness({
-        name: name.trim(),
-        geofence_radius_meters: clampedRadius,
-        ...(location
-          ? {
-              latitude: location.latitude,
-              longitude: location.longitude,
-              address_label: location.address_label,
-            }
-          : {}),
-      });
-      toast.success("Business profile saved");
+      try {
+        await updateBusiness({
+          name: name.trim(),
+          geofence_radius_meters: clampedRadius,
+          ...(location
+            ? {
+                latitude: location.latitude,
+                longitude: location.longitude,
+                address_label: location.address_label,
+              }
+            : {}),
+        });
+        toast.success("Business profile saved");
+      } catch (e) {
+        toast.error("Business profile not saved", {
+          description: e instanceof Error ? e.message : String(e),
+        });
+      }
     });
   };
 

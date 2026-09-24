@@ -317,15 +317,18 @@ export function useSupabaseMutations() {
         );
       },
 
-      updateBusiness: (patch: Partial<Business>): void => {
-        fire(
-          [queryKeys.business],
-          async () => {
-            const bid = await call<string>(requireSupabase().rpc("current_business_id"));
-            await call(requireSupabase().from("businesses").update(patch).eq("id", bid));
-          },
-          "Could not update the business",
+      // Awaitable so callers only report "saved" once the row is really written.
+      // RLS turns a disallowed update into a silent 0-row success, so we select
+      // the id back and treat "no row" as a failure instead of a fake save.
+      updateBusiness: async (patch: Partial<Business>): Promise<void> => {
+        const bid = await call<string>(requireSupabase().rpc("current_business_id"));
+        const rows = await call<{ id: string }[]>(
+          requireSupabase().from("businesses").update(patch).eq("id", bid).select("id"),
         );
+        if (!rows || rows.length === 0) {
+          throw new Error("You don't have permission to change the business settings.");
+        }
+        qc.invalidateQueries({ queryKey: queryKeys.business });
       },
 
       resetAll: (): void => {

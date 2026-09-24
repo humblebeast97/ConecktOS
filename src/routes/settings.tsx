@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Building2,
   Camera,
@@ -113,7 +113,7 @@ function SettingsPage() {
             },
             { key: "settings", label: "Settings", icon: Settings2, onClick: () => {} },
           ];
-  const { business, updateBusiness } = useBusiness();
+  const { business, updateBusiness, isLoading: isBusinessLoading } = useBusiness();
   const [personalName, setPersonalName] = useState(currentUser?.full_name ?? "");
   const [personalSubmitted, setPersonalSubmitted] = useState(false);
   const personalNameError = personalSubmitted && !personalName.trim() ? "Name is required" : null;
@@ -133,6 +133,27 @@ function SettingsPage() {
   const [submitted, setSubmitted] = useState(false);
   const { isSubmitting, submit } = useSubmit();
   const nameError = submitted && !name.trim() ? "Business name is required" : null;
+
+  // The fields above are seeded on first render, which in Supabase mode is the
+  // placeholder business until the real row loads. Re-seed whenever the loaded
+  // business changes (first load, and the refetch after a save) so the form
+  // always shows, and saves, the real values rather than the placeholder.
+  const seededFrom = useRef<string | null>(null);
+  useEffect(() => {
+    if (isBusinessLoading) return;
+    const signature = JSON.stringify(business);
+    if (seededFrom.current === signature) return;
+    seededFrom.current = signature;
+    setName(business.name);
+    setCurrency(business.currency);
+    setRadius(String(business.geofence_radius_meters));
+    setLat(business.latitude ? business.latitude.toString() : "");
+    setLng(business.longitude ? business.longitude.toString() : "");
+    setAddressLabel(business.address_label ?? "");
+    setOpen(business.open_time);
+    setClose(business.close_time);
+    setPayrollReminder(business.payroll_reminder_days ?? 7);
+  }, [business, isBusinessLoading]);
 
   const useMyLocation = () => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
@@ -158,20 +179,26 @@ function SettingsPage() {
   const save = () => {
     setSubmitted(true);
     if (!name.trim()) return;
-    submit(() => {
+    submit(async () => {
       const clampedRadius = Math.min(500, Math.max(10, Number(radius) || 50));
-      updateBusiness({
-        name: name.trim(),
-        currency,
-        geofence_radius_meters: clampedRadius,
-        open_time: open,
-        close_time: close,
-        payroll_reminder_days: payrollReminder,
-        ...(lat ? { latitude: Number(lat) } : {}),
-        ...(lng ? { longitude: Number(lng) } : {}),
-        ...(addressLabel ? { address_label: addressLabel } : {}),
-      });
-      toast.success("Settings saved");
+      try {
+        await updateBusiness({
+          name: name.trim(),
+          currency,
+          geofence_radius_meters: clampedRadius,
+          open_time: open,
+          close_time: close,
+          payroll_reminder_days: payrollReminder,
+          ...(lat ? { latitude: Number(lat) } : {}),
+          ...(lng ? { longitude: Number(lng) } : {}),
+          ...(addressLabel ? { address_label: addressLabel } : {}),
+        });
+        toast.success("Settings saved");
+      } catch (e) {
+        toast.error("Settings not saved", {
+          description: e instanceof Error ? e.message : String(e),
+        });
+      }
     });
   };
 
