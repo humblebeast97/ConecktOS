@@ -43,7 +43,7 @@ jobs:
       - name: Start local Supabase and apply migrations
         run: >
           supabase start
-          -x studio,imgproxy,inbucket,mailpit,edge-runtime,logflare,vector,realtime,storage-api,postgres-meta,supavisor
+          -x studio,imgproxy,mailpit,edge-runtime,logflare,vector,realtime,storage-api,postgres-meta,supavisor
 
       - name: Point the tests at the local database
         run: |
