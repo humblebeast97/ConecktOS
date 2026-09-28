@@ -203,8 +203,7 @@ export function TicketBuilder() {
               placeholder="0803 000 0000"
               className="h-11 bg-surface"
             />
-            {draft.clientPhone.trim() &&
-            draft.clientPhone.replace(/\D/g, "").length < 7 ? (
+            {draft.clientPhone.trim() && draft.clientPhone.replace(/\D/g, "").length < 7 ? (
               <p className="text-xs text-muted-foreground">
                 Enter at least 7 digits, or leave blank.
               </p>
