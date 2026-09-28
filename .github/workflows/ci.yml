@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, typecheck, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm run build
+
+  security:
+    # Builds a throwaway local Supabase from supabase/migrations, seeds it
+    # through the real signup/invite flow, and runs the security suite,
+    # including the end-to-end money flows that are skipped against the real
+    # project. Nothing here touches the real project or needs its secrets.
+    name: Security tests (throwaway database)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.103.0
+
+      - name: Start local Supabase and apply migrations
+        run: >
+          supabase start
+          -x studio,imgproxy,inbucket,mailpit,edge-runtime,logflare,vector,realtime,storage-api,postgres-meta,supavisor
+
+      - name: Point the tests at the local database
+        run: |
+          eval "$(supabase status -o env)"
+          {
+            echo "VITE_SUPABASE_URL=$API_URL"
+            echo "VITE_SUPABASE_PUBLISHABLE_KEY=$PUBLISHABLE_KEY"
+            echo "CONECKTOS_TEST_PASSWORD=ci-only-Passw0rd!"
+          } > .env
+
+      - name: Seed test business and accounts
+        run: node --env-file=.env tests/security/seed.mjs
+
+      - name: Run security tests
+        run: npm run test:security
+
+      - name: Stop local Supabase
+        if: always()
+        run: supabase stop --no-backup
