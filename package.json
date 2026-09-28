@@ -9,7 +9,8 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test:security": "node --env-file=.env --test \"tests/security/*.test.mjs\""
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.11",
