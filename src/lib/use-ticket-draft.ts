@@ -183,7 +183,9 @@ export function useTicketDraft() {
       toast.error(`Add at least one ${config.serviceTitle.toLowerCase()} to the ticket`);
       return;
     }
-    const usage = effectiveUsage;
+    // A zero quantity means "none used"; the server rejects non-positive usage
+    // lines, so drop them rather than failing the whole ticket.
+    const usage = effectiveUsage.filter((u) => u.quantity_used > 0);
     createTicket({
       client_name: clientName.trim(),
       client_phone: clientPhone.trim(),
